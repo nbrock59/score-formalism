@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://score-theory.org/polaris#"
+     xml:base="http://score-theory.org/polaris"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:core="http://score-theory.org/core#">
+
+    <!-- POLARIS: the American-political-community refinement of SCORE.
+         A refinement P ⊆ S (see obsidian/SCORE/methodology/RefinementArchitecture.md):
+         it imports the domain-independent core and SPECIALIZES core slots (Q2 of the
+         decision procedure) — it adds no axiom that contradicts core. Conformance is
+         consistency of core ⊕ polaris under a DL reasoner. -->
+    <owl:Ontology rdf:about="http://score-theory.org/polaris">
+        <owl:imports rdf:resource="http://score-theory.org/core"/>
+        <rdfs:comment>POLARIS implementation ontology. Specializes core:MeasurementModel and core:HumanCommunity for US political communities. POLARIS dosing calibration (e.g. the create_rhythm beta) is operational data (Q4 BIND) and lives in code, not here.</rdfs:comment>
+        <rdfs:comment>Refinement conformance verified: core ⊕ polaris consistent, no unsatisfiable classes (HermiT via owlready2, 2026-06-04). Reproduce: scripts/score_reason.py.</rdfs:comment>
+    </owl:Ontology>
+
+
+    <!-- ── Measurement-model slot fillers (Q2 SPECIALIZE of core:MeasurementModel) ── -->
+
+    <!-- http://score-theory.org/polaris#SEWI -->
+    <owl:Class rdf:about="http://score-theory.org/polaris#SEWI">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SpectralEarlyWarningIndicator"/>
+        <rdfs:label>Spectral Early Warning Index</rdfs:label>
+        <rdfs:comment>POLARIS's spectral early-warning refinement: the generic core:SpectralEarlyWarningIndicator (promote-by-nature) bound to the Phi oral-social crystallization trace, with three critical-slowing-down signatures (low-frequency variance, lag-1 autocorrelation, spectral-centroid downshift), baseline-standardized weights, and SD-multiple thresholds. SPECIALIZEs the core construct (inheriting core:MeasurementModel through it), rather than filling MeasurementModel directly. See measurement/MeasurementMetrics.md, SpectralEarlyWarningIndicator.md, and Segment 6 S6.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/polaris#TPRI -->
+    <owl:Class rdf:about="http://score-theory.org/polaris#TPRI">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#MeasurementModel"/>
+        <rdfs:label>Transition Phase Recognition Index</rdfs:label>
+        <rdfs:comment>POLARIS phase-transition sharpness metric. Domain-specific refinement.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── HOA-analog slot filler (Q2 SPECIALIZE of core:HumanCommunity) ── -->
+
+    <!-- http://score-theory.org/polaris#GeographicCommunity -->
+    <owl:Class rdf:about="http://score-theory.org/polaris#GeographicCommunity">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#HumanCommunity"/>
+        <rdfs:label>Geographic political community</rdfs:label>
+        <rdfs:comment>POLARIS HOA analog: a census-bounded, socially coupled community of A-actors. The current geographic implementation is a valid projection of core:HumanCommunity onto observable dimensions — a bounded refinement, not a redefinition. See emergence/mechanism/HOA.md and PeerImplementations.md (POLARIS row).</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Fitness-criterion slot filler (Q2 SPECIALIZE of core:FitnessCriterion) ──
+         POLARIS is the founding half of the POLARIS n ETHOS intersection on which
+         FitnessCriterion was Q3-promoted to core (2026-06-04). This class formalizes that half
+         in the artifacts; see DOEEvaluation.md S 4.5. -->
+
+    <!-- http://score-theory.org/polaris#InscriptionDynamics -->
+    <owl:Class rdf:about="http://score-theory.org/polaris#InscriptionDynamics">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#FitnessCriterion"/>
+        <rdfs:label>Inscription dynamics</rdfs:label>
+        <rdfs:comment>POLARIS NS fitness criterion: which community coupling patterns persist and which dissolve — civic crystallization vs. fragmentation. The selection pressure determining which HOA cycles persist in the American political-community domain. The first filler of core:FitnessCriterion (the POLARIS half of the POLARIS n ETHOS intersection that triggered the promotion); parallel to ethos:FloridiInformationHealth, agora:ManifoldCompatibility, atlas:DeterrenceStability, nexus:InnovationFitness. See PeerImplementations.md (POLARIS row, NS criterion) and RefinementArchitecture.md.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Doctrinal-region + composition fillers (Q2 SPECIALIZE of the promoted
+         core:DoctrinalRegion / core:doctrinallyComposesFrom; eighth-promotion slot, 2026-06-21).
+         Regions index over polaris:GeographicCommunity — R(C) on the bounded-but-valid
+         geographic projection. Lean formal/Formal/Score/Polaris.lean (polarisNetwork). -->
+
+    <!-- http://score-theory.org/polaris#invokesNorm -->
+    <owl:ObjectProperty rdf:about="http://score-theory.org/polaris#invokesNorm">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#doctrinallyComposesFrom"/>
+        <rdfs:comment>Political-doctrine composition among B3 inscriptions: `y invokesNorm x` means policy/ideology y builds on substrate x (a civic norm, a prior policy). The POLARIS instance of core:doctrinallyComposesFrom.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/polaris#CommunityCorpus -->
+    <owl:Class rdf:about="http://score-theory.org/polaris#CommunityCorpus">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#DoctrinalRegion"/>
+        <rdfs:label>Community corpus</rdfs:label>
+        <rdfs:comment>The shared political-doctrinal corpus a polaris:GeographicCommunity co-inscribes: the graded down-set of the invokesNorm DAG — R(C) on the geographic projection. The POLARIS filler of core:DoctrinalRegion. Lean: formal/Formal/Score/Polaris.lean (polarisCorpus, polarisCorpus_isRegion). See HOA.md.</rdfs:comment>
+    </owl:Class>
+
+</rdf:RDF>

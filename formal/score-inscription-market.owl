@@ -1,0 +1,247 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://score-theory.org/inscription-market#"
+     xml:base="http://score-theory.org/inscription-market"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:core="http://score-theory.org/core#">
+
+    <!-- INSCRIPTION-MARKET: the market-inscription-as-structural-power extension of SCORE.
+         Introduces four formal additions (FA1-FA4) for the working paper
+         "The Inscription Layer as Market Power: What Hayek Missed" (Brock, 2026).
+         Imports the domain-independent core and extends the morphism/agent taxonomy
+         with second-order perception, inscription topology ownership, perceptibility
+         thresholds, and the inscription coverage cliff.
+
+         NOT a peer implementation in the POLARIS/ETHOS/ATLAS/AGORA sense — those are
+         domain-specific refinements. This is a structural extension applicable to any
+         market domain. If concepts prove cross-peer, promote to core via Q3.
+
+         Status: developing (created 2026-06-29). HermiT-verified consistent (via
+         owlready2, `scripts/score_reason.py`): core ⊕ inscription-market is consistent
+         with no unsatisfiable classes. See `obsidian/SCORE/emergence/applications/PeerImplementations.md`
+         § "Beyond the contemporary family — POLARIS extension peers" for the DOE-role
+         framing (extension peer, intersection-extension contribution). -->
+    <owl:Ontology rdf:about="http://score-theory.org/inscription-market">
+        <owl:imports rdf:resource="http://score-theory.org/core"/>
+        <rdfs:comment>Inscription-market extension ontology. FA1-FA4 for the inscription-layer-as-market-power argument. Extends core morphism and agent taxonomy. Developing (created 2026-06-29). HermiT-verified consistent via owlready2 (scripts/score_reason.py); core + inscription-market is consistent with no unsatisfiable classes.</rdfs:comment>
+    </owl:Ontology>
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+    <!-- FA2: Inscription topology ownership function -->
+
+    <!-- http://score-theory.org/inscription-market#ownsChannel -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/inscription-market#ownsChannel">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/inscription-market#InscriptionChannel"/>
+        <rdfs:comment>FA2: the ownership function Omega. Maps an inscription channel to the controlling actor, or is absent (channel is unowned/public). Platform agents own primary market inscription channels; the Hayekian baseline is Omega = null for all channels.</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+    <!-- http://score-theory.org/inscription-market#hasReadAccess -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/inscription-market#hasReadAccess">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/inscription-market#InscriptionChannel"/>
+        <rdfs:comment>FA2: the read-access function R. Specifies which actors can read inscriptions in which channels. Resolution (continuous [0,1]) is DL-inexpressible; carried in Lean (VC-IL-1). Full read access on owned channels is the structural prerequisite for second-order perception.</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+    <!-- FA1: Second-order perception — the performsSecondOrderPerception property -->
+
+    <!-- http://score-theory.org/inscription-market#performsSecondOrderPerception -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/inscription-market#performsSecondOrderPerception">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#performsMorphism"/>
+        <rdfs:domain rdf:resource="http://score-theory.org/inscription-market#SecondOrderPerceiver"/>
+        <rdfs:range rdf:resource="http://score-theory.org/inscription-market#SecondOrderPerception"/>
+        <rdfs:comment>FA1: the second-order perception morphism pi-squared. A composite morphism: agents inscribe (B2->B3), platform reads B3 at full resolution, platform reconstructs agents' B2 states from B3 traces. Available only to actors who own inscription channels (FA2 enables FA1). The composite structure and the Omega-gating are DL-inexpressible; carried in Lean (VC-IL-1, VC-IL-4).</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+    <!-- FA3: Perceptibility threshold as agent data property -->
+
+    <!-- http://score-theory.org/inscription-market#hasPerceptibilityThreshold -->
+
+    <owl:DatatypeProperty rdf:about="http://score-theory.org/inscription-market#hasPerceptibilityThreshold">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>FA3: the perceptibility threshold delta_i. Minimum magnitude of B1 modification resolvable by agent i's perception morphism given current manifold grain. Related to but distinct from the percept filter: the filter determines WHAT registers; delta_i determines the MINIMUM MAGNITUDE that registers at all. Manifold-determined. DL carries only the slot; the threshold derivation from manifold grain and the sub/supra-threshold classification are in Lean (VC-IL-2).</rdfs:comment>
+    </owl:DatatypeProperty>
+
+
+    <!-- FA4: Inscription coverage as agent data property -->
+
+    <!-- http://score-theory.org/inscription-market#hasInscriptionCoverage -->
+
+    <owl:DatatypeProperty rdf:about="http://score-theory.org/inscription-market#hasInscriptionCoverage">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>FA4: inscription coverage kappa(a). Fraction of market transactions whose B3 records are accessible at sufficient resolution to support second-order perception. Non-linearly valuable: below kappa* too sparse for pi-squared; above kappa* self-reinforcing (positive-sign morphism cycle). The cliff dynamics and the self-reinforcing feedback are DL-inexpressible; carried in Lean (VC-IL-3).</rdfs:comment>
+    </owl:DatatypeProperty>
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+    <!-- FA2: Inscription channel — the structural object channels flow through -->
+
+    <!-- http://score-theory.org/inscription-market#InscriptionChannel -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#InscriptionChannel">
+        <rdfs:comment>FA2: a channel in the inscription topology T_iota. Part of the directed graph C over agents specifying which agents can inscribe into which channels. Channels may be owned (Omega maps to an actor) or unowned/public (Omega = null). The Hayekian baseline is all channels unowned.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- FA2: Inscription topology — the network-level object -->
+
+    <!-- http://score-theory.org/inscription-market#InscriptionTopology -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#InscriptionTopology">
+        <rdfs:comment>FA2: the inscription topology T_iota = (A, C, R, Omega) as a network-level object. Extends the existing agent-level inscription morphism (B2->B3) with infrastructure structure: who controls the channels through which inscription flows. The morphism itself is unchanged; what T_iota adds is the ownership and access pattern. Coupling opacity omega is derived from T_iota (a new concept, not a redefinition).</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- FA1: Second-order perception — the morphism class -->
+
+    <!-- http://score-theory.org/inscription-market#SecondOrderPerception -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#SecondOrderPerception">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Morphism"/>
+        <rdfs:comment>FA1: pi-squared, the second-order perception morphism. A composite morphism whose domain is the space of other agents' B2 manifold states (mediated through their B3 inscriptions) and whose codomain is the platform agent's B2. B2-incident (target is B2^p). NOT in the five-morphism disjointness axiom — it is a new composite type. Structural prerequisite: inscription topology ownership (FA2). See morphisms/SecondOrderPerception.md.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- FA1: Second-order perceiver — the agent type -->
+
+    <!-- http://score-theory.org/inscription-market#SecondOrderPerceiver -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#SecondOrderPerceiver">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/inscription-market#performsSecondOrderPerception"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/inscription-market#SecondOrderPerception"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/inscription-market#ownsChannel"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/inscription-market#InscriptionChannel"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment>FA1: an actor possessing both standard perception (pi) and second-order perception (pi-squared). The distinction from FirstOrderPerceiver is a TYPE difference, not a parameter difference — it depends on inscription infrastructure ownership (ownsChannel), not on any intrinsic agent property. The Omega-gating (ownsChannel is necessary for pi-squared) is the DL-expressible fragment of VC-IL-1.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- FA1: First-order perceiver — the standard agent type (explicit for the distinction) -->
+
+    <!-- http://score-theory.org/inscription-market#FirstOrderPerceiver -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#FirstOrderPerceiver">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:complementOf rdf:resource="http://score-theory.org/inscription-market#SecondOrderPerceiver"/>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:comment>FA1: an actor possessing only standard perception (pi), without second-order perception. Disjoint with SecondOrderPerceiver by complement. The market looks free from inside a first-order manifold; it is managed from the platform's second-order manifold.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- FA3: Sub-threshold action — the action morphism subclass -->
+
+    <!-- http://score-theory.org/inscription-market#SubThresholdAction -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#SubThresholdAction">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Action"/>
+        <rdfs:comment>FA3: an action morphism whose B1 modification magnitude is at or below the target agent's perceptibility threshold delta_i. Presents as unmodified ground truth from within the target's B2. Structurally undetectable from a first-order manifold regardless of attentiveness — a categorical distinction from ordinary hidden influence. The magnitude comparison and the structural-undetectability result are DL-inexpressible; carried in Lean (VC-IL-2).</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- FA3: Supra-threshold action — the standard perceptible action -->
+
+    <!-- http://score-theory.org/inscription-market#SupraThresholdAction -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#SupraThresholdAction">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Action"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/inscription-market#SubThresholdAction"/>
+        <rdfs:comment>FA3: an action morphism whose B1 modification magnitude exceeds the target agent's perceptibility threshold. Perceptible in principle. Standard SCORE action behavior.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- FA4: Inscription coverage cliff threshold marker -->
+
+    <!-- http://score-theory.org/inscription-market#InscriptionCoverageCliff -->
+
+    <owl:Class rdf:about="http://score-theory.org/inscription-market#InscriptionCoverageCliff">
+        <rdfs:comment>FA4: the inscription coverage cliff kappa*. The non-linear threshold above which second-order perception becomes self-reinforcing through a positive-sign morphism cycle: better manifold models -> better action morphisms -> more transactions -> higher kappa -> better manifold models. Instantiates the SCORE percolation framework (Erdos-Renyi threshold in MorphismCompleteness). Before kappa*: competition viable. After kappa*: only structural remedy works. The feedback dynamics are DL-inexpressible; carried in Lean (VC-IL-3).</rdfs:comment>
+    </owl:Class>
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- FA1/FA3: SecondOrderPerceiver and FirstOrderPerceiver partition Actor
+         (within this extension's scope). -->
+    <!-- Note: this is NOT added to core's Actor disjointness — it's local to
+         this extension. FirstOrderPerceiver is defined as complement of
+         SecondOrderPerceiver, so disjointness is entailed. -->
+
+    <!-- FA3: Sub/Supra-threshold partition of Action -->
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://score-theory.org/inscription-market#SubThresholdAction"/>
+            <rdf:Description rdf:about="http://score-theory.org/inscription-market#SupraThresholdAction"/>
+        </owl:members>
+    </rdf:Description>
+
+    <!-- FA1 GCI: performing second-order perception requires owning at least one
+         inscription channel. This is the DL-expressible fragment of VC-IL-1
+         (Omega != null AND R = full -> pi-squared well-defined). The R = full
+         condition is DL-inexpressible (continuous resolution); carried in Lean. -->
+    <owl:Restriction>
+        <owl:onProperty rdf:resource="http://score-theory.org/inscription-market#performsSecondOrderPerception"/>
+        <owl:someValuesFrom rdf:resource="http://score-theory.org/inscription-market#SecondOrderPerception"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/inscription-market#ownsChannel"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/inscription-market#InscriptionChannel"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Restriction>
+
+</rdf:RDF>

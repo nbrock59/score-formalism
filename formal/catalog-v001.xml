@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- OASIS XML catalog: maps the core ontology's import IRI to the local file so a
+     reasoner (HermiT in Protege) resolves `owl:imports` offline when score-polaris.owl
+     is opened. Without this, the import fails and HermiT would reason over polaris
+     alone, missing the core axioms. -->
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <uri id="SCORE core" name="http://score-theory.org/core" uri="score-core.owl"/>
+</catalog>

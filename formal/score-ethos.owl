@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://score-theory.org/ethos#"
+     xml:base="http://score-theory.org/ethos"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:core="http://score-theory.org/core#">
+
+    <!-- ETHOS: epistemic community health — the second SCORE implementation.
+         A refinement P ⊆ S (see obsidian/SCORE/methodology/RefinementArchitecture.md).
+         Q1–Q4 analysis: obsidian/SCORE/emergence/applications/ETHOS.md.
+         Conformance: core ⊕ ethos must be consistent under HermiT (score_reason.py). -->
+    <owl:Ontology rdf:about="http://score-theory.org/ethos">
+        <owl:imports rdf:resource="http://score-theory.org/core"/>
+        <rdfs:comment>ETHOS implementation ontology — epistemic community health. Specializes core slots for the domain of journalism, academic disciplines, and public information infrastructure. Ω-actors (LossFunctionContent) are the central threat (no new machinery needed — SELECTED unchanged from core). The Σ-actor-level intervention gap (ETHOS interventions are structural/ownership operators, not A-actor-level create_rhythm/edge/node) is flagged as a known-open item pending a Σ-actor intervention taxonomy in core.</rdfs:comment>
+        <rdfs:comment>Refinement conformance verified: core ⊕ ethos consistent, no unsatisfiable classes (HermiT via owlready2, 2026-06-04). Reproduce: scripts/score_reason.py.</rdfs:comment>
+    </owl:Ontology>
+
+
+    <!-- ── Fitness-criterion slot filler (Q3 PROMOTE of core:FitnessCriterion) ── -->
+
+    <!-- http://score-theory.org/ethos#FloridiInformationHealth -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#FloridiInformationHealth">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#FitnessCriterion"/>
+        <rdfs:label>Floridi information health</rdfs:label>
+        <rdfs:comment>ETHOS NS fitness criterion: the degree to which B3 content produced by the epistemic community satisfies the four Floridi conditions for knowledge regeneration across the mortality boundary (well-formed, meaningful, truthful, equitably propagated — OMBF β threshold). The pathological attractor is NS captured to select for engagement, funding retention, or political palatability rather than truthfulness. See sources/Floridi-Luciano.md and sources/Zhai-OMBF.md.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Measurement-model slot filler (Q2 SPECIALIZE of core:MeasurementModel) ── -->
+
+    <!-- http://score-theory.org/ethos#InfosphereHealthScore -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#InfosphereHealthScore">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#MeasurementModel"/>
+        <rdfs:label>Infosphere health score</rdfs:label>
+        <rdfs:comment>ETHOS attractor-health measurement model — the role-level SEWI analog (fills core:MeasurementModel; NOT a core:SpectralEarlyWarningIndicator — a content measure, not a spectral trace processor). Composite of B3 truthfulness rate, maintaining-community density (journalist employment, academic tenure density, editorial independence), OMBF β compliance, misinfo/disinfo penetration rate, and ownership concentration. Domain-specific refinement; no InfosphereHealthScore in core. A spectral EWS over the E5 produced/incorporated-quality trace would be a distinct, second core:SpectralEarlyWarningIndicator filler (see SpectralEarlyWarningIndicator.md).</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── HOA-analog slot filler (Q2 SPECIALIZE of core:HumanCommunity) ── -->
+
+    <!-- http://score-theory.org/ethos#EpistemicCommunity -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#EpistemicCommunity">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#HumanCommunity"/>
+        <rdfs:label>Epistemic community</rdfs:label>
+        <rdfs:comment>ETHOS HOA analog: the maintaining community of the infosphere — a structured coupling network of A-actors (journalists, academics, researchers) whose collective NS dynamics determine whether the B3 they produce is truthful information or captured data. Parallel to polaris:GeographicCommunity.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Sigma-actor specialization (Q2 SPECIALIZE of core:SigmaActor) ── -->
+
+    <!-- http://score-theory.org/ethos#EpistemicInstitution -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#EpistemicInstitution">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SigmaActor"/>
+        <rdfs:label>Epistemic institution</rdfs:label>
+        <rdfs:comment>A journal, academic discipline, news outlet, or public information body as a Sigma-actor: co-inscribed formal B3 membrane + informal maintaining community. The primary B3-producing actor in the ETHOS domain. Captures can occur at the Sigma-actor level (ownership concentration, funding capture) or at the Omega-actor interface (engagement-optimizing platforms emitting LossFunctionContent).</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ════════════════ Phase C (2026-06-18): the information-health filter ════════════════
+         Reading (i), Q2 SPECIALIZE of the core:Incorporation morphism — the amplification/capture
+         reweight on B3->B2 incorporation. The incorporation-side dual of
+         bac:PreservationFilteredInscription (inscription side); together they probe DOEEvaluation
+         gap #3 from both morphism directions. Plus the ETHOS half of the NEXUS n ETHOS promotion:
+         ethos:CaptureDiscriminant ⊑ the promoted core:AdjacentPossibleMeasure. Numeric kappa, a(c),
+         Q(c) are Q4 BIND. See ETHOS-InformationHealth.md (Phase A/B). -->
+
+    <!-- http://score-theory.org/ethos#amplifiedVia -->
+    <owl:ObjectProperty rdf:about="http://score-theory.org/ethos#amplifiedVia">
+        <rdfs:domain rdf:resource="http://score-theory.org/ethos#AmplificationFilteredIncorporation"/>
+        <rdfs:range rdf:resource="http://score-theory.org/ethos#AmplificationChannel"/>
+        <rdfs:comment>The amplification channel through which produced B3 reaches agent manifolds. Whether amplification tracks content quality (TelosAligned) or an exogenous loss function (LossFunction) is the capture discriminant kappa.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/ethos#AmplificationFilteredIncorporation -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#AmplificationFilteredIncorporation">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Incorporation"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/ethos#amplifiedVia"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/ethos#AmplificationChannel"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label>Amplification-filtered incorporation</rdfs:label>
+        <rdfs:comment>A subtype of the core:Incorporation morphism (B3->B2) whose B3 content reaches agent manifolds through a platform amplification channel before incorporation — THE first specialization of the INCORPORATION morphism in the family (the incorporation-side dual of bac:PreservationFilteredInscription, DOEEvaluation gap #3). The reweight that turns produced quality into incorporated quality. Reading (i), Q2 SPECIALIZE; numeric amplification weights a(c) are Q4 BIND. See ETHOS-InformationHealth.md.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/ethos#AmplificationChannel -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#AmplificationChannel">
+        <rdfs:comment>The selection channel by which produced B3 is amplified into incorporation. Two disjoint regimes (below): TelosAlignedAmplification (kappa>0) and LossFunctionAmplification (kappa&lt;=0).</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/ethos#TelosAlignedAmplification -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#TelosAlignedAmplification">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/ethos#AmplificationChannel"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/ethos#LossFunctionAmplification"/>
+        <rdfs:comment>Amplification positively correlated with content quality (kappa>0): the healthy regime; high-Q content is preferentially incorporated. NS selecting on telos.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/ethos#LossFunctionAmplification -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#LossFunctionAmplification">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/ethos#AmplificationChannel"/>
+        <rdfs:comment>Amplification decoupled from or against content quality (kappa&lt;=0): the captured regime, the operative face of core:PathologicalAttractor — engagement/funding-optimizing Omega-actor amplification (LossFunctionContent). The capture this layer detects.</rdfs:comment>
+    </owl:Class>
+
+    <!-- ── Captured-NS measure filler (Q2 SPECIALIZE of the promoted core:AdjacentPossibleMeasure) ── -->
+
+    <!-- http://score-theory.org/ethos#CaptureDiscriminant -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#CaptureDiscriminant">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#AdjacentPossibleMeasure"/>
+        <rdfs:label>Capture discriminant (kappa)</rdfs:label>
+        <rdfs:comment>ETHOS's captured-NS measure: kappa = cov(a,Q)/(sigma_a sigma_Q), the normalized association between amplification a(c) and content quality Q(c). kappa>0 = TelosBearing (healthy); kappa&lt;=0 = LossFunction (captured) — the epistemic-domain instance of NS contracting the reachable region of true B3. SPECIALIZEs the promoted core:AdjacentPossibleMeasure (the NEXUS n ETHOS intersection, alongside nexus:KillZoneExtent). Numeric kappa is Q4 BIND. See ETHOS-InformationHealth.md Phase B.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Doctrinal-region + composition fillers (Q2 SPECIALIZE of the promoted
+         core:DoctrinalRegion / core:doctrinallyComposesFrom; ETHOS half of the ETHOS n NEXUS
+         intersection that licensed the EIGHTH on-demand Q3 promotion, 2026-06-21). The most literal
+         community->region fibration: an epistemic community IS the C, its corpus IS R(C). The
+         down-closure / grading structure is Lean (formal/Formal/Score/Ethos.lean ethosNetwork). -->
+
+    <!-- http://score-theory.org/ethos#cites -->
+    <owl:ObjectProperty rdf:about="http://score-theory.org/ethos#cites">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#doctrinallyComposesFrom"/>
+        <rdfs:comment>Citation / derivation among B3 epistemic inscriptions: `y cites x` means publication y builds on / cites substrate x. The ETHOS instance of core:doctrinallyComposesFrom; its transitive closure orders a discipline's corpus. Numeric citation/retraction networks are Q4 BIND (ETHOS-InformationHealth.md Phase F).</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/ethos#DisciplinaryCorpus -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#DisciplinaryCorpus">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#DoctrinalRegion"/>
+        <rdfs:label>Disciplinary corpus</rdfs:label>
+        <rdfs:comment>An epistemic community's region R(C): the graded down-set of the citation DAG a discipline co-inscribes and maintains — the body of literature it holds, closed under "cites" (holding a result entails holding its cited substrate). The ETHOS filler of core:DoctrinalRegion (first peer of the ETHOS n NEXUS promotion, alongside nexus:ParadigmCluster). Two disciplines' shared canon is the corpus intersection; its lowest absent stratum is the divergence floor (Kuhnian incommensurability when deep). Lean: formal/Formal/Score/Ethos.lean (ethosCorpus, ethosCorpus_isRegion). See ETHOS-InformationHealth.md.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/ethos#InfosphereSpectralEWS -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#InfosphereSpectralEWS">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SpectralEarlyWarningIndicator"/>
+        <rdfs:label>Infosphere spectral early-warning indicator</rdfs:label>
+        <rdfs:comment>ETHOS filler of core:SpectralEarlyWarningIndicator: the core critical-slowing-down signatures (low-frequency variance, lag-1 autocorrelation, spectral-centroid drift — via the TOTAL centroid, since ETHOS has no Path-A/B split) computed over the E5 produced-quality trajectory Phi_quality(t) by the shared score.spectral.early_warning processor. The SECOND filler of the core spectral method (alongside polaris:SEWI), method-commensurable with it: the peer family's first cross-peer operational overlap, at which score_slots.py flips the slot LOCAL -> SHARED. Distinct from ethos:InfosphereHealthScore (which fills the core:MeasurementModel role — a content measure, not the spectral method) and from ethos:CaptureDiscriminant (the kappa direction signal). Alert bands are an ETHOS calibration (Q4 BIND, src/ethos M4-4), not the POLARIS locked 1.0/1.5/1.8. Glossary ET-G-13; Lean ethosSpectralEWS / ethosSpectralEWS_monotone (Score/Ethos.lean). See E6 S3A, measurement/SpectralEarlyWarningIndicator.md.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ════════════════ Branch R (2026-07-07): OR-redundant verification layer ════════════════
+         The H re-model (ETHOS-InformationHealth.md § Decision fork / § Re-model; polaris#383,
+         git tag ethos-h-flat-baseline). Truthfulness assurance is a PARALLEL system of
+         independent checks, not the flat scalar t of Branch F. DL carries the qualitative
+         redundancy structure (a fault-tolerant layer = assuredBy >=2 INDEPENDENT mechanisms);
+         the numeric T = 1 - prod_j (1 - c_j) is Lean (Score/Ethos.lean §RV, verificationAssurance,
+         redundancy_dominates_single, verificationAssurance_mono). Q4 BIND for the c_j. -->
+
+    <!-- http://score-theory.org/ethos#VerificationMechanism -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#VerificationMechanism">
+        <rdfs:label>Verification mechanism</rdfs:label>
+        <rdfs:comment>An error-catching mechanism over produced B3: peer review, replication, post-publication correction, adversarial scrutiny, independent fact-checking. Catch-probability c_j is Q4 BIND (Score/Ethos.lean verificationAssurance).</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/ethos#IndependentVerificationMechanism -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#IndependentVerificationMechanism">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/ethos#VerificationMechanism"/>
+        <rdfs:label>Independent verification mechanism</rdfs:label>
+        <rdfs:comment>A verification mechanism whose failure mode is independent of the others'. Capture (ethos:LossFunctionAmplification) is precisely the process that DESTROYS this independence — a single owner correlating ostensibly-independent checks — collapsing redundancy toward a single effective check (Lean: T -> max_j c_j). So a captured layer's mechanisms are not Independent, hence not Redundant below. This is "capture = de-redundancy" at the DL level.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/ethos#assuredBy -->
+    <owl:ObjectProperty rdf:about="http://score-theory.org/ethos#assuredBy">
+        <rdfs:domain rdf:resource="http://score-theory.org/ethos#VerificationLayer"/>
+        <rdfs:range rdf:resource="http://score-theory.org/ethos#VerificationMechanism"/>
+        <rdfs:comment>Links a verification layer to the mechanisms that assure it. The truthfulness assurance T of the layer is the parallel (OR) composition of its mechanisms' catch-probabilities.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/ethos#VerificationLayer -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#VerificationLayer">
+        <rdfs:label>Verification layer</rdfs:label>
+        <rdfs:comment>The truthfulness-assurance layer of H (Branch R): the parallel system of verification mechanisms replacing the flat scalar t. An error is caught if ANY assuring mechanism catches it. Numeric T = 1 - prod_j (1 - c_j) is Lean (verificationAssurance).</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/ethos#RedundantVerificationLayer -->
+    <owl:Class rdf:about="http://score-theory.org/ethos#RedundantVerificationLayer">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/ethos#VerificationLayer"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/ethos#assuredBy"/>
+                <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">2</owl:minQualifiedCardinality>
+                <owl:onClass rdf:resource="http://score-theory.org/ethos#IndependentVerificationMechanism"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label>Redundant verification layer</rdfs:label>
+        <rdfs:comment>The fault-tolerant verification layer: assured by at least two INDEPENDENT mechanisms, so losing one leaves truthfulness assurance intact (min-cut size >= 2 on the verification block; the OR-redundancy the flat H erased). A captured layer fails this (its mechanisms are not Independent) and degrades to a single point of failure. The DL statement of the RevisionLoop-style robustness the signature measures (ETHOS-InformationHealth.md § Re-model).</rdfs:comment>
+    </owl:Class>
+
+</rdf:RDF>

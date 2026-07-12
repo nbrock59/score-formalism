@@ -1,0 +1,864 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/nab93/ontologies/2026/4/untitled-ontology-2/"
+     xml:base="http://www.semanticweb.org/nab93/ontologies/2026/4/untitled-ontology-2/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://score-theory.org/core">
+        <rdfs:comment>Reasoner-verified consistent, no unsatisfiable classes (HermiT via owlready2, 2026-06-04; includes the referent-typed Inscription subclasses, the carriedBy realization axiom, the B2-referential depth GCI, the FitnessCriterion slot, the SigmaInterventionClass taxonomy — second on-demand Q3 promotion, AGORA n ETHOS intersection, the inter-Sigma coupledTo relation — third on-demand Q3 promotion, AGORA n ATLAS intersection; the PathologicalAttractor class — fourth on-demand Q3 promotion, POLARIS n ETHOS n ATLAS n NEXUS; and AdjacentPossibleConstraint — fifth Sigma-intervention operator, fifth on-demand Q3 promotion, ATLAS n NEXUS; the CollectiveManifoldUpdate operator — sixth on-demand Q3 promotion, AGORA n ATLAS intersection, 2026-06-18; and the AdjacentPossibleMeasure — seventh on-demand Q3 promotion, NEXUS n ETHOS intersection, 2026-06-18; and the DoctrinalRegion class + doctrinallyComposesFrom relation — eighth on-demand Q3 promotion, ETHOS n NEXUS intersection, 2026-06-21, the derived B3 community fibration / region R(C), a structure over B3 that never re-types it). Reproduce: scripts/score_reason.py. All impl layers (core+polaris, core+ethos, core+agora, core+atlas, core+nexus, core+bac) re-verified 2026-06-21 (HermiT via owlready2) after the eighth promotion: all consistent, no unsatisfiable classes. The extension peer core+inscription-market (added 2026-06-29) is auto-discovered by score_reason.py and also verifies consistent with no unsatisfiable classes, so all seven implementation layers (six domain-specific refinements plus the extension peer) satisfy the core-⊕-impl reasoner-conformance check.</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://score-theory.org/core#formedBy -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#formedBy">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#SigmaActor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#CoInscriptionEvent"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#hasHOA -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#hasHOA">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#HumanCommunity"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#HOA"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#hasReflexiveDepth -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#hasReflexiveDepth">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#ReflexiveDepthLevel"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#inscribesTo -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#inscribesTo">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#TelosBearingContent"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#maintainedBy -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#maintainedBy">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#SigmaActor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#HumanCommunity"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#operatesVia -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#operatesVia">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#OmegaActor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#LossFunction"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#performsAction -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#performsAction">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#performsMorphism"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Action"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#performsIncorporation -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#performsIncorporation">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#performsMorphism"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Incorporation"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#performsInscription -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#performsInscription">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#performsMorphism"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Inscription"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#performsMorphism -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#performsMorphism">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Morphism"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#performsPerception -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#performsPerception">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#performsMorphism"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Perception"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#performsTransformation -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#performsTransformation">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#performsMorphism"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Transformation"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://score-theory.org/core#producesContent -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#producesContent">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#OmegaActor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#LossFunctionContent"/>
+    </owl:ObjectProperty>
+
+
+
+    <!-- ── Inter-Sigma coupling (Q3 PROMOTE, 2026-06-04, third on-demand event) ──
+         The inter-Sigma-actor coupling relation, long "undefined" (SigmaActorArchitecture S 2),
+         resolved by the ATLAS exercise (S 2a) and promoted on the AGORA n ATLAS intersection:
+         AGORA uses it implicitly (Level-0 state -> Level-1 alliance cascade, HighCentralityDisruption);
+         ATLAS uses it constitutively (a deterrence basin is a dense region of coupledTo). The
+         three sub-properties are the three coupling layers; they operate simultaneously on
+         different timescales (NAryDeterrence). The Erdos-Renyi density threshold at which a
+         Sigma-HOA (coalition / deterrence basin) crystallizes, and the layer-superposition
+         weighting, are DL-inexpressible and carried in SigmaActorArchitecture.md S 2a. -->
+
+    <!-- http://score-theory.org/core#coupledTo -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#coupledTo">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#SigmaActor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#SigmaActor"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:comment>Multi-layer inter-Sigma-actor coupling. Density over this relation determines Sigma-HOA (coalition / alliance / deterrence basin) crystallization at the same Erdos-Renyi threshold that governs A-actor HOA formation (SO is ER at every stratum). Symmetric: coupling is a mutual relation. Modulated informally by executive-to-executive A-actor relationships (SigmaActorArchitecture S 2).</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/core#coupledByTreaty -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#coupledByTreaty">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#coupledTo"/>
+        <rdfs:comment>Treaty layer: formal B3 commitment (alliance, trade agreement, security guarantee); slow, externally legible; strength proportional to commitment specificity and credibility.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/core#coupledByBehavior -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#coupledByBehavior">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#coupledTo"/>
+        <rdfs:comment>Behavioral layer: repeated interaction (trade flows, diplomatic contact, military coordination); medium timescale; strength proportional to interaction frequency and mutual dependence.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/core#coupledByManifoldProximity -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#coupledByManifoldProximity">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#coupledTo"/>
+        <rdfs:comment>Manifold-proximity layer: similarity of effective collective manifolds; the direct analog of the A-actor |phi_i - phi_j|^-1 coupling criterion lifted to the Sigma stratum.</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+
+    <!-- http://score-theory.org/core#hasConstituentDomain -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#hasConstituentDomain">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#Node"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Domain"/>
+        <rdfs:comment>Links an emergent cycle (Node) to the domain a constituent of its sustaining cycle occupies. Constituent-domain closure: a cycle whose constituents are all B1 is constituent-closed in B1. See ActorTypes / SO-NS-Stratification (constituent-domain closure of emergence cycles) and formal/Formal/Score/Core.lean.</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+
+    <!-- ── Doctrinal composition + region (Q3 PROMOTE, 2026-06-21, eighth on-demand event) ──
+         The B3xB3->B3 doctrinal-composition relation and the community region R(C) it carries —
+         the formal home of "a community's shared B3" (the derived B3 community fibration). Promoted
+         on the ETHOS n NEXUS intersection: ETHOS as the citation/derivation corpus
+         (ethos:DisciplinaryCorpus over ethos:cites), NEXUS as the patent-citation paradigm cluster
+         (nexus:ParadigmCluster over nexus:patentCites). A DERIVED construct over the single B3 — NOT a
+         re-typing of B3_Inscription and NOT a re-indexing of the primitive (which stays a shared
+         singleton, load-bearing for the morphism round-trip). Only the transitivity is DL-expressible;
+         the grading-monotonicity, the down-closure of a region, and the graded-product geometry are
+         DL-inexpressible — see formal/Formal/Score/Core.lean (DoctrinalNetwork, grade_mono_le,
+         region_substrate_closed_and_graded, downClosure_isRegion) and B3RegionGeometry.md. -->
+
+    <!-- http://score-theory.org/core#doctrinallyComposesFrom -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#doctrinallyComposesFrom">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#B3_Inscription"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#B3_Inscription"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:comment>The B3xB3->B3 doctrinal-composition relation: `y doctrinallyComposesFrom x` means B3 content y composes from / builds on / cites substrate x (a ruling from precedent, a theorem from its lemmas, a paper from what it cites). Transitive: substrate of substrate is substrate. A community's region (DoctrinalRegion) is a down-set of this relation; that down-closure and the emergence-hierarchy grading-monotonicity are DL-inexpressible (Lean S14). Q3 PROMOTE 2026-06-21 (eighth on-demand event, ETHOS n NEXUS).</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+
+    <!-- ── Trace processing (promote-by-nature, 2026-07-02) ──
+         Links a TraceProcessor to the Trace it operates on. See the Trace + open trace-processor
+         taxonomy in the Classes section and obsidian/SCORE/measurement/Trace.md. -->
+
+    <!-- http://score-theory.org/core#processes -->
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#processes">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#TraceProcessor"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#Trace"/>
+        <rdfs:comment>Links a TraceProcessor to the Trace it operates on.</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://score-theory.org/core#AAgent -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#AAgent">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:complementOf rdf:resource="http://score-theory.org/core#OmegaActor"/>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:complementOf rdf:resource="http://score-theory.org/core#SigmaActor"/>
+            </owl:Class>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#Action -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Action">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Morphism"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#Actor -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Actor">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Node"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#performsMorphism"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#Morphism"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment>An Actor is a Node whose sustaining cycle operates at least one morphism. Actorhood is graded: a fixed-protocol cluster that operates no morphism of its own is a mechanism, not an actor. The graded boundary is not expressible in OWL; see ActorTypes.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#Node -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Node">
+        <rdfs:comment>An emergent structure sustained by a closed cycle in the coupling graph — the general category. An Actor is the special case of a Node whose cycle operates at least one morphism; a pure-B1 cycle (PureB1Cycle) operates none and is a node, not an actor. NOTE: the upward epistemic horizon (a Node cannot perceive the cycle it constitutes) and bounded agency (downward constraint bounds likelihood, not possibility) are modal/epistemic results, not DL-expressible; see GenerativeMechanism and SO-NS-Stratification in the vault and formal/Formal/Score/Core.lean.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#PureB1Cycle -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#PureB1Cycle">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Node"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#hasConstituentDomain"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#B1_Objective"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#hasConstituentDomain"/>
+                <owl:allValuesFrom rdf:resource="http://score-theory.org/core#B1_Objective"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment>A node constituent-closed in B1: every constituent of its sustaining cycle occupies B1. Because operating any morphism requires a B2 or B3 constituent (no intra-B1 morphism), and B1 is disjoint from B2/B3, a PureB1Cycle operates no morphism and is therefore not an Actor — a reasoner derives Actor and PureB1Cycle disjoint.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#B1_Objective -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#B1_Objective">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Domain"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#B2_Subjective -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#B2_Subjective">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Domain"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#B3_Inscription -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#B3_Inscription">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Domain"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#CoInscriptionEvent -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CoInscriptionEvent"/>
+    
+
+
+    <!-- http://score-theory.org/core#Domain -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Domain"/>
+    
+
+
+    <!-- http://score-theory.org/core#HOA -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#HOA"/>
+    
+
+
+    <!-- http://score-theory.org/core#HigherOrderAgent -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#HigherOrderAgent">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#hasHOA"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#HOA"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment>Community whose collective dynamics constitute a HOA attractor. The HOA is the community&apos;s emergent basin, not an administrative declaration.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#HumanCommunity -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#HumanCommunity"/>
+    
+
+
+    <!-- http://score-theory.org/core#Incorporation -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Incorporation">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Morphism"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#Inscription -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Inscription">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Morphism"/>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#B1ReferentialInscription -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#B1ReferentialInscription">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Inscription"/>
+        <rdfs:comment>Inscription whose content is about B1 world-states (alarm calls, trails, records of events). The B3 floor; available to many A-actors. Referent typing (foundational, 2026-06-04); see domains/B3-Inscription.md the referent axis.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#B2ReferentialInscription -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#B2ReferentialInscription">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Inscription"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/core#B1ReferentialInscription"/>
+        <rdfs:comment>Inscription whose content is about features of the agent's own B2 manifold with no B1 referent (beliefs, self-model, abstractions, shared fictions). Requires sufficient reflexive depth (see the referent GCI in General axioms); the human differentia from which the higher B3 strata, Sigma-actors, and cultural evolution follow.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#LossFunction -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#LossFunction"/>
+    
+
+
+    <!-- http://score-theory.org/core#LossFunctionContent -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#LossFunctionContent">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#B3_Inscription"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/core#TelosBearingContent"/>
+        <rdfs:comment>B3 content produced via Omega-actor optimization (B1→B3 path). No telos; not subject to Transformation morphism; systematic bias not correctable by social contestation.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#Morphism -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Morphism"/>
+    
+
+
+    <!-- http://score-theory.org/core#OmegaActor -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#OmegaActor">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:complementOf rdf:resource="http://score-theory.org/core#SigmaActor"/>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#operatesVia"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#LossFunction"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <!-- Fidelity fix (2026-06-03): removed the prior
+             `hasReflexiveDepth allValuesFrom ShallowDepth` restriction. Reflexive depth is
+             a B2-grounded scale; placing the Omega-actor on it (even vacuously) invited the
+             category error the vault guardrail warns against. The A/Σ/Ω disjointness in the
+             General axioms below carries the distinction. See agents/ReflexiveDepth.md
+             (Omega guardrail) and emergence/cases/AI-StructuralBreak.md. -->
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#Perception -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Perception">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Morphism"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#ReflexiveDepthLevel -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#ReflexiveDepthLevel"/>
+    
+
+
+    <!-- http://score-theory.org/core#ShallowDepth -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#ShallowDepth">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#ReflexiveDepthLevel"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/core#SufficientDepth"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#SigmaActor -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#SigmaActor">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Actor"/>
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#HigherOrderAgent"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#formedBy"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#CoInscriptionEvent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#hasReflexiveDepth"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#SufficientDepth"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#inscribesTo"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#TelosBearingContent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#maintainedBy"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#HumanCommunity"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#SufficientDepth -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#SufficientDepth">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#ReflexiveDepthLevel"/>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#TelosBearingContent -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#TelosBearingContent">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#B3_Inscription"/>
+        <rdfs:comment>B3 content produced via B2→B3 Inscription morphism. Bears a telos — subject to social contestation and the Transformation morphism.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#Transformation -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#Transformation">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Morphism"/>
+        <rdfs:comment>5th morphism: domain is B2 × B3, range is B3. Role occupants apply existing inscription to new cases, extending B3 content. Binary domain not expressible in OWL; Lean encoding pending (no transform axiom yet in formal/Formal/Score/).</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://score-theory.org/core#MeasurementModel -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#MeasurementModel">
+        <rdfs:comment>Abstract slot (RefinementArchitecture): the attractor-health measurement model each SCORE implementation specifies. Domain-general as a *role*; concrete metrics are implementation refinements (e.g. polaris:SEWI in score-polaris.owl). No domain-general metric belongs in core.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#FitnessCriterion -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#FitnessCriterion">
+        <rdfs:comment>Abstract slot (RefinementArchitecture Q3 promotion, 2026-06-04): the NS fitness criterion each SCORE implementation specifies — the selection pressure determining which HOA cycles persist. Promoted from doc-slot to OWL class on the POLARIS ∩ ETHOS intersection (first on-demand Q3 event). Concrete criteria are implementation refinements (e.g. polaris:InscriptionDynamics, ethos:FloridiInformationHealth). No domain-general criterion belongs in core.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#InterventionClass -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#InterventionClass">
+        <rdfs:comment>The SCORE intervention operator taxonomy. Domain-general (a claim about agents), promoted to core from formal/Formal/Score/Core.lean (inductive Intervention). Ordering by activation energy and the somatic filter-bypass of create_rhythm are ordinal/relational facts carried in Lean (activationEnergy, rhythm_lower_energy_than_node), not DL-expressible here.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#CreateRhythm -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CreateRhythm">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#InterventionClass"/>
+        <rdfs:comment>Low activation energy; the only operator that bypasses the perceptual filter, via the somatic channel (embodied synchrony precedes filtering). Lean: Intervention.createRhythm.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#CreateEdge -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CreateEdge">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#InterventionClass"/>
+        <rdfs:comment>Medium activation energy; partial filter bypass through repeated contact. Lean: Intervention.createEdge.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#CreateNode -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CreateNode">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#InterventionClass"/>
+        <rdfs:comment>High activation energy; subject to full perceptual filtering; requires explicit participation. Lean: Intervention.createNode.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#SigmaInterventionClass -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#SigmaInterventionClass">
+        <rdfs:comment>The Sigma-actor intervention operator taxonomy: structural operators on a Sigma-actor's formal/informal closure, not on individual-agent coupling. Q3 PROMOTE (2026-06-04, second on-demand event) from the AGORA n ETHOS intersection — both Sigma-actor-level peers need it; the gap was pre-registered by ETHOS (score-ethos.owl) when its structural/ownership operators did not fit the A-actor InterventionClass. A SIBLING of InterventionClass, not a subclass: the two taxonomies act at different actor strata, and a forced common parent would be premature abstraction (RefinementArchitecture no-premature-abstraction rule). Morphism-routing per operator and relative activation energies are not DL-expressible; carried in SigmaActorArchitecture.md S 5.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#InstitutionalDesign -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#InstitutionalDesign">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SigmaInterventionClass"/>
+        <rdfs:comment>Modifies a Sigma-actor's internal coupling topology — constitutional/institutional design operators: supermajority gates, tenure protection, independent appointment commissions, distributed-authority centrality reduction. Changes the attractor structure of the collective manifold rather than individual coupling. See ManifoldCompatibilityDesign.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#InterSigmaCoupling -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#InterSigmaCoupling">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SigmaInterventionClass"/>
+        <rdfs:comment>Creates or dissolves formal coupling between Sigma-actors: treaty formation, alliance, sanctions, diplomatic recognition. The Sigma-actor-level analog of create_edge. See SigmaActorArchitecture.md S 2 (inter-Sigma coupling criterion).</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#FoundingConditionIntervention -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#FoundingConditionIntervention">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SigmaInterventionClass"/>
+        <rdfs:comment>Influences the founding B3 of a nascent Sigma-actor at the crystallization moment (the CoInscriptionEvent). Highest-leverage, longest-lasting Sigma-intervention; the Sigma-actor-level analog of childhood inscription influence. See SigmaActorArchitecture.md (formation; lifecycle).</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#CollectiveManifoldShift -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CollectiveManifoldShift">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SigmaInterventionClass"/>
+        <rdfs:comment>Operations that shift a Sigma-actor's effective collective manifold toward or away from B1 accuracy: institutional reform, leadership-succession engineering, information operations (disruption pole); automatic correction triggers that act on the maintaining community without the captured comparator (restoration pole). See HighCentralityDisruption.md (Mechanism 1) and SigmaActorArchitecture.md S 1a.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#AdjacentPossibleConstraint -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#AdjacentPossibleConstraint">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SigmaInterventionClass"/>
+        <rdfs:comment>Fifth Sigma-intervention operator (Q3 PROMOTE, 2026-06-04, fifth on-demand event, ATLAS n NEXUS intersection). Operates on the structural possibility space directly — infrastructure / supply-chain / technology control — opening or closing behavioral paths regardless of the target's manifold or coupling. The least reflexive-depth-dependent operator (no model of the target is needed, only their structural dependencies). ATLAS surfaced it (blockade / supply-chain interdiction / technology denial; NAryDeterrence); NEXUS was the second peer (kill zones = adjacent-possible contraction; antitrust / commons / NS-restoration = the reopening operators). See ATLAS.md, NEXUS.md, InnovationEcosystem.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#PathologicalAttractor -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#PathologicalAttractor">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#HigherOrderAgent"/>
+        <rdfs:comment>The captured-closure failure mode (Q3 PROMOTE, 2026-06-04, fourth on-demand event). A HigherOrderAgent whose coupling density persists (or grows) but whose operative FitnessCriterion has been captured to preserve the incumbent closure rather than satisfy the domain fitness. Discriminated from genuine (generative) closure by Deacon's net-information-increase criterion: genuine constraint closure EXPANDS the adjacent possible (adds absent possibilities); a pathological attractor is self-maintaining but anti-generative — it CONTRACTS the adjacent possible (the kill zone removes reachable configurations). The general form, shared across POLARIS (high SEWI + repudiated social contract), ETHOS (captured epistemic NS), ATLAS (corporate NS-as-cartel), and NEXUS (kill-zone cartel). The expand-vs-contract discriminant is dynamical and DL-inexpressible; see InnovationEcosystem.md "Formalizing NS as cartel" and HOA.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- ── Collective-manifold-update operator (Q3 PROMOTE, 2026-06-18, sixth on-demand event) ──
+         The Sigma-actor processing-chain step by which a SigmaActor updates its effective
+         collective manifold from a received percept — the long under-specified
+         collective-manifold-update step (SigmaActorArchitecture S 1-2). Promoted on the
+         AGORA n ATLAS intersection: AGORA needs it for captured correction
+         (agora:CapturedCorrectionUpdate), ATLAS for coverage-distorted signal reception
+         (atlas:CoverageModulatedReception). Distinct from the SigmaInterventionClass
+         CollectiveManifoldShift, which is the INTERVENTION that drives such an update; this is
+         the update mechanism itself. Dynamical content (the captured-only mismatch floor + the
+         necessity of an independent correcting node; the multiplicative coverage x reflexive-depth
+         fidelity decay) is DL-inexpressible — see the modular Lean spine (formal/Formal/Score/)
+         (captured_correction_needs_independent_node, low_coverage_compounds_with_reflexive_depth)
+         and AGORA-CollectiveManifoldUpdate.md / ATLAS-SignalingCascade.md. -->
+
+    <!-- http://score-theory.org/core#CollectiveManifoldUpdate -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CollectiveManifoldUpdate">
+        <rdfs:comment>The Sigma-actor collective-manifold-update operator: the process by which a SigmaActor updates its effective collective manifold from a received percept. Q3 PROMOTE (2026-06-18, sixth on-demand event, AGORA n ATLAS intersection) — the under-specified collective-manifold-update step of the Sigma-actor processing chain. Filled by agora:CapturedCorrectionUpdate (update under captured correction) and atlas:CoverageModulatedReception (update under a coverage-distorted percept). Distinct from the intervention CollectiveManifoldShift (which drives an update); this is the update mechanism. Dynamical content is DL-inexpressible; see formal/Formal/Score/Agora.lean and Atlas.lean.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- ── Adjacent-possible (captured-NS) measure (Q3 PROMOTE, 2026-06-18, seventh on-demand event) ──
+         The expand-vs-contract (Deacon net-information-increase) discriminant: the operational
+         measure of whether a closure EXPANDS or CONTRACTS the adjacent possible — the operational
+         face of core:PathologicalAttractor (DOEEvaluation S 4.5, giving that class operational
+         teeth). Promoted on the NEXUS n ETHOS intersection: NEXUS measures it as kill-zone
+         adjacent-possible contraction (nexus:KillZoneExtent), ETHOS as amplification-quality
+         decoupling (ethos:CaptureDiscriminant, kappa = cov(a,Q)). The numeric forms (Phi, delta,
+         cov(a,Q)) are Q4 BIND; the antitone-under-contraction structure is in formal/Formal/Score/Nexus.lean
+         (contraction_is_antitone_in_adjacent_possible). -->
+
+    <!-- http://score-theory.org/core#AdjacentPossibleMeasure -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#AdjacentPossibleMeasure">
+        <rdfs:comment>The captured-NS measure: the expand-vs-contract discriminant (Deacon net-information-increase) detecting whether a HigherOrderAgent's closure expands the adjacent possible (generative) or contracts it (a core:PathologicalAttractor). Q3 PROMOTE (2026-06-18, seventh on-demand event, NEXUS n ETHOS intersection) — the operational face of PathologicalAttractor (DOEEvaluation S 4.5). Filled by nexus:KillZoneExtent (adjacent-possible contraction via defensive acquisition) and ethos:CaptureDiscriminant (amplification decoupled from content quality). Numeric Phi/delta/cov(a,Q) are Q4 BIND; the antitone-under-contraction structure is in formal/Formal/Score/Nexus.lean. The one domain-general MEASURE admitted to core, justified by the >=2-peer intersection (cf. the MeasurementModel slot comment: domain-specific health metrics stay in impl layers).</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#DoctrinalRegion -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#DoctrinalRegion">
+        <rdfs:comment>A community's region R(C): the graded down-set of the doctrinallyComposesFrom DAG that a community co-inscribes / maintains — the formal home of "a community's shared B3" (the derived B3 community fibration; B3CommunityFibration.md, B3RegionGeometry.md). Q3 PROMOTE (2026-06-21, eighth on-demand event, ETHOS n NEXUS intersection): ETHOS fills it with ethos:DisciplinaryCorpus (a discipline's citation corpus), NEXUS with nexus:ParadigmCluster (a patent-citation paradigm cluster). DERIVED over the single B3 — a structure of regions OVER B3_Inscription, never a re-typing of it; the primitive B3 stays a shared singleton. The down-closure law and the graded-product geometry (a region is a down-set, graded by the emergence hierarchy, generated by its frontier) are DL-inexpressible; carried in formal/Formal/Score/Core.lean (IsRegion, downClosure_isRegion, region_substrate_closed_and_graded) and B3RegionGeometry.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- ════════════ Trace + open (n-branch) trace-processor taxonomy ════════════
+         Promote-by-nature (2026-07-02): the domain-general object of dynamical analysis (a
+         time-ordered system-state record, from measurement or simulation) and an OPEN taxonomy of
+         operators over it. Two branches are instantiated by live workstreams (time-domain / CSP via
+         FDR4; transform-domain via the Segment 6 spectral layer). Generality is external
+         (dynamical-systems theory; Scheffer 2009), not a >=2-peer intersection — the InterventionClass
+         precedent. The taxonomy is deliberately OPEN: NO covering / disjoint-union axiom on
+         TraceProcessor, so further modes (statistical, topological, symbolic-dynamics) are additions,
+         not edits. See obsidian/SCORE/measurement/{Trace,SpectralEarlyWarningIndicator}.md. -->
+
+    <!-- http://score-theory.org/core#Trace -->
+    <owl:Class rdf:about="http://score-theory.org/core#Trace">
+        <rdfs:label>Trace</rdfs:label>
+        <rdfs:comment>A time-ordered record of a system's state or events, produced by measurement (empirical series) or simulation (trajectory ensemble) and consumed by the analysis layers. Source-agnostic and domain-general — the substrate on which all dynamical analysis operates. See Trace.md.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/core#TraceProcessor -->
+    <owl:Class rdf:about="http://score-theory.org/core#TraceProcessor">
+        <rdfs:label>Trace processor</rdfs:label>
+        <rdfs:comment>An operator over a Trace (core:processes). The taxonomy of processing MODES is deliberately OPEN (n branches): TimeDomainProcessor and TransformDomainProcessor are the first two, instantiated by live workstreams; no covering axiom closes the class, so further modes are admitted as subclasses. Broader than MeasurementModel — a processor's output may be a measurement (SpectralEarlyWarningIndicator) or a verification verdict (CSP refinement). See Trace.md.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/core#TimeDomainProcessor -->
+    <owl:Class rdf:about="http://score-theory.org/core#TimeDomainProcessor">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#TraceProcessor"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/core#TransformDomainProcessor"/>
+        <rdfs:label>Time-domain processor</rdfs:label>
+        <rdfs:comment>Processes a Trace as a sequence in the time/event domain: refinement, failures, divergences (CSP-like trace semantics). Instantiated by the FDR4 CSPm protocol-verification track; TN-7 is a shelved POLARIS application. Formalization deferred (FDR4 is external). Disjoint from TransformDomainProcessor (distinct modes), but the two do NOT cover TraceProcessor.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/core#TransformDomainProcessor -->
+    <owl:Class rdf:about="http://score-theory.org/core#TransformDomainProcessor">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#TraceProcessor"/>
+        <rdfs:label>Transform-domain processor</rdfs:label>
+        <rdfs:comment>Processes a Trace by applying a transform (Fourier, wavelet) then computing indicators. Instantiated by the Segment 6 spectral layer (PSD, wavelet, coherence, SEWI). First worked filler: SpectralEarlyWarningIndicator.</rdfs:comment>
+    </owl:Class>
+
+    <!-- http://score-theory.org/core#SpectralEarlyWarningIndicator -->
+    <owl:Class rdf:about="http://score-theory.org/core#SpectralEarlyWarningIndicator">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#TransformDomainProcessor"/>
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#MeasurementModel"/>
+        <rdfs:label>Spectral early-warning indicator</rdfs:label>
+        <rdfs:comment>A baseline-standardized indicator of proximity to a bifurcation, computed from critical-slowing-down signatures (variance, autocorrelation, spectral-centroid) of the Fourier representation of a Trace. Domain-general by nature (Scheffer et al. 2009); promoted by-nature on a single filler (polaris:SEWI), the taxonomy's openness containing the POLARIS-shaped-core risk. Both a TransformDomainProcessor (the computation) and a MeasurementModel (the resulting measure). The generic monotonicity property (nondecreasing in each critical-slowing-down signature) is Lean spectral_ews_monotone (lean-planned). polaris:SEWI SPECIALIZEs it. See SpectralEarlyWarningIndicator.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://score-theory.org/core#AAgent"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#OmegaActor"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#SigmaActor"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://score-theory.org/core#Action"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#Incorporation"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#Inscription"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#Perception"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#Transformation"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://score-theory.org/core#B1_Objective"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#B2_Subjective"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#B3_Inscription"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://score-theory.org/core#CreateRhythm"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#CreateEdge"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#CreateNode"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://score-theory.org/core#InstitutionalDesign"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#InterSigmaCoupling"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#FoundingConditionIntervention"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#CollectiveManifoldShift"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#AdjacentPossibleConstraint"/>
+        </owl:members>
+    </rdf:Description>
+
+    <!-- General class axiom (GCI): operating any morphism requires a B2 or B3
+         constituent. There is no intra-B1 morphism, so a cycle that performs a
+         morphism cannot be constituent-closed in B1. Combined with PureB1Cycle's
+         allValuesFrom B1 and the B1/B2/B3 disjointness above, a reasoner derives
+         that PureB1Cycle and Actor are disjoint. Mirrors B2Incidence / ActorTypes
+         and the morphism-operation requirement in formal/Formal/Score/Core.lean.
+         Reasoner-verified with HermiT (Protege, 2026-05-30): ontology consistent;
+         (Actor and PureB1Cycle) classified equivalent to owl:Nothing via this GCI
+         plus the B1/B2/B3 disjointness, with no other class made unsatisfiable. -->
+    <owl:Restriction>
+        <owl:onProperty rdf:resource="http://score-theory.org/core#performsMorphism"/>
+        <owl:someValuesFrom rdf:resource="http://score-theory.org/core#Morphism"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#hasConstituentDomain"/>
+                <owl:someValuesFrom>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="http://score-theory.org/core#B2_Subjective"/>
+                            <rdf:Description rdf:about="http://score-theory.org/core#B3_Inscription"/>
+                        </owl:unionOf>
+                    </owl:Class>
+                </owl:someValuesFrom>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Restriction>
+
+    <!-- Referent typing of the Inscription morphism (foundational, 2026-06-04).
+         carriedBy = token-level realization (every B3 object is a B1 mark; realization,
+         not reduction — multiply realizable). The referent GCI = performing B2-referential
+         inscription entails the actor has SufficientDepth (the human differentia gate).
+         See domains/B3-Inscription.md and morphisms/Morphisms.md. -->
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#carriedBy">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#B3_Inscription"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#B1_Objective"/>
+        <rdfs:comment>Token-level realization: every B3 inscription object is carried by (realized as) a B1 mark. Realization, not reduction.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:Class rdf:about="http://score-theory.org/core#B3_Inscription">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#carriedBy"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#B1_Objective"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <!-- Referent GCI: performing B2-referential inscription requires sufficient reflexive
+         depth. Reflexive depth is a B2-grounded scale, so this also keeps B2-referential
+         inscription out of the not-B2-grounded Omega-actor. -->
+    <owl:Restriction>
+        <owl:onProperty rdf:resource="http://score-theory.org/core#performsInscription"/>
+        <owl:someValuesFrom rdf:resource="http://score-theory.org/core#B2ReferentialInscription"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#hasReflexiveDepth"/>
+                <owl:someValuesFrom rdf:resource="http://score-theory.org/core#SufficientDepth"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Restriction>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi -->
+

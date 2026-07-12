@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://score-theory.org/nexus#"
+     xml:base="http://score-theory.org/nexus"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:core="http://score-theory.org/core#">
+
+    <!-- NEXUS: innovation ecosystem dynamics — the fifth SCORE implementation, the capstone.
+         A refinement P ⊆ S (see obsidian/SCORE/methodology/RefinementArchitecture.md).
+         Q1–Q4 analysis: obsidian/SCORE/emergence/applications/NEXUS.md.
+         Conformance: core ⊕ nexus must be consistent under HermiT (score_reason.py). -->
+    <owl:Ontology rdf:about="http://score-theory.org/nexus">
+        <owl:imports rdf:resource="http://score-theory.org/core"/>
+        <rdfs:comment>NEXUS implementation ontology — technology innovation ecosystems (researchers, firms, VC, universities, regulators). The capstone peer: its hard blocker (a formal NS criterion distinguishing genuine constraint closure from cartel-mimicry) forced the PathologicalAttractor promotion to core, and its kill-zone analysis discharged ATLAS's pre-recorded AdjacentPossibleConstraint candidate (now the fifth core SigmaInterventionClass operator). Its HOA analog InnovationHOA has a mixed A-actor/Sigma-actor constituency — the third structural variant after the A-actor (HumanCommunity) and Sigma-actor (HigherOrderAgent / deterrence basin) HOA analogs. SELECTs the SigmaInterventionClass taxonomy; antitrust / commons / NS-restoration operators are core:AdjacentPossibleConstraint and core:InstitutionalDesign.</rdfs:comment>
+        <rdfs:comment>Refinement conformance verified: core ⊕ nexus consistent, no unsatisfiable classes (HermiT via owlready2, 2026-06-04). Reproduce: scripts/score_reason.py.</rdfs:comment>
+    </owl:Ontology>
+
+
+    <!-- ── Fitness-criterion slot filler (Q2 SPECIALIZE of core:FitnessCriterion) ──
+         The FOURTH filler of the slot ETHOS's Q3 promotion created. -->
+
+    <!-- http://score-theory.org/nexus#InnovationFitness -->
+    <owl:Class rdf:about="http://score-theory.org/nexus#InnovationFitness">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#FitnessCriterion"/>
+        <rdfs:label>Innovation fitness</rdfs:label>
+        <rdfs:comment>NEXUS NS fitness criterion: the rate at which the ecosystem generates and sustains genuinely novel paradigms (adjacent-possible expansion, Deacon net-information increase) vs. the rate at which cartel dynamics capture NS to select on market-maintenance fitness. The pathological pole is nexus:NSAsCartel. Fourth filler of core:FitnessCriterion (after ethos:FloridiInformationHealth, agora:ManifoldCompatibility, atlas:DeterrenceStability).</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Measurement-model slot filler (Q2 SPECIALIZE of core:MeasurementModel) ── -->
+
+    <!-- http://score-theory.org/nexus#EcosystemHealthScore -->
+    <owl:Class rdf:about="http://score-theory.org/nexus#EcosystemHealthScore">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#MeasurementModel"/>
+        <rdfs:label>Ecosystem health score</rdfs:label>
+        <rdfs:comment>NEXUS attractor-health measurement model — the role-level SEWI analog (fills core:MeasurementModel; NOT a core:SpectralEarlyWarningIndicator — a structural composite, not a spectral trace processor; see SpectralEarlyWarningIndicator.md). Composite of paradigm-diversity index, kill-zone extent (fraction of the adjacent possible blocked by incumbent defensive acquisition), NS-selection integrity (fraction of selection events driven by genuine performance vs. strategic acquisition), VC-ownership-interlock density, and adjacent-possible breadth. Domain-specific refinement; no EcosystemHealthScore in core.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── HOA-analog slot filler (Q2 SPECIALIZE of core:HigherOrderAgent) ──
+         The first HOA analog with a MIXED A-actor/Sigma-actor constituency. -->
+
+    <!-- http://score-theory.org/nexus#InnovationHOA -->
+    <owl:Class rdf:about="http://score-theory.org/nexus#InnovationHOA">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#HigherOrderAgent"/>
+        <rdfs:label>Innovation HOA</rdfs:label>
+        <rdfs:comment>NEXUS HOA analog: the innovation ecosystem as a structured coupling network of researchers and founders (A-actors) and firms, VC funds, universities, and regulators (Sigma-actors). Crystallizes at the Erdos-Renyi threshold when all six closure cycles (training, founding, capital, acquisition, failure, network — InnovationEcosystem.md) are above threshold simultaneously. The first HOA analog with a mixed A-actor/Sigma-actor constituency — the third structural variant after the A-actor HumanCommunity peers (POLARIS/ETHOS/AGORA) and the Sigma-actor atlas:DeterrenceBasin.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Sigma-actor specialization (Q2 SPECIALIZE of core:SigmaActor) ── -->
+
+    <!-- http://score-theory.org/nexus#PlatformIncumbent -->
+    <owl:Class rdf:about="http://score-theory.org/nexus#PlatformIncumbent">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SigmaActor"/>
+        <rdfs:label>Platform incumbent</rdfs:label>
+        <rdfs:comment>A platform company controlling operating systems, app distribution, cloud infrastructure, advertising networks, or data monopolies, as a Sigma-actor whose captured closure creates the kill zone (a structural contraction of the adjacent possible). Often carries Omega-actor behavioral-data infrastructure (the surveillance substrate is also the reflexive-control substrate — see NAryDeterrence corporate reflexive asymmetry). The crossroads-capturing actor of InnovationEcosystem.md / Crossroads.md.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Pathological-attractor specialization (Q2 SPECIALIZE of the promoted core:PathologicalAttractor) ── -->
+
+    <!-- http://score-theory.org/nexus#NSAsCartel -->
+    <owl:Class rdf:about="http://score-theory.org/nexus#NSAsCartel">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#PathologicalAttractor"/>
+        <rdfs:label>NS as cartel</rdfs:label>
+        <rdfs:comment>The VC/large-tech ownership interlock as a captured closure: self-maintaining (Montevil-Mossio closure for itself) but anti-generative — it captures the ecosystem's selection function to suppress downstream closure formation (kill zone), contracting rather than expanding the adjacent possible. The NEXUS instance of core:PathologicalAttractor; the construct whose formalization (the Deacon net-information-increase discriminant) was NEXUS's hard blocker. See InnovationEcosystem.md "Formalizing NS as cartel".</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ════════════════ Phase C (2026-06-18): the kill-zone measure ════════════════
+         NEXUS half of the NEXUS n ETHOS intersection that licensed the seventh on-demand Q3 promotion
+         (core:AdjacentPossibleMeasure). ETHOS's ethos:CaptureDiscriminant is the second peer. The
+         antitone-under-contraction structure (delta <= 0 for a kill zone) is DL-inexpressible: Lean
+         contraction_is_antitone_in_adjacent_possible (formal/Formal/Score/Nexus.lean See NEXUS-KillZoneMeasurement.md. -->
+
+    <!-- http://score-theory.org/nexus#KillZoneExtent -->
+    <owl:Class rdf:about="http://score-theory.org/nexus#KillZoneExtent">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#AdjacentPossibleMeasure"/>
+        <rdfs:label>Kill-zone extent</rdfs:label>
+        <rdfs:comment>NEXUS's captured-NS measure: delta = Phi(t+) - Phi(t-), the change in adjacent-possible breadth Phi across a selection event. delta &gt; 0 = genuine NS (expansion); delta &lt;= 0 = kill-zone contraction. The prospective leading indicator (pre-revenue defensive-acquisition density, blocked-adjacent-possible fraction) detects contraction before market-share thresholds trip. SPECIALIZEs the promoted core:AdjacentPossibleMeasure (the NEXUS n ETHOS intersection, alongside ethos:CaptureDiscriminant). Distinct from the composite nexus:EcosystemHealthScore (which carries kill-zone extent as one component). Numeric Phi/delta is Q4 BIND; the antitone structure is Lean contraction_is_antitone_in_adjacent_possible (formal/Formal/Score/Nexus.lean See NEXUS-KillZoneMeasurement.md Phase B.</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- ── Doctrinal-region + composition fillers (Q2 SPECIALIZE of the promoted
+         core:DoctrinalRegion / core:doctrinallyComposesFrom; NEXUS half of the ETHOS n NEXUS
+         intersection that licensed the EIGHTH on-demand Q3 promotion, 2026-06-21). NEXUS already
+         clusters the patent-citation network into paradigm clusters (NEXUS-KillZoneMeasurement.md);
+         a paradigm cluster IS a region R(C). The down-closure / grading structure is Lean
+         (formal/Formal/Score/Nexus.lean nexusNetwork). -->
+
+    <!-- http://score-theory.org/nexus#patentCites -->
+    <owl:ObjectProperty rdf:about="http://score-theory.org/nexus#patentCites">
+        <rdfs:subPropertyOf rdf:resource="http://score-theory.org/core#doctrinallyComposesFrom"/>
+        <rdfs:comment>Patent / standard citation among B3 technical inscriptions: `y patentCites x` means artifact y builds on / cites prior art x. The NEXUS instance of core:doctrinallyComposesFrom; its transitive closure orders a paradigm cluster. Numeric patent-citation networks are Q4 BIND (NEXUS-KillZoneMeasurement.md Phase F).</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <!-- http://score-theory.org/nexus#ParadigmCluster -->
+    <owl:Class rdf:about="http://score-theory.org/nexus#ParadigmCluster">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#DoctrinalRegion"/>
+        <rdfs:label>Paradigm cluster</rdfs:label>
+        <rdfs:comment>An innovation ecosystem's region R(C): the graded down-set of the patent-citation DAG a paradigm cluster co-inscribes — the technical corpus a platform/paradigm holds, closed under "patentCites" (a platform holds its component substrate). The NEXUS filler of core:DoctrinalRegion (second peer of the ETHOS n NEXUS promotion, alongside ethos:DisciplinaryCorpus); already the unit NEXUS clusters the citation network into for the Phi paradigm-diversity measure (nexus:KillZoneExtent). Lean: formal/Formal/Score/Nexus.lean (paradigmCluster, paradigmCluster_isRegion). See NEXUS-KillZoneMeasurement.md.</rdfs:comment>
+    </owl:Class>
+
+</rdf:RDF>
