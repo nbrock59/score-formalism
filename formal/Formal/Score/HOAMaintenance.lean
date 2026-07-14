@@ -1687,4 +1687,99 @@ theorem hoaFragilityManifoldShapeHomogeneous {r : Region} (c : AutocatalyticComb
         exact hoaMove_preserves_manifoldShapeHomogeneity _ _ (tr_moves n) ih
   exact manifoldShapeHomogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM25. LONG-TIMESCALE DYNAMICS (L1) — MemberTurnoverMove
+-- (Hysteresis § 3.2 flag: ceiling residue does NOT survive member
+-- turnover; § 3.3 flag: formal B₃ substrate DOES.)
+--
+-- Design (C) — disjoint slow-move type. `MemberTurnoverMove` is a
+-- separate transition type from `HOAMove`; the fast-timescale
+-- maintenance/fragility axioms don't apply. Slow-timescale reasoning
+-- gets its own analysis: erosion of ceiling residue, preservation of
+-- formal B₃ substrate. Composing fast and slow reasoning is future
+-- work (see LongTimescaleDynamics.md).
+--
+-- Scope thin: only L1 (member turnover) at this tier. L2 generational
+-- renewal, L3 Path-A accumulation, L4 co-inscription/crossover, and
+-- cross-mechanism composition are separate future PRs.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Member turnover** — a slow-timescale transition where the agent
+    population is replaced (in whole or part). Disjoint from `HOAMove`
+    (fast-timescale interaction/decay/intervention); the fast-timescale
+    preservation axioms (`hoaMove_preserves_*Homogeneity`) do not apply
+    to `MemberTurnoverMove`. -/
+axiom MemberTurnoverMove {r : Region} : HOAState r → HOAState r → Prop
+
+/-- **Turnover decay factor** — abstract constant characterizing the
+    worst-case ceiling-residue attrition per member-turnover event.
+    Peer implementations calibrate. -/
+axiom turnoverDecayFactor : ℝ
+
+/-- The decay factor is non-negative. -/
+axiom turnoverDecayFactor_pos : 0 ≤ turnoverDecayFactor
+
+/-- The decay factor is strictly less than 1 — every turnover strictly
+    erodes ceiling residue (in the worst case). This is what makes the
+    geometric-decay theorem below reach zero in the limit. -/
+axiom turnoverDecayFactor_lt_one : turnoverDecayFactor < 1
+
+/-- **Erosion axiom** (Hysteresis.md § 3.2). Each member-turnover event
+    multiplies ceiling residue by at most `turnoverDecayFactor`. Formalizes
+    "does NOT survive member turnover — new members arrive with
+    un-restructured manifolds and lower the collective ceiling unless
+    successfully inscribed." The inscription condition (L2 generational
+    renewal) is not yet formalized; at this tier, all turnover events
+    are treated as un-inscribed / worst-case. -/
+axiom memberTurnoverMove_erodes_ceiling
+    {r : Region} (s s' : HOAState r) :
+  MemberTurnoverMove s s' →
+    s'.ceilingResidue.val ≤ turnoverDecayFactor * s.ceilingResidue.val
+
+/-- **Preservation axiom** (Hysteresis.md § 3.3). Formal B₃ substrate
+    survives member turnover — the distinguishing claim of § 3.3 vs
+    § 3.2. Formal roles outlive individual role-holders. -/
+axiom memberTurnoverMove_preserves_formalB3
+    {r : Region} (s s' : HOAState r) :
+  MemberTurnoverMove s s' → s'.formalB3Substrate = s.formalB3Substrate
+
+/-- **Ceiling-residue erodes under turnover.** After `i` turnovers,
+    ceiling residue is at most `turnoverDecayFactor^i` times its
+    initial value. Since `turnoverDecayFactor < 1`, this decays
+    geometrically to zero in the limit — formalizing "ceiling residue
+    does not survive turnover" as a rate-of-decay claim. -/
+theorem ceilingResidue_erodes_under_turnover
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_turnover : ∀ i, MemberTurnoverMove (trace i) (trace (i+1))) :
+    ∀ i, (trace i).ceilingResidue.val ≤
+         turnoverDecayFactor^i * (trace 0).ceilingResidue.val := by
+  intro i
+  induction i with
+  | zero => simp
+  | succ n ih =>
+      have h_step := memberTurnoverMove_erodes_ceiling
+                       (trace n) (trace (n+1)) (h_turnover n)
+      have h_decay_nn : 0 ≤ turnoverDecayFactor := turnoverDecayFactor_pos
+      calc (trace (n+1)).ceilingResidue.val
+          ≤ turnoverDecayFactor * (trace n).ceilingResidue.val := h_step
+        _ ≤ turnoverDecayFactor
+              * (turnoverDecayFactor^n * (trace 0).ceilingResidue.val) :=
+              mul_le_mul_of_nonneg_left ih h_decay_nn
+        _ = turnoverDecayFactor^(n+1) * (trace 0).ceilingResidue.val := by ring
+
+/-- **Formal B₃ preserved under turnover.** After any sequence of
+    member-turnover events, formal B₃ substrate is unchanged.
+    Formalizes the § 3.3 mechanism's distinguishing property. -/
+theorem formalB3_preserved_under_turnover
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_turnover : ∀ i, MemberTurnoverMove (trace i) (trace (i+1))) :
+    ∀ i, (trace i).formalB3Substrate = (trace 0).formalB3Substrate := by
+  intro i
+  induction i with
+  | zero => rfl
+  | succ n ih =>
+      rw [← ih,
+          memberTurnoverMove_preserves_formalB3 (trace n) (trace (n+1))
+                                                (h_turnover n)]
+
 end SCORE
