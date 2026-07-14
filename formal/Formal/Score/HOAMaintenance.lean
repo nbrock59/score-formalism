@@ -1968,4 +1968,98 @@ theorem formalB3_preserved_under_pathA
           pathAMove_preserves_formalB3 (trace n) (trace (n+1))
                                        (h_pathA n)]
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM28. LONG-TIMESCALE DYNAMICS (L4) — CoInscriptionMove
+-- (B3SubstrateProsthetic.md § "What is NOT formalized": how formal B₃
+-- substrate accumulates over Σ-actor lifetime; SigmaActorArchitecture
+-- § "Lifecycle" formation → maturity → crossover → death.)
+--
+-- L4 is the ACCRETION side for the formal B₃ layer, mirror-image of
+-- L3 which handles the ceiling-residue (informal) side. Both add to
+-- the substrate they operate on; both preserve the OTHER substrate:
+--
+--   L3 PathAMove:        accretes ceiling residue,     preserves formal B₃.
+--   L4 CoInscriptionMove: accretes formal B₃ substrate, preserves ceiling.
+--
+-- Crossover — the moment when the formal layer takes over coordination
+-- work the informal can no longer span — is captured implicitly in the
+-- existing state-space: a state where `¬ ExtendedBasin p_r` (informal
+-- ceiling exhausted) but `FormalExtendedBasin p_b` (formal still
+-- sustains) is post-crossover. No new predicate at this tier; peer
+-- implementations can define `AfterCrossover` on top.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Co-inscription move** — a slow-timescale event where the Σ-actor's
+    formal B₃ layer is expanded via co-inscription (adding to
+    constitution, formalizing new roles, chartering additional
+    succession procedures). Disjoint from `HOAMove`, `MemberTurnoverMove`
+    (L1), `GenerationalRenewalMove` (L2), and `PathAMove` (L3). -/
+axiom CoInscriptionMove {r : Region} : HOAState r → HOAState r → Prop
+
+/-- **Peer-supplied strict-accrual increment** — the minimum formal-B₃
+    increment per co-inscription event, below saturation. Analogous to
+    `pathAAccrualIncrement` on the ceiling side. -/
+axiom coInscriptionAccrualIncrement : ℝ
+
+/-- The co-inscription accrual increment is strictly positive. -/
+axiom coInscriptionAccrualIncrement_pos : 0 < coInscriptionAccrualIncrement
+
+/-- **Co-inscription accretes formal B₃** (baseline monotonicity). Each
+    co-inscription event does not decrease formal B₃ substrate. -/
+axiom coInscriptionMove_accretes_formalB3
+    {r : Region} (s s' : HOAState r) :
+  CoInscriptionMove s s' →
+    s.formalB3Substrate.val ≤ s'.formalB3Substrate.val
+
+/-- **Co-inscription strict-accrual below saturation.** When
+    accumulated formal B₃ + increment is still ≤ 1 (not yet saturated
+    at the CouplingWeight upper bound), each co-inscription event
+    increases formal B₃ by at least the increment. Saturation is the
+    implicit CouplingWeight upper bound; a peer modeling beyond-1
+    formal-B₃ magnitudes would refactor `HOAState.formalB3Substrate`
+    to a wider type. -/
+axiom coInscriptionMove_strict_accrual_below_saturation
+    {r : Region} (s s' : HOAState r) :
+  CoInscriptionMove s s' →
+    s.formalB3Substrate.val + coInscriptionAccrualIncrement ≤ 1 →
+    s.formalB3Substrate.val + coInscriptionAccrualIncrement
+      ≤ s'.formalB3Substrate.val
+
+/-- **Ceiling residue preserved under co-inscription.** Mirror-image of
+    L3's `pathAMove_preserves_formalB3`: co-inscription operates on the
+    formal-B₃ layer, not the ceiling-residue (informal) layer. -/
+axiom coInscriptionMove_preserves_ceilingResidue
+    {r : Region} (s s' : HOAState r) :
+  CoInscriptionMove s s' → s'.ceilingResidue = s.ceilingResidue
+
+/-- **Formal B₃ accretes under repeated co-inscription.** After `i`
+    co-inscription events, `(trace 0).formalB3 ≤ (trace i).formalB3`.
+    Mirror-image of L3's `ceilingResidue_accretes_under_pathA`. -/
+theorem formalB3_accretes_under_coInscription
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_coi : ∀ i, CoInscriptionMove (trace i) (trace (i+1))) :
+    ∀ i, (trace 0).formalB3Substrate.val ≤ (trace i).formalB3Substrate.val := by
+  intro i
+  induction i with
+  | zero => exact le_refl _
+  | succ n ih =>
+      have h_step := coInscriptionMove_accretes_formalB3
+                       (trace n) (trace (n+1)) (h_coi n)
+      linarith
+
+/-- **Ceiling residue preserved under repeated co-inscription.** Mirror-
+    image of L3's `formalB3_preserved_under_pathA`. Co-inscription
+    changes only the formal layer; ceiling residue stays constant. -/
+theorem ceilingResidue_preserved_under_coInscription
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_coi : ∀ i, CoInscriptionMove (trace i) (trace (i+1))) :
+    ∀ i, (trace i).ceilingResidue = (trace 0).ceilingResidue := by
+  intro i
+  induction i with
+  | zero => rfl
+  | succ n ih =>
+      rw [← ih,
+          coInscriptionMove_preserves_ceilingResidue
+            (trace n) (trace (n+1)) (h_coi n)]
+
 end SCORE
