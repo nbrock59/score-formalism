@@ -1782,4 +1782,83 @@ theorem formalB3_preserved_under_turnover
           memberTurnoverMove_preserves_formalB3 (trace n) (trace (n+1))
                                                 (h_turnover n)]
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM26. LONG-TIMESCALE DYNAMICS (L2) — GenerationalRenewalMove
+-- (Hysteresis § 3.2: generational transmission fraction renews the
+-- ceiling residue each generation; fail to inscribe children → the
+-- ceiling residue doesn't get re-laid → HOA dissolves within one
+-- generation.)
+--
+-- L2 is the counter-mechanism to L1 (§HM25). Where L1 axiomatizes pure
+-- turnover as strictly erosive (decay by turnoverDecayFactor < 1), L2
+-- axiomatizes turnover-with-successful-inscription as preservative
+-- (ceiling residue at least maintained). Both are disjoint slow-move
+-- types; a peer implementation models each generational transition as
+-- either L1 (no inscription) or L2 (successful inscription).
+--
+-- Scope thin: only the "successful renewal preserves ceiling" claim is
+-- formalized. Partial-inscription (some fraction of new agents
+-- successfully inscribed) is future work; a peer might model it by
+-- interleaving L1 and L2 moves in a ratio matching the transmission
+-- fraction.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Generational renewal** — a slow-timescale move in which
+    incoming-Childhood agents enter the HOA and inscription of the
+    ceiling-residue-relevant manifold structure succeeds. Disjoint from
+    `HOAMove` (fast-timescale) and `MemberTurnoverMove` (turnover
+    without inscription); the peer implementation decides which slow
+    move applies at each generational transition. -/
+axiom GenerationalRenewalMove {r : Region} : HOAState r → HOAState r → Prop
+
+/-- **Renewal maintains ceiling** (Hysteresis.md § 3.2, counter to L1
+    erosion). Successful generational inscription transfers the
+    ceiling-residue-relevant manifold structure to new agents; ceiling
+    residue does not decrease. Peer implementations may strengthen this
+    to strict INCREASE (folding in new agents' contributions); the
+    baseline claim is preservation. -/
+axiom generationalRenewalMove_maintains_ceiling
+    {r : Region} (s s' : HOAState r) :
+  GenerationalRenewalMove s s' →
+    s.ceilingResidue.val ≤ s'.ceilingResidue.val
+
+/-- Formal B₃ substrate survives generational renewal — same claim
+    shape as for L1 turnover. -/
+axiom generationalRenewalMove_preserves_formalB3
+    {r : Region} (s s' : HOAState r) :
+  GenerationalRenewalMove s s' → s'.formalB3Substrate = s.formalB3Substrate
+
+/-- **Ceiling residue is preserved under repeated generational renewal.**
+    Direct contrast with L1: after `i` turnovers ceiling ≤ `decay^i × initial`
+    (geometric decay); after `i` renewals ceiling ≥ initial (preservation
+    or growth). This is the L2 counter-claim to L1's erosion, formalizing
+    the § 3.2 renewal mechanism. -/
+theorem ceilingResidue_preserved_under_renewal
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_renewal : ∀ i, GenerationalRenewalMove (trace i) (trace (i+1))) :
+    ∀ i, (trace 0).ceilingResidue.val ≤ (trace i).ceilingResidue.val := by
+  intro i
+  induction i with
+  | zero => exact le_refl _
+  | succ n ih =>
+      have h_step := generationalRenewalMove_maintains_ceiling
+                       (trace n) (trace (n+1)) (h_renewal n)
+      linarith
+
+/-- **Formal B₃ preserved under repeated generational renewal.** Same
+    structure as `formalB3_preserved_under_turnover` — both slow moves
+    preserve the formal layer that § 3.3 stakes its distinguishing
+    persistence claim on. -/
+theorem formalB3_preserved_under_renewal
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_renewal : ∀ i, GenerationalRenewalMove (trace i) (trace (i+1))) :
+    ∀ i, (trace i).formalB3Substrate = (trace 0).formalB3Substrate := by
+  intro i
+  induction i with
+  | zero => rfl
+  | succ n ih =>
+      rw [← ih,
+          generationalRenewalMove_preserves_formalB3 (trace n) (trace (n+1))
+                                                     (h_renewal n)]
+
 end SCORE
