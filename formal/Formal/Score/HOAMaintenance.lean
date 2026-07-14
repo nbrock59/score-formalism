@@ -1076,6 +1076,100 @@ noncomputable def multiplicativeMultiplicativeResidueAugmented :
                      + (formationThreshold r).val * res.val = (formationThreshold r).val := by ring
     linarith
 
+/-- **§ 3.2 mixed pair: additive × multiplicative.** For the
+    (`combineAdditive`, `multiplicativeCeilingResidue`) pair. Same additive
+    extended combine `s + e + res` as the additive × linear discharge —
+    additive-combine discharges use the same shape regardless of policy;
+    only the arithmetic in `closes_extended_gap` differs. Proof uses
+    `dissolution ≤ 1` (CouplingWeight bound) to close the gap. -/
+noncomputable def additiveMultiplicativeResidueAugmented :
+    ResidueAugmentedCombine combineAdditive multiplicativeCeilingResidue where
+  extendedCombine _ s e res := s.val + e.val + res.val
+  boundary_at_zero _ s e := by
+    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    ring
+  closes_extended_gap r substrate endowment res h_basin h_feedback := by
+    have h_eff : multiplicativeCeilingResidue.effectiveDissolution r res =
+                 (dissolutionThreshold r).val * (1 - res.val) := rfl
+    have h_eng : combineAdditive.engagementThreshold r =
+                 (formationThreshold r).val - (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    have h_d_le_1 : (dissolutionThreshold r).val ≤ 1 := (dissolutionThreshold r).le1
+    have h_res_nn : (0 : ℝ) ≤ res.val := res.pos
+    -- s + e ≥ d*(1-res) + (f-d) = f - d*res; add res: ≥ f + res*(1-d) ≥ f  (since d ≤ 1)
+    show (formationThreshold r).val ≤ substrate.val + endowment.val + res.val
+    nlinarith
+
+/-- **§ 3.2 mixed pair: multiplicative × linear.** For the
+    (`combineMultiplicative`, `linearCeilingResidue`) pair. Divisive
+    extended combine: `s × (1+e) + formation × res / dissolution`. Case
+    analysis on whether `res ≤ dissolution` (Case A) or `res > dissolution`
+    (Case B — substrate lower bound trivializes to 0 via the linear
+    policy's `max 0` floor). Both cases close the gap. -/
+noncomputable def multiplicativeLinearResidueAugmented :
+    ResidueAugmentedCombine combineMultiplicative linearCeilingResidue where
+  extendedCombine r s e res :=
+    s.val * (1 + e.val) + (formationThreshold r).val * res.val / (dissolutionThreshold r).val
+  boundary_at_zero r s e := by
+    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) / (dissolutionThreshold r).val
+         = s.val * (1 + e.val)
+    ring
+  closes_extended_gap r substrate endowment res h_basin h_feedback := by
+    have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt h_d_pos
+    have h_e_nn : 0 ≤ endowment.val := endowment.pos
+    have h_1e_nn : (0 : ℝ) ≤ 1 + endowment.val := by linarith
+    have h_res_nn : 0 ≤ res.val := res.pos
+    have h_s_nn : 0 ≤ substrate.val := substrate.pos
+    have h_gap : (dissolutionThreshold r).val < (formationThreshold r).val := hysteresis_gap r
+    have h_f_nn : 0 ≤ (formationThreshold r).val := le_of_lt (lt_trans h_d_pos h_gap)
+    have h_eff : linearCeilingResidue.effectiveDissolution r res =
+                 max 0 ((dissolutionThreshold r).val - res.val) := rfl
+    have h_eng : combineMultiplicative.engagementThreshold r =
+                 ((formationThreshold r).val - (dissolutionThreshold r).val)
+                   / (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    have h_1e_ge_fd : (formationThreshold r).val / (dissolutionThreshold r).val
+                      ≤ 1 + endowment.val := by
+      rw [div_le_iff₀ h_d_pos]
+      have h_mul := mul_le_mul_of_nonneg_right h_feedback h_d_nn
+      rw [div_mul_cancel₀ _ (ne_of_gt h_d_pos)] at h_mul
+      linarith
+    have h_fd_nn : 0 ≤ (formationThreshold r).val / (dissolutionThreshold r).val :=
+      div_nonneg h_f_nn h_d_nn
+    show (formationThreshold r).val ≤
+         substrate.val * (1 + endowment.val)
+           + (formationThreshold r).val * res.val / (dissolutionThreshold r).val
+    by_cases h_case : (dissolutionThreshold r).val ≤ res.val
+    · -- Case B: res ≥ d → f * res / d ≥ f
+      have h_ratio : 1 ≤ res.val / (dissolutionThreshold r).val := by
+        rw [le_div_iff₀ h_d_pos]; linarith
+      have h_ge : (formationThreshold r).val
+                  ≤ (formationThreshold r).val * res.val / (dissolutionThreshold r).val := by
+        have h_rw : (formationThreshold r).val * res.val / (dissolutionThreshold r).val
+                    = (formationThreshold r).val * (res.val / (dissolutionThreshold r).val) := by ring
+        rw [h_rw]; nlinarith
+      have h_ext_nn : 0 ≤ substrate.val * (1 + endowment.val) := mul_nonneg h_s_nn h_1e_nn
+      linarith
+    · -- Case A: res < d → max = d - res, product bound closes
+      push_neg at h_case
+      have h_dr_nn : (0 : ℝ) ≤ (dissolutionThreshold r).val - res.val := by linarith
+      have h_max_eq : max 0 ((dissolutionThreshold r).val - res.val)
+                      = (dissolutionThreshold r).val - res.val := max_eq_right h_dr_nn
+      rw [h_max_eq] at h_basin
+      have h_prod : ((dissolutionThreshold r).val - res.val)
+                    * ((formationThreshold r).val / (dissolutionThreshold r).val)
+                    ≤ substrate.val * (1 + endowment.val) :=
+        mul_le_mul h_basin h_1e_ge_fd h_fd_nn h_s_nn
+      have h_simp : ((dissolutionThreshold r).val - res.val)
+                    * ((formationThreshold r).val / (dissolutionThreshold r).val)
+                    = (formationThreshold r).val
+                      - (formationThreshold r).val * res.val / (dissolutionThreshold r).val := by
+        field_simp
+      linarith [h_prod, h_simp]
+
 -- ════════════════════════════════════════════════════════════════
 -- §HM20. DISCHARGE MACHINERY — § 3.3 B₃-substrate prosthetic,
 -- canonical (combineAdditive × linearFlooredB3Substrate) pair
@@ -1284,5 +1378,112 @@ noncomputable def multiplicativeMultiplicativeFlooredB3Augmented
     have h_algebra : (formationThreshold r).val * (1 - b3.val)
                      + (formationThreshold r).val * b3.val = (formationThreshold r).val := by ring
     linarith
+
+/-- **§ 3.3 mixed pair: additive × multiplicative-floored.** For the
+    (`combineAdditive`, `multiplicativeFlooredB3Substrate irrMin ...`) pair.
+    Same additive shape as other additive-combine discharges: `s + e + b3`.
+    Proof identical to additive × multiplicative for § 3.2, extracting
+    `d × (1-b3) ≤ substrate` from the max via `le_max_right` (the `irrMin`
+    floor is subsumed since substrate is at least both operands of the max). -/
+noncomputable def additiveMultiplicativeFlooredB3Augmented
+    (irrMin : Region → ℝ)
+    (irrMin_pos : ∀ r, 0 < irrMin r)
+    (irrMin_below : ∀ r, irrMin r ≤ (dissolutionThreshold r).val) :
+    B3AugmentedCombine combineAdditive
+      (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
+  extendedCombine _ s e b3 := s.val + e.val + b3.val
+  boundary_at_zero _ s e := by
+    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    ring
+  closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
+    have h_eff : (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
+                    r b3
+                 = max (irrMin r) ((dissolutionThreshold r).val * (1 - b3.val)) := rfl
+    have h_eng : combineAdditive.engagementThreshold r =
+                 (formationThreshold r).val - (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    have h_d_le_1 : (dissolutionThreshold r).val ≤ 1 := (dissolutionThreshold r).le1
+    have h_b3_nn : (0 : ℝ) ≤ b3.val := b3.pos
+    have h_db3_le_substrate : (dissolutionThreshold r).val * (1 - b3.val) ≤ substrate.val :=
+      le_trans (le_max_right _ _) h_basin
+    show (formationThreshold r).val ≤ substrate.val + endowment.val + b3.val
+    nlinarith
+
+/-- **§ 3.3 mixed pair: multiplicative × linear-floored.** For the
+    (`combineMultiplicative`, `linearFlooredB3Substrate irrMin ...`) pair.
+    Divisive extended combine `s × (1+e) + formation × b3 / dissolution` —
+    identical to § 3.2 mult × linear. Case analysis: Case A (b3 ≤ d) uses
+    product bound; Case B (b3 > d) uses that in the linear floor, `max
+    (irrMin r) (d - b3) = irrMin r > 0 > d - b3` but the argument through
+    `substrate + b3 ≥ d` still holds via the max ≥ (d - b3) inequality.
+    Uses `le_max_right`, so the `irrMin` floor is only implicit. -/
+noncomputable def multiplicativeLinearFlooredB3Augmented
+    (irrMin : Region → ℝ)
+    (irrMin_pos : ∀ r, 0 < irrMin r)
+    (irrMin_below : ∀ r, irrMin r ≤ (dissolutionThreshold r).val) :
+    B3AugmentedCombine combineMultiplicative
+      (linearFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
+  extendedCombine r s e b3 :=
+    s.val * (1 + e.val) + (formationThreshold r).val * b3.val / (dissolutionThreshold r).val
+  boundary_at_zero r s e := by
+    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) / (dissolutionThreshold r).val
+         = s.val * (1 + e.val)
+    ring
+  closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
+    have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt h_d_pos
+    have h_e_nn : 0 ≤ endowment.val := endowment.pos
+    have h_1e_nn : (0 : ℝ) ≤ 1 + endowment.val := by linarith
+    have h_b3_nn : 0 ≤ b3.val := b3.pos
+    have h_s_nn : 0 ≤ substrate.val := substrate.pos
+    have h_gap : (dissolutionThreshold r).val < (formationThreshold r).val := hysteresis_gap r
+    have h_f_nn : 0 ≤ (formationThreshold r).val := le_of_lt (lt_trans h_d_pos h_gap)
+    have h_eff : (linearFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
+                    r b3
+                 = max (irrMin r) ((dissolutionThreshold r).val - b3.val) := rfl
+    have h_eng : combineMultiplicative.engagementThreshold r =
+                 ((formationThreshold r).val - (dissolutionThreshold r).val)
+                   / (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    have h_1e_ge_fd : (formationThreshold r).val / (dissolutionThreshold r).val
+                      ≤ 1 + endowment.val := by
+      rw [div_le_iff₀ h_d_pos]
+      have h_mul := mul_le_mul_of_nonneg_right h_feedback h_d_nn
+      rw [div_mul_cancel₀ _ (ne_of_gt h_d_pos)] at h_mul
+      linarith
+    have h_fd_nn : 0 ≤ (formationThreshold r).val / (dissolutionThreshold r).val :=
+      div_nonneg h_f_nn h_d_nn
+    show (formationThreshold r).val ≤
+         substrate.val * (1 + endowment.val)
+           + (formationThreshold r).val * b3.val / (dissolutionThreshold r).val
+    by_cases h_case : (dissolutionThreshold r).val ≤ b3.val
+    · -- Case B: b3 ≥ d → f * b3 / d ≥ f
+      have h_ratio : 1 ≤ b3.val / (dissolutionThreshold r).val := by
+        rw [le_div_iff₀ h_d_pos]; linarith
+      have h_ge : (formationThreshold r).val
+                  ≤ (formationThreshold r).val * b3.val / (dissolutionThreshold r).val := by
+        have h_rw : (formationThreshold r).val * b3.val / (dissolutionThreshold r).val
+                    = (formationThreshold r).val * (b3.val / (dissolutionThreshold r).val) := by ring
+        rw [h_rw]; nlinarith
+      have h_ext_nn : 0 ≤ substrate.val * (1 + endowment.val) := mul_nonneg h_s_nn h_1e_nn
+      linarith
+    · -- Case A: b3 < d → max = ? (either irrMin or d - b3, whichever is larger)
+      push_neg at h_case
+      have h_dr_nn : (0 : ℝ) ≤ (dissolutionThreshold r).val - b3.val := by linarith
+      -- substrate ≥ max(irrMin, d - b3) ≥ d - b3
+      have h_s_ge : (dissolutionThreshold r).val - b3.val ≤ substrate.val :=
+        le_trans (le_max_right _ _) h_basin
+      have h_prod : ((dissolutionThreshold r).val - b3.val)
+                    * ((formationThreshold r).val / (dissolutionThreshold r).val)
+                    ≤ substrate.val * (1 + endowment.val) :=
+        mul_le_mul h_s_ge h_1e_ge_fd h_fd_nn h_s_nn
+      have h_simp : ((dissolutionThreshold r).val - b3.val)
+                    * ((formationThreshold r).val / (dissolutionThreshold r).val)
+                    = (formationThreshold r).val
+                      - (formationThreshold r).val * b3.val / (dissolutionThreshold r).val := by
+        field_simp
+      linarith [h_prod, h_simp]
 
 end SCORE
