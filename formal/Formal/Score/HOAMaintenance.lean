@@ -50,15 +50,20 @@ namespace SCORE
 
 /-- The joint coupling-graph state under HOA-maintenance analysis, over a
     fixed region `r`: agents, exogenous substrate weight, endogenous loop
-    endowment, and accumulated ceiling residue (Path-A structural
-    manifold-overlap deepening — used by the § 3.2 ceiling-residue
-    extension, §HM9–HM11). Moves may adjust any of the four; the ceiling-
-    residue field is inert at the (B'') aggregate-weight tier. -/
+    endowment, accumulated ceiling residue (Path-A structural manifold-
+    overlap deepening — used by the § 3.2 ceiling-residue extension,
+    §HM9–HM11), and formal B₃ substrate (co-inscribed formal layer — used
+    by the § 3.3 B₃-substrate prosthetic extension, §HM12–HM14). Moves may
+    adjust any of the five; ceiling-residue and formal-B₃ fields are inert
+    at the (B'') aggregate-weight tier. Note: `formalB3Substrate` is zero
+    for A-actors (they don't have a formal B₃ layer); the § 3.3 mechanism
+    is vacuous at zero substrate per its `boundary_at_zero` policy axiom. -/
 structure HOAState (r : Region) where
-  agents         : List Agent
-  substrate      : CouplingWeight
-  loopEndowment  : CouplingWeight
-  ceilingResidue : CouplingWeight
+  agents            : List Agent
+  substrate         : CouplingWeight
+  loopEndowment     : CouplingWeight
+  ceilingResidue    : CouplingWeight
+  formalB3Substrate : CouplingWeight
 
 -- ════════════════════════════════════════════════════════════════
 -- §HM2. HYSTERESIS THRESHOLDS (Hysteresis.md § "The claim")
@@ -436,5 +441,176 @@ theorem hoaMaintainedExtended {r : Region} (c : AutocatalyticCombine)
       exact hoaPreservedByExtendedBasinMove_ifFeedbackEngaged policy c
         (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n)
         (tr_ext_basin (n+1))
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM12. B₃-SUBSTRATE PROSTHETIC POLICY — widest-window basin extension
+-- (Hysteresis § 3.3). Formal B₃ layer (constitution, bylaws, roles)
+-- reduces the informal substrate requirement — but not below an
+-- irreducible minimum (a formal structure "rejected by all informal
+-- networks is paper without power"). Σ-actor-only mechanism, handled
+-- implicitly: for A-actors, formalB3Substrate = 0 makes the mechanism
+-- vacuous via boundary_at_zero.
+--
+-- Distinguishing structural feature vs §HM9 CeilingResiduePolicy: the
+-- 5th and 6th axioms (irreducibleMinimum_pos and bounded_below_by_
+-- irreducible) — ceiling residue policies can reach zero effective
+-- dissolution; B₃-substrate policies cannot. This is the "not infinite"
+-- claim of Hysteresis.md § 3.3 formalized.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Abstract B₃-substrate prosthetic policy. Extends the four
+    `CeilingResiduePolicy` axioms with an irreducible minimum: no matter
+    how developed the formal layer, there is always some informal
+    substrate below which the prosthetic cannot save the cycle.
+    See vault: `B3SubstrateProsthetic.md`. -/
+structure B3SubstratePolicy where
+  /-- Effective dissolution threshold as a function of formal B₃ substrate. -/
+  effectiveDissolution : Region → CouplingWeight → ℝ
+  /-- The irreducible minimum informal substrate (the "not infinite"
+      constraint — Hysteresis.md § 3.3: "a formal structure rejected by
+      all informal networks is paper without power"). -/
+  irreducibleMinimum : Region → ℝ
+  /-- The irreducible minimum is strictly positive. -/
+  irreducibleMinimum_pos :
+    ∀ (r : Region), 0 < irreducibleMinimum r
+  /-- The irreducible minimum is at most the formal dissolution threshold. -/
+  irreducibleMinimum_below_dissolution :
+    ∀ (r : Region), irreducibleMinimum r ≤ (dissolutionThreshold r).val
+  /-- At zero formal B₃ substrate, effective dissolution equals formal
+      dissolution (mechanism vacuous; specifically vacuous for A-actors). -/
+  boundary_at_zero :
+    ∀ (r : Region),
+      effectiveDissolution r ⟨0, le_refl 0, zero_le_one⟩ = (dissolutionThreshold r).val
+  /-- More formal substrate → not-more effective dissolution. -/
+  monotone_b3 :
+    ∀ (r : Region) (res₁ res₂ : CouplingWeight),
+      res₁.val ≤ res₂.val →
+      effectiveDissolution r res₂ ≤ effectiveDissolution r res₁
+  /-- Bounded above by formal dissolution. -/
+  bounded_above :
+    ∀ (r : Region) (res : CouplingWeight),
+      effectiveDissolution r res ≤ (dissolutionThreshold r).val
+  /-- **The § 3.3 distinguishing constraint**: bounded below by the
+      irreducible minimum. § 3.2's CeilingResiduePolicy has no analog. -/
+  bounded_below_by_irreducible :
+    ∀ (r : Region) (res : CouplingWeight),
+      irreducibleMinimum r ≤ effectiveDissolution r res
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM13. TWO CANONICAL INSTANCES — parametric over irreducibleMinimum
+-- Instances take an irreducibleMinimum axiom as input, so peer-specific
+-- calibration remains open.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Linear-floored** B₃-substrate policy:
+    `effective = max(irreducibleMinimum, formal - formalB3Substrate)`.
+    Formal B₃ substrate reduces the informal requirement one-for-one,
+    floored at the irreducible minimum. -/
+noncomputable def linearFlooredB3Substrate
+    (irrMin : Region → ℝ)
+    (irrMin_pos : ∀ r, 0 < irrMin r)
+    (irrMin_below : ∀ r, irrMin r ≤ (dissolutionThreshold r).val)
+    : B3SubstratePolicy where
+  effectiveDissolution r res := max (irrMin r) ((dissolutionThreshold r).val - res.val)
+  irreducibleMinimum := irrMin
+  irreducibleMinimum_pos := irrMin_pos
+  irreducibleMinimum_below_dissolution := irrMin_below
+  boundary_at_zero r := by
+    simp
+    exact irrMin_below r
+  monotone_b3 r res₁ res₂ h := by
+    have : (dissolutionThreshold r).val - res₂.val ≤ (dissolutionThreshold r).val - res₁.val := by
+      linarith
+    exact max_le_max (le_refl (irrMin r)) this
+  bounded_above r res := by
+    have h_res_nn : 0 ≤ res.val := res.pos
+    have h1 : (dissolutionThreshold r).val - res.val ≤ (dissolutionThreshold r).val := by linarith
+    exact max_le (irrMin_below r) h1
+  bounded_below_by_irreducible r res := le_max_left _ _
+
+/-- **Multiplicative-floored** B₃-substrate policy:
+    `effective = max(irreducibleMinimum, formal * (1 - formalB3Substrate))`.
+    Formal B₃ substrate scales down the informal requirement
+    multiplicatively, floored at the irreducible minimum. Reads as "the
+    formal layer proportionally substitutes for informal coordination." -/
+noncomputable def multiplicativeFlooredB3Substrate
+    (irrMin : Region → ℝ)
+    (irrMin_pos : ∀ r, 0 < irrMin r)
+    (irrMin_below : ∀ r, irrMin r ≤ (dissolutionThreshold r).val)
+    : B3SubstratePolicy where
+  effectiveDissolution r res := max (irrMin r) ((dissolutionThreshold r).val * (1 - res.val))
+  irreducibleMinimum := irrMin
+  irreducibleMinimum_pos := irrMin_pos
+  irreducibleMinimum_below_dissolution := irrMin_below
+  boundary_at_zero r := by
+    simp
+    exact irrMin_below r
+  monotone_b3 r res₁ res₂ h := by
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
+    have : (1 : ℝ) - res₂.val ≤ 1 - res₁.val := by linarith
+    have : (dissolutionThreshold r).val * (1 - res₂.val) ≤ (dissolutionThreshold r).val * (1 - res₁.val) :=
+      mul_le_mul_of_nonneg_left this h_d_nn
+    exact max_le_max (le_refl (irrMin r)) this
+  bounded_above r res := by
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
+    have h_res_nn : 0 ≤ res.val := res.pos
+    have h_1_sub : (1 : ℝ) - res.val ≤ 1 := by linarith
+    have h_mul : (dissolutionThreshold r).val * (1 - res.val) ≤ (dissolutionThreshold r).val * 1 :=
+      mul_le_mul_of_nonneg_left h_1_sub h_d_nn
+    have h_prod : (dissolutionThreshold r).val * (1 - res.val) ≤ (dissolutionThreshold r).val := by
+      linarith
+    exact max_le (irrMin_below r) h_prod
+  bounded_below_by_irreducible r res := le_max_left _ _
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM14. FORMAL-EXTENDED BASIN + EXTENDED MAINTENANCE (Σ-actor tier)
+-- Parallel structure to §HM11 ceiling-residue extension.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Formal-extended basin** under a B₃-substrate prosthetic policy:
+    substrate is at least the effective dissolution set by the formal
+    layer (which is between the policy's `irreducibleMinimum` and formal
+    dissolution). Applies to Σ-actor HOAs (A-actors have
+    `formalB3Substrate = 0`, so `boundary_at_zero` makes `FormalExtendedBasin`
+    reduce to `Basin`). -/
+def FormalExtendedBasin (policy : B3SubstratePolicy) {r : Region}
+    (s : HOAState r) : Prop :=
+  policy.effectiveDissolution r s.formalB3Substrate ≤ s.substrate.val
+
+/-- **Extended autocatalytic-maintenance rule for the B₃-substrate
+    mechanism** — the load-bearing axiom for § 3.3, analogous to
+    `hoaPreservedByExtendedBasinMove_ifFeedbackEngaged` (§ 3.2) and
+    `hoaPreservedByBasinMove_ifFeedbackEngaged` (§ 3.1 before (B'')
+    discharged it). Discharging requires formalizing co-inscription
+    dynamics and the crossover event — future work. -/
+axiom hoaPreservedByFormalExtendedBasinMove_ifFeedbackEngaged
+    (policy : B3SubstratePolicy) {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s s' : HOAState r),
+      HOAExists c s → HOAMove s s' → feedbackEngaged c s s' →
+      FormalExtendedBasin policy s' → HOAExists c s'
+
+/-- The HOA formal-extended-maintenance property, parametric on both the
+    combining operator AND the B₃-substrate policy. -/
+def HOAMaintainedFormalExtended {r : Region} (c : AutocatalyticCombine)
+    (policy : B3SubstratePolicy)
+    (Moves : HOAState r → HOAState r → Prop) : Prop :=
+  MaintainedWithinIfPreserved (FormalExtendedBasin policy) (HOAExists c) Moves
+    (feedbackEngaged c)
+
+/-- **The formal-extended maintenance theorem** (§ 3.3 basin extension).
+    Under the (axiomatic) `hoaPreservedByFormalExtendedBasinMove_ifFeedbackEngaged`,
+    `HOAMove` maintains HOA existence under `FormalExtendedBasin`. Proof:
+    trivial induction. -/
+theorem hoaMaintainedFormalExtended {r : Region} (c : AutocatalyticCombine)
+    (policy : B3SubstratePolicy) :
+    HOAMaintainedFormalExtended c policy (@HOAMove r) := by
+  intro s hoa_s fmt_basin_s trace tr_0 tr_moves tr_fmt_basin tr_feedback i
+  induction i with
+  | zero =>
+      rw [tr_0]; exact hoa_s
+  | succ n ih =>
+      exact hoaPreservedByFormalExtendedBasinMove_ifFeedbackEngaged policy c
+        (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n)
+        (tr_fmt_basin (n+1))
 
 end SCORE
