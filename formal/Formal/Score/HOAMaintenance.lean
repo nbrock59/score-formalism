@@ -1009,4 +1009,144 @@ noncomputable def additiveLinearResidueAugmented :
     show (formationThreshold r).val ≤ substrate.val + endowment.val + residue.val
     linarith
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM20. DISCHARGE MACHINERY — § 3.3 B₃-substrate prosthetic,
+-- canonical (combineAdditive × linearFlooredB3Substrate) pair
+--
+-- Parallel to §HM18-19's discharge of § 3.2. Discharges
+-- `hoaPreservedByFormalExtendedBasinMove_ifFeedbackEngaged` (§HM14)
+-- from axiom to derived theorem — for the additive × linear-floored
+-- canonical pair.
+--
+-- The load-bearing content moves from the maintenance-level axiom to a
+-- compatibility axiom on a `B3AugmentedCombine` — an "extended
+-- combining operator" that takes formalB3Substrate as an additional
+-- input. For concrete (combine, policy) pairs, the compatibility axiom
+-- is provable arithmetic.
+--
+-- Scope: only the (combineAdditive, linearFlooredB3Substrate) pair is
+-- discharged here. Other pairs remain axiomatic. The universal §HM14
+-- axiom is kept.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Extended combining operator that takes formal B₃ substrate as a third
+    input. Parametric over a base `AutocatalyticCombine` (`c`) and a
+    `B3SubstratePolicy` (`p`). At zero B₃ substrate, agrees with the base
+    combine (`boundary_at_zero`); the load-bearing property is
+    `closes_extended_gap_b3`, which strengthens the base's
+    `closes_hysteresis_gap` to work at substrate as low as
+    `p.effectiveDissolution r formalB3`. For concrete (c, p) pairs, the
+    two properties are provable arithmetic. -/
+structure B3AugmentedCombine
+    (c : AutocatalyticCombine) (p : B3SubstratePolicy) where
+  /-- Extended combine: takes substrate, endowment, AND formal B₃ substrate.
+      Reduces to `c.combine` at zero formalB3. -/
+  extendedCombine : CouplingWeight → CouplingWeight → CouplingWeight → ℝ
+  /-- At zero formal B₃ substrate, `extendedCombine` equals the base
+      `c.combine`. -/
+  boundary_at_zero :
+    ∀ (s e : CouplingWeight),
+      extendedCombine s e ⟨0, le_refl 0, zero_le_one⟩ = c.combine s e
+  /-- **Load-bearing compatibility axiom.** With formal B₃ substrate in
+      play, the extended combine reaches formation at substrate as low as
+      the B₃-policy's `effectiveDissolution` — provided endowment meets
+      the base combine's `engagementThreshold`. Discharges the § 3.3
+      maintenance axiom for concrete pairs. -/
+  closes_extended_gap_b3 :
+    ∀ (r : Region) (substrate endowment formalB3 : CouplingWeight),
+      p.effectiveDissolution r formalB3 ≤ substrate.val →
+      c.engagementThreshold r ≤ endowment.val →
+      (formationThreshold r).val ≤ extendedCombine substrate endowment formalB3
+
+/-- **Formal-extended crystallization predicate.** Weight is at least
+    formation under the extended combining operator (which accounts for
+    formal B₃ substrate). Distinct from base `HOAExists` — the two
+    coincide only at zero formalB3 (see
+    `hoaExistsFormalExtended_agrees_at_zero_b3`). -/
+def HOAExistsFormalExtended {r : Region}
+    {c : AutocatalyticCombine} {p : B3SubstratePolicy}
+    (aug : B3AugmentedCombine c p) (s : HOAState r) : Prop :=
+  (formationThreshold r).val ≤
+    aug.extendedCombine s.substrate s.loopEndowment s.formalB3Substrate
+
+/-- **Consistency lemma.** At zero formal B₃ substrate,
+    `HOAExistsFormalExtended` agrees with base `HOAExists`. For A-actors
+    (which always have `formalB3Substrate = 0`) the extended predicate
+    reduces to the base. -/
+theorem hoaExistsFormalExtended_agrees_at_zero_b3
+    {r : Region} {c : AutocatalyticCombine} {p : B3SubstratePolicy}
+    (aug : B3AugmentedCombine c p) (s : HOAState r)
+    (h_zero : s.formalB3Substrate = ⟨0, le_refl 0, zero_le_one⟩) :
+    HOAExistsFormalExtended aug s ↔ HOAExists c s := by
+  unfold HOAExistsFormalExtended HOAExists HOAState.weight
+  rw [h_zero, aug.boundary_at_zero]
+
+/-- **Derived § 3.3 maintenance theorem** — no reliance on the
+    `hoaPreservedByFormalExtendedBasinMove_ifFeedbackEngaged` axiom.
+    Given a `B3AugmentedCombine` instance, the maintenance property
+    follows from `closes_extended_gap_b3` by trivial induction. -/
+theorem hoaMaintainedFormalExtendedDerived
+    {r : Region} {c : AutocatalyticCombine} {p : B3SubstratePolicy}
+    (aug : B3AugmentedCombine c p) :
+    ∀ (s : HOAState r), HOAExistsFormalExtended aug s → Basin s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        (∀ i, FormalExtendedBasin p (trace i)) →
+        (∀ i, feedbackEngaged c (trace i) (trace (i+1))) →
+        ∀ i, HOAExistsFormalExtended aug (trace i) := by
+  intro s hoa_s _ trace tr_0 _ tr_fmt_basin tr_feedback i
+  induction i with
+  | zero =>
+      rw [tr_0]; exact hoa_s
+  | succ n ih =>
+      unfold HOAExistsFormalExtended
+      exact aug.closes_extended_gap_b3 r
+        (trace (n+1)).substrate (trace (n+1)).loopEndowment
+        (trace (n+1)).formalB3Substrate
+        (tr_fmt_basin (n+1)) (tr_feedback n)
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM21. CANONICAL DISCHARGED INSTANCE — additive × linear-floored
+-- Concrete `B3AugmentedCombine combineAdditive (linearFlooredB3Substrate ...)`
+-- with all axioms proven from arithmetic. This is a REAL DISCHARGE:
+-- combined with `hoaMaintainedFormalExtendedDerived`, gives a full § 3.3
+-- maintenance theorem for this pair with no residual axiom.
+-- Parametric on the peer-supplied `irrMin` (inherited from
+-- `linearFlooredB3Substrate`'s parametricity).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **The canonical additive × linear-floored B₃-augmented combine.** For
+    the (`combineAdditive`, `linearFlooredB3Substrate irrMin ...`) pair:
+    extended weight is simply `substrate + endowment + formalB3` (formal
+    B₃ substrate adds directly to aggregate weight, mirroring the § 3.2
+    additive × linear discharge). Both `boundary_at_zero` and
+    `closes_extended_gap_b3` are provable arithmetic. Parametric on the
+    peer-supplied `irrMin` axioms of `linearFlooredB3Substrate`. -/
+noncomputable def additiveLinearFlooredB3Augmented
+    (irrMin : Region → ℝ)
+    (irrMin_pos : ∀ r, 0 < irrMin r)
+    (irrMin_below : ∀ r, irrMin r ≤ (dissolutionThreshold r).val) :
+    B3AugmentedCombine combineAdditive
+      (linearFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
+  extendedCombine s e b3 := s.val + e.val + b3.val
+  boundary_at_zero s e := by
+    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    ring
+  closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
+    -- Unfold instance-specific defs
+    have h_eff : (linearFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution r b3
+                 = max (irrMin r) ((dissolutionThreshold r).val - b3.val) := rfl
+    have h_eng : combineAdditive.engagementThreshold r =
+                 (formationThreshold r).val - (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    -- le_max_right gives: dissolution - b3 ≤ max (irrMin r) (dissolution - b3) ≤ substrate
+    have h_db_le_substrate : (dissolutionThreshold r).val - b3.val ≤ substrate.val :=
+      le_trans (le_max_right _ _) h_basin
+    -- endowment ≥ formation - dissolution; substrate + b3 ≥ dissolution;
+    -- so substrate + endowment + b3 ≥ formation
+    show (formationThreshold r).val ≤ substrate.val + endowment.val + b3.val
+    linarith
+
 end SCORE
