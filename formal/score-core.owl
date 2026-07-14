@@ -387,7 +387,16 @@
 
     <owl:Class rdf:about="http://score-theory.org/core#WithinBasinConvergence">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
-        <rdfs:comment>SCORE variant of self-stabilization: convergence to legitimate states is guaranteed within a basin (typically the hysteresis window), not globally. Below the dissolution threshold the property is lost — this is the SCORE-specific departure from Dijkstra 1974's global-convergence guarantee. Lean: SelfStabilizingWithin instantiated with a non-trivial Basin. See obsidian/SCORE/emergence/mechanism/Hysteresis.md, obsidian/SCORE/emergence/mechanism/HOA.md.</rdfs:comment>
+        <rdfs:comment>SCORE variant of self-stabilization: convergence to legitimate states is guaranteed within a basin, not globally — the conceptual class for the strong-form claim. Applicable where the basin does NOT contain a second stable equilibrium (e.g., non-hysteretic systems). Lean: SelfStabilizingWithin instantiated with a non-trivial Basin. See obsidian/SCORE/emergence/mechanism/Hysteresis.md, obsidian/SCORE/emergence/mechanism/HOA.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#WithinBasinMaintenance -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#WithinBasinMaintenance">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
+        <rdfs:comment>SCORE variant of self-stabilization for BISTABLE basins (the SCORE default given hysteresis): from a state that already satisfies the legitimate property and lies in basin, every basin-preserving move sequence preserves the property throughout. Not convergence-from-anywhere (which fails for bistable regions — hysteresis is precisely for admitting a second stable equilibrium in-basin). The autocatalytic-maintenance rule (Hysteresis.md § Aggregate-weight hysteresis) is the load-bearing claim. Sibling of WithinBasinConvergence, not subclass — the two hold on different topologies of basin. Lean: MaintainedWithin (Score/SelfStabilization.lean); HOAMaintainedWithin, hoaPreservedByBasinMove, hoaMaintainedWithin (Score/HOAMaintenance.lean). See obsidian/SCORE/emergence/mechanism/HOA.md, obsidian/SCORE/emergence/mechanism/Hysteresis.md.</rdfs:comment>
     </owl:Class>
 
 

@@ -8,3 +8,4 @@ import Formal.Score.Polaris
 import Formal.Score.InscriptionMarket
 import Formal.Score.RevisionLoop
 import Formal.Score.SelfStabilization
+import Formal.Score.HOAMaintenance

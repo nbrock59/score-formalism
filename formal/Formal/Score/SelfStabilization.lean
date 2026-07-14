@@ -56,6 +56,28 @@ def GloballySelfStabilizing {State : Type}
     (Moves      : State → State → Prop) : Prop :=
   SelfStabilizingWithin (fun _ => True) Legitimate Moves
 
+/-- Abstract *maintenance* predicate — the sibling of `SelfStabilizingWithin`.
+    If a state satisfies `Property` and the basin is preserved through every
+    step of a trace, then `Property` is preserved through every step. Distinct
+    from convergence: convergence promises "eventually Property from any basin
+    state"; maintenance promises "always Property from a Property∧basin state
+    whose trace stays in basin." The two coincide for Dijkstra 1974's original
+    setting (Basin ≡ True and property invariant under moves) but diverge for
+    hysteretic systems where basin states without Property cannot spontaneously
+    acquire it (the second stable equilibrium of a bistable region). This is
+    the shape SCORE's HOA within-basin theorem actually takes — see
+    `Formal/Score/HOAMaintenance.lean` and `obsidian/sources/Dijkstra-Edsger.md`. -/
+def MaintainedWithin {State : Type}
+    (Basin    : State → Prop)
+    (Property : State → Prop)
+    (Moves    : State → State → Prop) : Prop :=
+  ∀ s, Property s → Basin s →
+    ∀ trace : ℕ → State,
+      trace 0 = s →
+      (∀ i, Moves (trace i) (trace (i+1))) →
+      (∀ i, Basin (trace i)) →
+      ∀ i, Property (trace i)
+
 -- ════════════════════════════════════════════════════════════════
 -- §SS2. DIJKSTRA 1974 K-STATE RING (Construction 1, p. 643)
 -- N+1 finite-state machines on a ring, each holding a value in [0, K).
