@@ -1564,4 +1564,127 @@ theorem hoaFragilityHomogeneous {r : Region} (c : AutocatalyticCombine) :
     | succ n ih => exact hoaMove_preserves_homogeneity _ _ (tr_moves n) ih
   exact homogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM23. HOOK 3 SIBLING — LifeCyclePhase homogeneity fragility
+-- Parallel to §HM22 with the LifeCyclePhase axis instead of
+-- CouplingWeightVector. Same shape; same load-bearing-axiom pattern.
+--
+-- Distinct from §HM22: coupling-weight-vector homogeneity means all
+-- agents have identical NETWORK POSITIONS; lifecycle-phase homogeneity
+-- means all agents are at the same LIFE-CYCLE STAGE (all Childhood,
+-- all Retirement, etc.). Both are heterogeneity-loss modes. The vault
+-- flags LifeCyclePhase as one of the three symmetry-breaking axes
+-- named in Hook 3.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Agent-to-LifeCyclePhase association** (Hook 3 sibling prerequisite).
+    Free-standing axiom parallel to `agentCouplingWeightVector`.
+    Distinct from the `agentPhase` field of `SCOREImplementation`
+    (Core.lean § 11) — that requires a concrete implementation record;
+    this is a Lean-level global for the abstract mechanism analysis. -/
+axiom agentLifeCyclePhase : Agent → LifeCyclePhase
+
+/-- **Population LifeCyclePhase-homogeneous**: all agents at the same
+    life-cycle stage. -/
+def PopulationLifeCyclePhaseHomogeneous {r : Region} (s : HOAState r) : Prop :=
+  ∀ a₁ ∈ s.agents, ∀ a₂ ∈ s.agents,
+    agentLifeCyclePhase a₁ = agentLifeCyclePhase a₂
+
+/-- **Hook 3 sibling core axiom** for LifeCyclePhase. A population all at
+    the same life-cycle stage cannot engage the autocatalytic loop.
+    Intuition: healthy HOA maintenance requires agents at different
+    life-cycle phases (children being socialized by householders,
+    householders being renewed by retirees passing knowledge); a
+    one-phase population loses the cross-phase reinforcement that
+    generates edge-weight differentiation. Discharging to a theorem
+    requires formalizing cross-phase interaction dynamics. -/
+axiom lifeCyclePhaseHomogeneous_no_feedback
+    {r : Region} (c : AutocatalyticCombine) (s s' : HOAState r) :
+  PopulationLifeCyclePhaseHomogeneous s → ¬ feedbackEngaged c s s'
+
+/-- Fast-timescale HOA moves preserve population LifeCyclePhase
+    structure. Long-timescale phase transitions (Childhood → Student
+    etc.) are NOT fast-timescale moves and are separate future work. -/
+axiom hoaMove_preserves_lifeCyclePhaseHomogeneity {r : Region} (s s' : HOAState r) :
+  HOAMove s s' → PopulationLifeCyclePhaseHomogeneous s →
+    PopulationLifeCyclePhaseHomogeneous s'
+
+/-- **The Hook 3 sibling theorem for LifeCyclePhase.** Same shape as
+    `hoaFragilityHomogeneous`: LifeCyclePhase-homogeneous populations
+    cannot engage feedback anywhere in the trace, so no maintenance
+    theorem's premise is satisfiable. -/
+theorem hoaFragilityLifeCyclePhaseHomogeneous {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s : HOAState r), PopulationLifeCyclePhaseHomogeneous s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) := by
+  intro s h_hom trace tr_0 tr_moves i
+  have h_hom_i : PopulationLifeCyclePhaseHomogeneous (trace i) := by
+    induction i with
+    | zero => rw [tr_0]; exact h_hom
+    | succ n ih =>
+        exact hoaMove_preserves_lifeCyclePhaseHomogeneity _ _ (tr_moves n) ih
+  exact lifeCyclePhaseHomogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM24. HOOK 3 SIBLING — ManifoldShape homogeneity fragility
+-- Parallel to §HM22 and §HM23 with the ManifoldShape axis. Introduces
+-- `ManifoldShape : Type` as a fresh opaque type (analogous to Region
+-- and Agent in Core.lean) — the vault flags it as a heterogeneity
+-- axis but Core.lean does not currently have a formal ManifoldShape
+-- type.
+-- ════════════════════════════════════════════════════════════════
+
+/-- The shape/typology of an agent's B₂ manifold (see vault:
+    `obsidian/SCORE/agents/ManifoldShapes.md`). Abstract opaque type;
+    concrete peers may parameterize by a specific typology (e.g.
+    Lefebvre-style dyadic vs triadic reflexive structures). -/
+axiom ManifoldShape : Type
+
+/-- **Agent-to-ManifoldShape association** (Hook 3 sibling prerequisite). -/
+axiom agentManifoldShape : Agent → ManifoldShape
+
+/-- **Population ManifoldShape-homogeneous**: all agents have the same
+    B₂ manifold shape. -/
+def PopulationManifoldShapeHomogeneous {r : Region} (s : HOAState r) : Prop :=
+  ∀ a₁ ∈ s.agents, ∀ a₂ ∈ s.agents,
+    agentManifoldShape a₁ = agentManifoldShape a₂
+
+/-- **Hook 3 sibling core axiom** for ManifoldShape. A monoshape
+    population cannot engage the autocatalytic loop. Intuition: healthy
+    HOA maintenance requires diverse manifold-shape perspectives so
+    that interactions actually reinforce differentiated overlap
+    regions; monoshape populations reinforce only the shape's own
+    eigenmodes, not novel cross-shape edges. Discharging to a theorem
+    requires formalizing shape-differentiated interaction dynamics. -/
+axiom manifoldShapeHomogeneous_no_feedback
+    {r : Region} (c : AutocatalyticCombine) (s s' : HOAState r) :
+  PopulationManifoldShapeHomogeneous s → ¬ feedbackEngaged c s s'
+
+/-- Fast-timescale HOA moves preserve population ManifoldShape
+    structure. Manifold-shape restructuring (Path-A events) is NOT a
+    fast-timescale move; the shape-persistence assumption here mirrors
+    §HM22/HM23. -/
+axiom hoaMove_preserves_manifoldShapeHomogeneity {r : Region} (s s' : HOAState r) :
+  HOAMove s s' → PopulationManifoldShapeHomogeneous s →
+    PopulationManifoldShapeHomogeneous s'
+
+/-- **The Hook 3 sibling theorem for ManifoldShape.** Same shape as
+    the other two Hook 3 theorems: monoshape populations cannot engage
+    feedback anywhere in the trace. -/
+theorem hoaFragilityManifoldShapeHomogeneous {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s : HOAState r), PopulationManifoldShapeHomogeneous s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) := by
+  intro s h_hom trace tr_0 tr_moves i
+  have h_hom_i : PopulationManifoldShapeHomogeneous (trace i) := by
+    induction i with
+    | zero => rw [tr_0]; exact h_hom
+    | succ n ih =>
+        exact hoaMove_preserves_manifoldShapeHomogeneity _ _ (tr_moves n) ih
+  exact manifoldShapeHomogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
+
 end SCORE
