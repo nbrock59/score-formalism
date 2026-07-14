@@ -7,3 +7,4 @@ import Formal.Score.Nexus
 import Formal.Score.Polaris
 import Formal.Score.InscriptionMarket
 import Formal.Score.RevisionLoop
+import Formal.Score.SelfStabilization

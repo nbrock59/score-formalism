@@ -47,7 +47,17 @@
         <rdfs:domain rdf:resource="http://score-theory.org/core#Actor"/>
         <rdfs:range rdf:resource="http://score-theory.org/core#ReflexiveDepthLevel"/>
     </owl:ObjectProperty>
-    
+
+
+
+    <!-- http://score-theory.org/core#hasStabilizationProperty -->
+
+    <owl:ObjectProperty rdf:about="http://score-theory.org/core#hasStabilizationProperty">
+        <rdfs:domain rdf:resource="http://score-theory.org/core#HOA"/>
+        <rdfs:range rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
+        <rdfs:comment>The stabilization property (if any) exhibited by an HOA. For SCORE HOAs, this is WithinBasinConvergence — self-stabilization is guaranteed within the hysteresis basin, not globally. See obsidian/sources/Dijkstra-Edsger.md. Lean: SelfStabilizingWithin (formal/Formal/Score/SelfStabilization.lean).</rdfs:comment>
+    </owl:ObjectProperty>
+
 
 
     <!-- http://score-theory.org/core#inscribesTo -->
@@ -362,7 +372,24 @@
         </rdfs:subClassOf>
         <rdfs:comment>Community whose collective dynamics constitute a HOA attractor. The HOA is the community&apos;s emergent basin, not an administrative declaration.</rdfs:comment>
     </owl:Class>
-    
+
+
+
+    <!-- http://score-theory.org/core#SelfStabilizationProperty -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#SelfStabilizationProperty">
+        <rdfs:comment>An emergent property of a distributed configuration: from every state satisfying a basin predicate, all valid move sequences reach a legitimate state in finite time. Domain-general (a claim about local-rule dynamics on any coupling graph). Orthodoxy anchor: Dijkstra 1974 (Communications of the ACM 17(11), 643–644) — the founding CS paper on distributed control producing global order under purely local rules. Lean: SelfStabilizingWithin, GloballySelfStabilizing (formal/Formal/Score/SelfStabilization.lean). See obsidian/sources/Dijkstra-Edsger.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#WithinBasinConvergence -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#WithinBasinConvergence">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
+        <rdfs:comment>SCORE variant of self-stabilization: convergence to legitimate states is guaranteed within a basin (typically the hysteresis window), not globally. Below the dissolution threshold the property is lost — this is the SCORE-specific departure from Dijkstra 1974's global-convergence guarantee. Lean: SelfStabilizingWithin instantiated with a non-trivial Basin. See obsidian/SCORE/emergence/mechanism/Hysteresis.md, obsidian/SCORE/emergence/mechanism/HOA.md.</rdfs:comment>
+    </owl:Class>
+
 
 
     <!-- http://score-theory.org/core#HumanCommunity -->
