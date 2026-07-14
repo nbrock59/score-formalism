@@ -10,179 +10,274 @@ set_option linter.style.whitespace false
 **Within-basin HOA maintenance — the SCORE-specific instance of the abstract
 maintenance predicate `MaintainedWithin` (Score/SelfStabilization.lean).**
 
-This is the (A) scaffolding of the within-basin theorem thread: infrastructure
-for HOA state, hysteresis thresholds, and the maintenance property, with the
-autocatalytic-maintenance rule stated as an axiom (the theoretical claim; the
-(B) work will derive it from formalized weight dynamics).
+Evolution: (A) established scaffolding with the maintenance property axiomatized.
+(B') separated the "in basin" premise from the "feedback engaged" premise by
+introducing an abstract `feedbackEngaged` axiom. **(B'') decomposes aggregate
+weight into substrate + loop-endowment via an abstract combining operator
+`AutocatalyticCombine`, discharging the (B') axiom
+`hoaPreservedByBasinMove_ifFeedbackEngaged` from axiom to derived theorem.**
 
-**Correction of the initial Dijkstra-Edsger.md framing.** The source note first
-promised convergence-from-anywhere in the hysteresis window — that is
-inconsistent with the bistability that hysteresis is *for*. A state inside the
-hysteresis window without an existing autocatalytic loop cannot spontaneously
-form one; that would need to clear the (strictly higher) formation threshold.
-What holds within-basin is *maintenance* of an existing HOA, not convergence
-to one. This module states maintenance; the source note has been corrected.
+See vault: `obsidian/SCORE/emergence/mechanism/AutocatalyticFeedback.md`,
+`HOA.md`, `Hysteresis.md`, `obsidian/sources/Dijkstra-Edsger.md`.
 
-See vault: `obsidian/SCORE/emergence/mechanism/HOA.md`,
-`obsidian/SCORE/emergence/mechanism/Hysteresis.md`,
-`obsidian/sources/Dijkstra-Edsger.md`.
+OWL anchors: `score-core#WithinBasinMaintenance`, `score-core#AutocatalyticFeedback`.
 
-OWL anchor: `score-core#WithinBasinMaintenance`
-(sibling of `score-core#WithinBasinConvergence`).
+## (B'') semantic corrections to (A)/(B')
+
+- **`HOAState`** now carries `substrate` and `loopEndowment` (not raw `weight`);
+  aggregate weight is a derived def parametric over an `AutocatalyticCombine`.
+- **`Basin`** is now a **substrate condition** (`substrate ≥ dissolution`),
+  not a weight condition. (A) had it weight-based — that overreached, because
+  loop endowment alone could satisfy a weight-based basin even with crashed
+  substrate. Hysteresis.md § 3.1 is explicit that dissolution is a substrate
+  crash, not a weight crash.
+- **`HysteresisWindow`** likewise refactored to substrate-based.
+- Aggregate weight is `ℝ`, not `CouplingWeight` — the [0,1] type discipline
+  of `CouplingWeight` is a per-edge convention, not appropriate for aggregate
+  sums. (This diverges from Core.lean's `aggregateLocalWeight` axiom, which
+  is a modeling choice worth revisiting in a follow-up.)
 -/
 
 namespace SCORE
 
 -- ════════════════════════════════════════════════════════════════
--- §HM1. HOA STATE — coupling-graph state as a first-class object
--- The existing `HOA` structure (Score/Core.lean §7) is a *witness* of
--- crystallization at a moment in time. For maintenance reasoning we need
--- a state type that evolves through moves; that is `HOAState`.
--- Parameterized by region so moves preserve region by construction.
+-- §HM1. HOA STATE — substrate + loop-endowment decomposition ((B''))
+-- Substrate is the exogenous contribution; loop endowment is the endogenous
+-- contribution the autocatalytic loop supplies when engaged. Aggregate
+-- observable weight is derived via an `AutocatalyticCombine` (§HM3).
+-- Parametric by region so moves preserve region by construction.
 -- ════════════════════════════════════════════════════════════════
 
 /-- The joint coupling-graph state under HOA-maintenance analysis, over a
-    fixed region `r`: the agents currently coupled in `r` and the current
-    aggregate local coupling weight. Moves may adjust either. -/
+    fixed region `r`: the agents currently coupled in `r`, the exogenous
+    substrate weight, and the endogenous loop endowment. Moves may adjust
+    any of the three. -/
 structure HOAState (r : Region) where
-  agents : List Agent
-  weight : CouplingWeight
+  agents        : List Agent
+  substrate     : CouplingWeight
+  loopEndowment : CouplingWeight
 
 -- ════════════════════════════════════════════════════════════════
 -- §HM2. HYSTERESIS THRESHOLDS (Hysteresis.md § "The claim")
--- `formation > dissolution` — the gap is what makes the region bistable.
--- Per-region rather than global (HOA.md § "Crystallization mechanism":
--- "the threshold is not fixed — it is a property of the manifold geometry").
 -- ════════════════════════════════════════════════════════════════
 
-/-- The formation (up-boundary) threshold. Aggregate local coupling weight
-    must clear this for a cycle to close into a stable HOA. Per-region:
-    manifold geometry differs across regions (HOA.md). -/
+/-- The formation (up-boundary) threshold. Per-region. -/
 axiom formationThreshold : Region → CouplingWeight
 
-/-- The dissolution (down-boundary) threshold. Once an HOA exists, its
-    autocatalytic loop can maintain itself as long as weight stays at or
-    above this. Below it, the loop cannot sustain — the HOA dissolves. -/
+/-- The dissolution (down-boundary) threshold. Per-region. -/
 axiom dissolutionThreshold : Region → CouplingWeight
 
-/-- The load-bearing hysteresis inequality: dissolution < formation.
-    The gap is the bistable region (Hysteresis.md § "The claim"). -/
+/-- The load-bearing hysteresis inequality: dissolution < formation. -/
 axiom hysteresis_gap :
   ∀ r : Region, (dissolutionThreshold r).val < (formationThreshold r).val
 
+/-- Dissolution is strictly positive. Required by the multiplicative combine
+    instance (which divides by dissolution); also theoretically required —
+    a zero dissolution threshold would mean HOAs persist with zero substrate,
+    a claim about the § 3.3 B₃-substrate mechanism, not the § 3.1 aggregate-
+    weight mechanism this module formalizes. -/
+axiom dissolutionThreshold_pos :
+  ∀ r : Region, 0 < (dissolutionThreshold r).val
+
 -- ════════════════════════════════════════════════════════════════
--- §HM3. HOA PREDICATES ON STATE
+-- §HM3. AUTOCATALYTIC COMBINE — the abstract combining operator ((B''))
+-- SCORE does not commit to a specific arithmetic form. The vault mechanism
+-- (Hysteresis.md § 3.1 — "the cycle produces the interactions that maintain
+-- its edge weights") is operator-neutral; committing to additive or
+-- multiplicative here would be a new theoretical claim. Instead: abstract
+-- operator satisfying three properties, with peer-selectable canonical
+-- instances (§HM4).
+--
+-- The three properties suffice to derive the (B'') maintenance theorem.
+-- See AutocatalyticFeedback.md § "The combining operator" for the theory
+-- side.
 -- ════════════════════════════════════════════════════════════════
 
-/-- **Crystallization predicate.** Aggregate local weight has cleared the
-    formation threshold — the autocatalytic loop is (or was, in-basin)
-    engaged. Corresponds to `HOA.md`'s `lean-planned: HOAExists`. -/
-def HOAExists {r : Region} (s : HOAState r) : Prop :=
-  (formationThreshold r).val ≤ s.weight.val
+/-- An abstract combining operator for autocatalytic weight aggregation.
+    Bundles the combine function with the properties needed to close the
+    hysteresis gap when the loop is engaged. -/
+structure AutocatalyticCombine where
+  /-- Combines substrate with loop endowment to yield aggregate observable
+      weight (as ℝ; not `CouplingWeight` — see the docstring for §HM1). -/
+  combine : CouplingWeight → CouplingWeight → ℝ
+  /-- More substrate → not-less weight (all else equal). -/
+  monotone_substrate :
+    ∀ (s₁ s₂ e : CouplingWeight),
+      s₁.val ≤ s₂.val → combine s₁ e ≤ combine s₂ e
+  /-- More loop endowment → not-less weight (all else equal). -/
+  monotone_endowment :
+    ∀ (s e₁ e₂ : CouplingWeight),
+      e₁.val ≤ e₂.val → combine s e₁ ≤ combine s e₂
+  /-- The engagement threshold: how large the loop endowment must be, in
+      this operator's arithmetic, for the loop to close the hysteresis
+      gap. Operator-specific. -/
+  engagementThreshold : Region → ℝ
+  /-- **The load-bearing autocatalytic axiom**: if substrate is at least
+      dissolution and endowment meets the engagement threshold, the
+      combined weight is at least formation. Hysteresis.md § 3.1's
+      "the cycle acts on the environment to make the environment more
+      hospitable" formalized as arithmetic. -/
+  closes_hysteresis_gap :
+    ∀ (r : Region) (substrate endowment : CouplingWeight),
+      (dissolutionThreshold r).val ≤ substrate.val →
+      engagementThreshold r ≤ endowment.val →
+      (formationThreshold r).val ≤ combine substrate endowment
 
-/-- **Basin predicate.** Aggregate local weight is at least the dissolution
-    threshold — an existing HOA can maintain itself. Below this the HOA
-    dissolves; Dijkstra 1974's global-convergence guarantee does not
-    extend past the boundary in SCORE (that is the departure). -/
+/-- Aggregate weight of an HOA state under a chosen combining operator. -/
+def HOAState.weight {r : Region} (c : AutocatalyticCombine)
+    (s : HOAState r) : ℝ :=
+  c.combine s.substrate s.loopEndowment
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM4. TWO CANONICAL INSTANCES ((B''))
+-- Both discharge the abstract shape; peers pick one (or supply their own).
+-- POLARIS defaults to `combineAdditive` as the simpler-to-verify choice.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Additive** combine: `weight = substrate + loop_endowment`.
+    Engagement threshold: `formation - dissolution`. Arithmetically cleanest;
+    reads as "the loop adds weight." -/
+noncomputable def combineAdditive : AutocatalyticCombine where
+  combine s e := s.val + e.val
+  monotone_substrate s₁ s₂ e h := by linarith
+  monotone_endowment s e₁ e₂ h := by linarith
+  engagementThreshold r := (formationThreshold r).val - (dissolutionThreshold r).val
+  closes_hysteresis_gap r s e hs he := by linarith
+
+/-- **Multiplicative** combine: `weight = substrate × (1 + loop_endowment)`.
+    Engagement threshold: `(formation - dissolution) / dissolution`. Matches
+    Kauffman-style autocatalytic dynamics (rate ∝ substrate × catalyst);
+    reads as "the loop causes the substrate to yield more weight." -/
+noncomputable def combineMultiplicative : AutocatalyticCombine where
+  combine s e := s.val * (1 + e.val)
+  monotone_substrate s₁ s₂ e h := by
+    have : (0 : ℝ) ≤ 1 + e.val := by linarith [e.pos]
+    exact mul_le_mul_of_nonneg_right h this
+  monotone_endowment s e₁ e₂ h := by
+    have hs : (0 : ℝ) ≤ s.val := s.pos
+    have : (1 : ℝ) + e₁.val ≤ 1 + e₂.val := by linarith
+    exact mul_le_mul_of_nonneg_left this hs
+  engagementThreshold r :=
+    ((formationThreshold r).val - (dissolutionThreshold r).val)
+      / (dissolutionThreshold r).val
+  closes_hysteresis_gap r s e hs he := by
+    have h_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_pos_ne : (dissolutionThreshold r).val ≠ 0 := ne_of_gt h_pos
+    have h_e_pos : (0 : ℝ) ≤ e.val := e.pos
+    -- from he : ((formation - dissolution) / dissolution) ≤ e.val, multiplying
+    -- both sides by dissolution > 0 gives:
+    --   formation - dissolution ≤ e.val * dissolution
+    have key : (formationThreshold r).val - (dissolutionThreshold r).val
+                ≤ e.val * (dissolutionThreshold r).val := by
+      have h := mul_le_mul_of_nonneg_right he (le_of_lt h_pos)
+      rwa [div_mul_cancel₀ _ h_pos_ne] at h
+    -- s.val * e.val ≥ dissolution.val * e.val (since s ≥ dissolution and e ≥ 0)
+    have hse : (dissolutionThreshold r).val * e.val ≤ s.val * e.val := by
+      exact mul_le_mul_of_nonneg_right hs h_e_pos
+    -- combine: s * (1 + e) = s + s*e ≥ dissolution + dissolution*e ≥ dissolution + (formation - dissolution) = formation
+    have expand : s.val * (1 + e.val) = s.val + s.val * e.val := by ring
+    rw [expand]
+    have h_comm : (dissolutionThreshold r).val * e.val
+                = e.val * (dissolutionThreshold r).val := by ring
+    linarith
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM5. HOA PREDICATES ON STATE
+-- HOAExists is parametric on the combine (aggregate weight depends on it);
+-- Basin and HysteresisWindow are substrate-only (independent of combine).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Crystallization predicate.** Aggregate weight (under the chosen
+    combining operator) is at least the formation threshold — the
+    autocatalytic loop is (or was, in-basin) engaged. -/
+def HOAExists {r : Region} (c : AutocatalyticCombine)
+    (s : HOAState r) : Prop :=
+  (formationThreshold r).val ≤ HOAState.weight c s
+
+/-- **Basin predicate** (substrate-based, per (B'') correction). An
+    existing HOA can maintain itself as long as *substrate* stays at or
+    above dissolution — dissolution is about substrate crashing, not
+    weight crashing (Hysteresis.md § 3.1). -/
 def Basin {r : Region} (s : HOAState r) : Prop :=
-  (dissolutionThreshold r).val ≤ s.weight.val
+  (dissolutionThreshold r).val ≤ s.substrate.val
 
-/-- **Hysteresis window** (the strictly-bistable subregion): between the
-    dissolution and formation thresholds. In this region, whether an HOA
-    exists depends on history, not on current substrate conditions alone
-    (Hysteresis.md § "The claim" — "the outcome depends on history"). -/
+/-- **Hysteresis window** (substrate-based, the strictly-bistable
+    subregion). In this substrate range, whether an HOA exists depends on
+    history — the same substrate can host either an extant HOA (with loop
+    engaged) or nothing (Hysteresis.md § "The claim"). -/
 def HysteresisWindow {r : Region} (s : HOAState r) : Prop :=
-  (dissolutionThreshold r).val ≤ s.weight.val ∧
-  s.weight.val < (formationThreshold r).val
-
-/-- `HOAExists` implies `Basin` (formation ≥ dissolution). -/
-theorem HOAExists_implies_Basin {r : Region} (s : HOAState r)
-    (h : HOAExists s) : Basin s := by
-  unfold HOAExists Basin at *
-  exact le_of_lt (lt_of_lt_of_le (hysteresis_gap r) h)
+  (dissolutionThreshold r).val ≤ s.substrate.val ∧
+  s.substrate.val < (formationThreshold r).val
 
 -- ════════════════════════════════════════════════════════════════
--- §HM4. HOA MOVE RELATION — abstract at (A)
--- Concrete dynamics (interaction weight-updates, decay, intervention,
--- autocatalytic feedback) are the (B) formalization target. Here the
--- move relation is an axiom over which the maintenance property is
--- parameterized. Per-region: moves preserve region by construction.
+-- §HM6. HOA MOVE + FEEDBACK — abstract move; concrete feedback
+-- `HOAMove` remains fully abstract at (B''). `feedbackEngaged` is now
+-- a concrete predicate on state (loop endowment meets the engagement
+-- threshold), no longer an axiom.
 -- ════════════════════════════════════════════════════════════════
 
-/-- An HOA state transition. Concrete SCORE peers instantiate this with
-    peer-specific microdynamics. -/
+/-- An HOA state transition. Abstract; concrete SCORE peers instantiate
+    with peer-specific microdynamics. -/
 axiom HOAMove {r : Region} : HOAState r → HOAState r → Prop
 
--- ════════════════════════════════════════════════════════════════
--- §HM5. AUTOCATALYTIC FEEDBACK — the per-move preservation premise (B')
--- The (A) tier axiomatized preservation as basin-move-implies-HOA-preserved.
--- (B') separates the two premises honestly: preservation requires BOTH
--- staying in basin AND the autocatalytic feedback loop being engaged for
--- the move. Without feedback engagement, a basin-move could drop weight
--- into the bistable sub-basin without violating any HOA-side premise.
---
--- `feedbackEngaged` is fully abstract at (B'). The (B'') work will
--- decompose it into concrete conditions on substrate / loop-contribution
--- dynamics (see Dijkstra-Edsger.md § Formal-verification target).
--- ════════════════════════════════════════════════════════════════
-
-/-- **Autocatalytic feedback is engaged** for the transition from `s` to `s'`.
-    Fully abstract at (B'); (B'') will decompose this into concrete
-    conditions on substrate/loop-contribution weight dynamics. Named as its
-    own predicate rather than folded into `HOAMove` so the maintenance
-    theorem's honest shape is visible: preservation needs basin AND feedback,
-    not basin alone. -/
-axiom feedbackEngaged {r : Region} : HOAState r → HOAState r → Prop
+/-- **Autocatalytic feedback is engaged** for the transition into `s'`:
+    the loop endowment in `s'` meets the combining operator's engagement
+    threshold. Was an abstract axiom at (B'); now a derived predicate on
+    the substrate/loop-endowment decomposition. -/
+def feedbackEngaged {r : Region} (c : AutocatalyticCombine)
+    (s s' : HOAState r) : Prop :=
+  c.engagementThreshold r ≤ s'.loopEndowment.val
 
 -- ════════════════════════════════════════════════════════════════
--- §HM6. WITHIN-BASIN MAINTENANCE (the (A) theorem, (B')-corrected)
--- Instance of `MaintainedWithinIfPreserved` (Score/SelfStabilization.lean)
--- — the honest sibling of `MaintainedWithin` that adds a per-step
--- preservation premise. Reads: for any state where an HOA exists and the
--- basin holds, every move-sequence that stays in basin AND has
--- autocatalytic feedback engaged at every step preserves HOAExists.
---
--- The load-bearing content is the autocatalytic-maintenance AXIOM
--- (§HM6.1); the maintenance THEOREM (§HM6.2) is a trivial induction on
--- top of it. (B'') will decompose `feedbackEngaged` into concrete weight
--- dynamics and derive the axiom.
+-- §HM7. DERIVED PRESERVATION THEOREM ((B''))
+-- Was axiomatized in (B'); now derived from `closes_hysteresis_gap`.
+-- The (B') axiom's content — "engaged feedback + basin preserves HOA" —
+-- is exactly the abstract-operator axiom, once one accepts the
+-- substrate/loop-endowment decomposition of aggregate weight.
 -- ════════════════════════════════════════════════════════════════
 
-/-- The HOA within-basin maintenance property (specialized
-    `MaintainedWithinIfPreserved`). Reads: for any state where an HOA exists
-    and the basin holds, every infinite move-sequence that keeps the state
-    in basin AND has autocatalytic feedback engaged at every step preserves
-    HOAExists at every step. The `feedbackEngaged` premise is what (A)
-    silently assumed; (B') names it. -/
-def HOAMaintainedWithin {r : Region}
+/-- **The autocatalytic-maintenance rule** — was axiom at (B'), theorem
+    at (B''). If HOA exists, feedback is engaged for the move, and the
+    next state is in basin, then the next state also has an existing HOA.
+    Proof is `closes_hysteresis_gap` applied directly. -/
+theorem hoaPreservedByBasinMove_ifFeedbackEngaged
+    {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s s' : HOAState r),
+      HOAExists c s → HOAMove s s' → feedbackEngaged c s s' →
+      Basin s' → HOAExists c s' := by
+  intro s s' _ _ h_fb h_basin
+  unfold HOAExists HOAState.weight
+  exact c.closes_hysteresis_gap r s'.substrate s'.loopEndowment h_basin h_fb
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM8. WITHIN-BASIN MAINTENANCE (the (A)/(B')/(B'') theorem)
+-- Instance of `MaintainedWithinIfPreserved` (Score/SelfStabilization.lean).
+-- Theorem body unchanged from (B'); premises now parametric on the
+-- combining operator.
+-- ════════════════════════════════════════════════════════════════
+
+/-- The HOA within-basin maintenance property, parametric on the chosen
+    combining operator. Reads: for any state where an HOA exists (under `c`)
+    and the substrate basin holds, every infinite move-sequence that keeps
+    the state in basin AND has autocatalytic feedback engaged (under `c`)
+    at every step preserves HOAExists at every step. -/
+def HOAMaintainedWithin {r : Region} (c : AutocatalyticCombine)
     (Moves : HOAState r → HOAState r → Prop) : Prop :=
-  MaintainedWithinIfPreserved (@Basin r) (@HOAExists r) Moves (@feedbackEngaged r)
+  MaintainedWithinIfPreserved (@Basin r) (HOAExists c) Moves (feedbackEngaged c)
 
-/-- **Autocatalytic-maintenance rule** (Hysteresis.md § "Aggregate-weight
-    hysteresis"): "the cycle acts on the environment to make the environment
-    more hospitable to the cycle's continued existence." Formalized as an
-    axiom with the (B') feedback premise made explicit — if the current
-    state has an existing HOA, feedback is engaged for the move, and the
-    next state lies in basin, then the next state also has an existing HOA.
-    The (B'') workstream is to derive this from a formalized decomposition
-    of `feedbackEngaged`; at (B') it is the theoretical claim, stated with
-    the honest premise structure. -/
-axiom hoaPreservedByBasinMove_ifFeedbackEngaged {r : Region} :
-  ∀ (s s' : HOAState r),
-    HOAExists s → HOAMove s s' → feedbackEngaged s s' → Basin s' → HOAExists s'
-
-/-- **The (B') maintenance theorem.** Under the autocatalytic-maintenance
-    axiom (with its honest feedback premise), `HOAMove` maintains HOA
-    existence within basin. Proof is a trivial induction on the trace
-    index; the content lives in `hoaPreservedByBasinMove_ifFeedbackEngaged`. -/
-theorem hoaMaintainedWithin {r : Region} :
-    HOAMaintainedWithin (@HOAMove r) := by
+/-- **The maintenance theorem.** Under the derived autocatalytic-
+    maintenance rule (`hoaPreservedByBasinMove_ifFeedbackEngaged`),
+    `HOAMove` maintains HOA existence within basin. Proof is a trivial
+    induction on the trace index; the content lives in the theorem's
+    (now-derived) premise. -/
+theorem hoaMaintainedWithin {r : Region} (c : AutocatalyticCombine) :
+    HOAMaintainedWithin c (@HOAMove r) := by
   intro s hoa_s basin_s trace tr_0 tr_moves tr_basin tr_feedback i
   induction i with
   | zero =>
       rw [tr_0]; exact hoa_s
   | succ n ih =>
-      exact hoaPreservedByBasinMove_ifFeedbackEngaged
+      exact hoaPreservedByBasinMove_ifFeedbackEngaged c
         (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n) (tr_basin (n+1))
 
 end SCORE

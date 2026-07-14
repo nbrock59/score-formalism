@@ -396,7 +396,15 @@
 
     <owl:Class rdf:about="http://score-theory.org/core#WithinBasinMaintenance">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
-        <rdfs:comment>SCORE variant of self-stabilization for BISTABLE basins (the SCORE default given hysteresis): from a state that already satisfies the legitimate property and lies in basin, every basin-preserving move sequence preserves the property throughout. Not convergence-from-anywhere (which fails for bistable regions — hysteresis is precisely for admitting a second stable equilibrium in-basin). The autocatalytic-maintenance rule (Hysteresis.md § Aggregate-weight hysteresis) is the load-bearing claim. Sibling of WithinBasinConvergence, not subclass — the two hold on different topologies of basin. Lean: MaintainedWithin (Score/SelfStabilization.lean); HOAMaintainedWithin, hoaPreservedByBasinMove, hoaMaintainedWithin (Score/HOAMaintenance.lean). See obsidian/SCORE/emergence/mechanism/HOA.md, obsidian/SCORE/emergence/mechanism/Hysteresis.md.</rdfs:comment>
+        <rdfs:comment>SCORE variant of self-stabilization for BISTABLE basins (the SCORE default given hysteresis): from a state that already satisfies the legitimate property and lies in basin, every basin-preserving move sequence preserves the property throughout. Not convergence-from-anywhere (which fails for bistable regions — hysteresis is precisely for admitting a second stable equilibrium in-basin). The autocatalytic-maintenance rule (Hysteresis.md § Aggregate-weight hysteresis) is the load-bearing claim, discharged from axiom to theorem at (B'') via the AutocatalyticFeedback decomposition. Sibling of WithinBasinConvergence, not subclass — the two hold on different topologies of basin. Lean: MaintainedWithinIfPreserved (Score/SelfStabilization.lean); HOAMaintainedWithin, hoaMaintainedWithin (Score/HOAMaintenance.lean). See obsidian/SCORE/emergence/mechanism/HOA.md, obsidian/SCORE/emergence/mechanism/Hysteresis.md.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#AutocatalyticFeedback -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#AutocatalyticFeedback">
+        <rdfs:comment>The decomposition-and-combining mechanism that discharges WithinBasinMaintenance from axiom to theorem: aggregate observable weight = combine(substrate, loop_endowment), with an abstract operator satisfying monotonicity in each argument and closing the hysteresis gap when the loop is engaged. Formalizes only the fast-timescale aggregate-weight mechanism (Hysteresis.md § 3.1); ceiling residue (§ 3.2) and B₃-substrate (§ 3.3) mechanisms remain axiomatic. SCORE does not commit to a specific arithmetic form (Kauffman-multiplicative or Deacon-additive) — the operator is abstract, and canonical additive and multiplicative instances are shipped as options; peers pick one. Lean: AutocatalyticCombine, combineAdditive, combineMultiplicative, hoaPreservedByBasinMove_ifFeedbackEngaged (now a derived theorem), feedbackEngaged (now a derived predicate) (Score/HOAMaintenance.lean). See obsidian/SCORE/emergence/mechanism/AutocatalyticFeedback.md.</rdfs:comment>
     </owl:Class>
 
 
