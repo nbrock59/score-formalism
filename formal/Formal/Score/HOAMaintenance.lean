@@ -1861,4 +1861,111 @@ theorem formalB3_preserved_under_renewal
           generationalRenewalMove_preserves_formalB3 (trace n) (trace (n+1))
                                                      (h_renewal n)]
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM27. LONG-TIMESCALE DYNAMICS (L3) — PathAMove residue accretion
+-- (CeilingResidue.md § "What is NOT formalized": how ceiling residue
+-- actually rises — the Path-A structural restructuring mechanism the
+-- § 3.2 discharge axiomatized.)
+--
+-- L3 is the ACCRETION side of the ceiling-residue dynamics, comple-
+-- menting L1 (erosion) and L2 (preservation-under-renewal). Where L2's
+-- non-decrease comes from inheriting existing ceiling through
+-- inscription, L3's non-decrease comes from Path-A contradiction events
+-- INSIDE the running autocatalytic loop actively deepening manifold
+-- overlap. Both share the same baseline non-decrease axiom shape; the
+-- physical differentiation is in the mechanism story (see
+-- LongTimescaleDynamics.md § "(L3) Path-A residue accumulation"). L3
+-- adds a peer-supplied strict-accrual rate axiom below saturation.
+--
+-- Scope thin: baseline non-decrease axiom + strict-accrual rate (below
+-- saturation) as a separate additional axiom. Derived theorem is just
+-- the monotone claim; the linear-growth-below-saturation theorem is
+-- future work (requires trace-wide saturation checking).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Path-A accretion move** — a slow-timescale event where a Path-A
+    contradiction inside the running autocatalytic loop deepens cycle
+    members' manifold overlap, raising the edge-weight ceiling. Disjoint
+    from `HOAMove` (fast-timescale), `MemberTurnoverMove` (L1 erosion),
+    and `GenerationalRenewalMove` (L2 preservation). The vault's
+    mechanism story requires the loop to be engaged for Path-A events
+    to happen; that requirement is captured in prose (see
+    LongTimescaleDynamics.md), not enforced by an explicit precondition. -/
+axiom PathAMove {r : Region} : HOAState r → HOAState r → Prop
+
+/-- **Peer-supplied strict-accrual increment** — the minimum ceiling-
+    residue increment per Path-A event, below saturation. Peer
+    implementations calibrate; the associated axiom is separate from
+    the baseline monotonicity axiom, so peers that want to work with
+    just monotonicity can ignore this. -/
+axiom pathAAccrualIncrement : ℝ
+
+/-- The accrual increment is strictly positive — Path-A events are
+    structurally productive; a zero increment would collapse L3 to L2's
+    baseline preservation. -/
+axiom pathAAccrualIncrement_pos : 0 < pathAAccrualIncrement
+
+/-- **Path-A accretes ceiling** (baseline monotonicity). Each Path-A
+    event does not decrease ceiling residue. Baseline claim; the
+    strict-accrual axiom below strengthens it below saturation. -/
+axiom pathAMove_accretes_ceiling
+    {r : Region} (s s' : HOAState r) :
+  PathAMove s s' →
+    s.ceilingResidue.val ≤ s'.ceilingResidue.val
+
+/-- **Path-A strict-accrual below saturation.** When the accumulated
+    ceiling plus the accrual increment is still ≤ 1 (not yet saturated
+    at the CouplingWeight upper bound), each Path-A event increases
+    ceiling by at least the accrual increment. Saturation is an
+    implicit upper bound from the `CouplingWeight` type discipline
+    (val ≤ 1); once ceiling reaches 1, Path-A cannot accrete further
+    within this model. A peer that models beyond-1 ceilings would
+    refactor `HOAState.ceilingResidue` to a wider type. -/
+axiom pathAMove_strict_accrual_below_saturation
+    {r : Region} (s s' : HOAState r) :
+  PathAMove s s' →
+    s.ceilingResidue.val + pathAAccrualIncrement ≤ 1 →
+    s.ceilingResidue.val + pathAAccrualIncrement ≤ s'.ceilingResidue.val
+
+/-- Formal B₃ substrate survives Path-A restructuring. Same claim
+    shape as L1/L2. Path-A operates on the manifold layer, not the
+    formal layer. -/
+axiom pathAMove_preserves_formalB3
+    {r : Region} (s s' : HOAState r) :
+  PathAMove s s' → s'.formalB3Substrate = s.formalB3Substrate
+
+/-- **Ceiling residue accretes under repeated Path-A events.** After
+    `i` Path-A events, `(trace 0).ceiling ≤ (trace i).ceiling`. Parallel
+    to `ceilingResidue_preserved_under_renewal` in axiom shape — both
+    say "ceiling doesn't decrease over the trace" — but the mechanism
+    is different: L2 renews from inheritance, L3 accretes from Path-A
+    restructuring. A separate `pathAAccrualIncrement`-based linear-
+    growth theorem (below saturation) is future work. -/
+theorem ceilingResidue_accretes_under_pathA
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_pathA : ∀ i, PathAMove (trace i) (trace (i+1))) :
+    ∀ i, (trace 0).ceilingResidue.val ≤ (trace i).ceilingResidue.val := by
+  intro i
+  induction i with
+  | zero => exact le_refl _
+  | succ n ih =>
+      have h_step := pathAMove_accretes_ceiling
+                       (trace n) (trace (n+1)) (h_pathA n)
+      linarith
+
+/-- **Formal B₃ preserved under repeated Path-A events.** Path-A
+    operates on the manifold layer, not the formal layer; formal B₃
+    substrate stays constant across all Path-A events. -/
+theorem formalB3_preserved_under_pathA
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_pathA : ∀ i, PathAMove (trace i) (trace (i+1))) :
+    ∀ i, (trace i).formalB3Substrate = (trace 0).formalB3Substrate := by
+  intro i
+  induction i with
+  | zero => rfl
+  | succ n ih =>
+      rw [← ih,
+          pathAMove_preserves_formalB3 (trace n) (trace (n+1))
+                                       (h_pathA n)]
+
 end SCORE
