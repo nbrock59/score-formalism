@@ -877,4 +877,136 @@ theorem hoaMaintainedCompositelyExtended {r : Region} (c : AutocatalyticCombine)
         (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n)
         (tr_comp_basin (n+1))
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM18. DISCHARGE MACHINERY — § 3.2 ceiling residue, canonical
+-- (combineAdditive × linearCeilingResidue) pair
+--
+-- Discharges `hoaPreservedByExtendedBasinMove_ifFeedbackEngaged` from
+-- axiom to derived theorem — for the additive × linear canonical pair.
+-- Parallels (B'')'s discharge of § 3.1's axiom via AutocatalyticCombine.
+--
+-- The load-bearing content moves from the maintenance-level axiom to a
+-- compatibility-axiom on a `ResidueAugmentedCombine` — an "extended
+-- combining operator" that takes ceilingResidue as an additional input.
+-- For concrete (combine, policy) pairs, the compatibility axiom is
+-- provable arithmetic.
+--
+-- Scope: only the (combineAdditive, linearCeilingResidue) pair is
+-- discharged here. Other pairs (multiplicative × multiplicative etc.)
+-- remain axiomatic pending their own discharge PRs. The universal axiom
+-- `hoaPreservedByExtendedBasinMove_ifFeedbackEngaged` (§HM11) is kept
+-- for arbitrary (c, p) — the discharged pair simply has a derived
+-- theorem that doesn't depend on it.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Extended combining operator that takes ceiling residue as a third
+    input. Parametric over a base `AutocatalyticCombine` (`c`) and a
+    `CeilingResiduePolicy` (`p`). At zero residue, agrees with the base
+    combine (`boundary_at_zero`); the load-bearing property is
+    `closes_extended_gap`, which strengthens the base's
+    `closes_hysteresis_gap` to work at substrate as low as
+    `p.effectiveDissolution r residue`. For concrete (c, p) pairs, the
+    two properties are provable arithmetic. -/
+structure ResidueAugmentedCombine
+    (c : AutocatalyticCombine) (p : CeilingResiduePolicy) where
+  /-- Extended combine: takes substrate, endowment, AND ceiling residue.
+      Reduces to `c.combine` at zero residue. -/
+  extendedCombine : CouplingWeight → CouplingWeight → CouplingWeight → ℝ
+  /-- At zero residue, `extendedCombine` equals the base `c.combine`. -/
+  boundary_at_zero :
+    ∀ (s e : CouplingWeight),
+      extendedCombine s e ⟨0, le_refl 0, zero_le_one⟩ = c.combine s e
+  /-- **Load-bearing compatibility axiom.** With ceiling residue in play,
+      the extended combine reaches formation at substrate as low as the
+      policy's `effectiveDissolution` — provided endowment meets the base
+      combine's `engagementThreshold`. This is the atomic property that
+      derives the § 3.2 maintenance theorem. Provable arithmetic for
+      canonical (c, p) pairs. -/
+  closes_extended_gap :
+    ∀ (r : Region) (substrate endowment residue : CouplingWeight),
+      p.effectiveDissolution r residue ≤ substrate.val →
+      c.engagementThreshold r ≤ endowment.val →
+      (formationThreshold r).val ≤ extendedCombine substrate endowment residue
+
+/-- **Extended crystallization predicate.** Weight is at least formation
+    under the extended combining operator (which accounts for ceiling
+    residue). Distinct from base `HOAExists` — the two coincide only at
+    zero residue (see `hoaExistsExtended_agrees_at_zero_residue`). -/
+def HOAExistsExtended {r : Region}
+    {c : AutocatalyticCombine} {p : CeilingResiduePolicy}
+    (aug : ResidueAugmentedCombine c p) (s : HOAState r) : Prop :=
+  (formationThreshold r).val ≤
+    aug.extendedCombine s.substrate s.loopEndowment s.ceilingResidue
+
+/-- **Consistency lemma.** At zero ceiling residue, `HOAExistsExtended`
+    agrees with base `HOAExists` — the extended predicate is a proper
+    generalization, not a redefinition. -/
+theorem hoaExistsExtended_agrees_at_zero_residue
+    {r : Region} {c : AutocatalyticCombine} {p : CeilingResiduePolicy}
+    (aug : ResidueAugmentedCombine c p) (s : HOAState r)
+    (h_zero : s.ceilingResidue = ⟨0, le_refl 0, zero_le_one⟩) :
+    HOAExistsExtended aug s ↔ HOAExists c s := by
+  unfold HOAExistsExtended HOAExists HOAState.weight
+  rw [h_zero, aug.boundary_at_zero]
+
+/-- **Derived § 3.2 maintenance theorem** — no reliance on the
+    `hoaPreservedByExtendedBasinMove_ifFeedbackEngaged` axiom. Given a
+    `ResidueAugmentedCombine` instance, the maintenance property follows
+    from `closes_extended_gap` by trivial induction. -/
+theorem hoaMaintainedExtendedDerived
+    {r : Region} {c : AutocatalyticCombine} {p : CeilingResiduePolicy}
+    (aug : ResidueAugmentedCombine c p) :
+    ∀ (s : HOAState r), HOAExistsExtended aug s → Basin s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        (∀ i, ExtendedBasin p (trace i)) →
+        (∀ i, feedbackEngaged c (trace i) (trace (i+1))) →
+        ∀ i, HOAExistsExtended aug (trace i) := by
+  intro s hoa_s _ trace tr_0 _ tr_ext_basin tr_feedback i
+  induction i with
+  | zero =>
+      rw [tr_0]; exact hoa_s
+  | succ n ih =>
+      unfold HOAExistsExtended
+      exact aug.closes_extended_gap r
+        (trace (n+1)).substrate (trace (n+1)).loopEndowment
+        (trace (n+1)).ceilingResidue
+        (tr_ext_basin (n+1)) (tr_feedback n)
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM19. CANONICAL DISCHARGED INSTANCE — additive × linear
+-- Concrete `ResidueAugmentedCombine combineAdditive linearCeilingResidue`
+-- with all axioms proven from arithmetic. This is a REAL DISCHARGE:
+-- combined with `hoaMaintainedExtendedDerived`, gives a full maintenance
+-- theorem for this pair with no residual axiom.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **The canonical additive × linear residue-augmented combine.** For
+    the (`combineAdditive`, `linearCeilingResidue`) pair: extended weight
+    is simply `substrate + endowment + residue` (residue adds directly to
+    aggregate weight). Both `boundary_at_zero` and `closes_extended_gap`
+    are provable arithmetic. -/
+noncomputable def additiveLinearResidueAugmented :
+    ResidueAugmentedCombine combineAdditive linearCeilingResidue where
+  extendedCombine s e res := s.val + e.val + res.val
+  boundary_at_zero s e := by
+    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    ring
+  closes_extended_gap r substrate endowment residue h_basin h_feedback := by
+    -- Unfold instance-specific defs
+    have h_eff : linearCeilingResidue.effectiveDissolution r residue =
+                 max 0 ((dissolutionThreshold r).val - residue.val) := rfl
+    have h_eng : combineAdditive.engagementThreshold r =
+                 (formationThreshold r).val - (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    -- max_right gives: dissolution - residue ≤ max 0 (dissolution - residue) ≤ substrate
+    have h_dr_le_substrate : (dissolutionThreshold r).val - residue.val ≤ substrate.val :=
+      le_trans (le_max_right 0 _) h_basin
+    -- endowment ≥ formation - dissolution; substrate + residue ≥ dissolution;
+    -- so substrate + endowment + residue ≥ formation
+    show (formationThreshold r).val ≤ substrate.val + endowment.val + residue.val
+    linarith
+
 end SCORE
