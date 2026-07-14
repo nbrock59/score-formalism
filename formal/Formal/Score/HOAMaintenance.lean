@@ -2062,4 +2062,102 @@ theorem ceilingResidue_preserved_under_coInscription
           coInscriptionMove_preserves_ceilingResidue
             (trace n) (trace (n+1)) (h_coi n)]
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM29. LONG-TIMESCALE DYNAMICS — cross-mechanism composition
+-- Unifies L1/L2/L3/L4 into a single `LongTimescaleMove` sum type so we
+-- can state trace-level composition theorems that hold under ANY mix
+-- of the four slow moves.
+--
+-- Key derived results:
+-- - Formal B₃ is non-decreasing under any L1-L4 trace (all four
+--   preserve or accrete formal B₃).
+-- - Ceiling residue is non-decreasing under any L2/L3/L4 trace (the
+--   NON-eroding subset — L1 is the only mechanism that decreases it).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Any long-timescale move** — L1 turnover, L2 renewal, L3 Path-A,
+    or L4 co-inscription. Sum type over the four disjoint slow-move
+    types formalized in §HM25–§HM28. -/
+inductive LongTimescaleMove {r : Region} : HOAState r → HOAState r → Prop
+  | l1 {s s' : HOAState r} (h : MemberTurnoverMove s s') : LongTimescaleMove s s'
+  | l2 {s s' : HOAState r} (h : GenerationalRenewalMove s s') : LongTimescaleMove s s'
+  | l3 {s s' : HOAState r} (h : PathAMove s s') : LongTimescaleMove s s'
+  | l4 {s s' : HOAState r} (h : CoInscriptionMove s s') : LongTimescaleMove s s'
+
+/-- **Non-eroding long-timescale move** — L2, L3, or L4 (excludes L1
+    turnover, the only mechanism that erodes ceiling residue). Under a
+    NonEroding trace, ceiling residue is non-decreasing. -/
+inductive NonErodingLongTimescaleMove {r : Region} : HOAState r → HOAState r → Prop
+  | l2 {s s' : HOAState r} (h : GenerationalRenewalMove s s') :
+      NonErodingLongTimescaleMove s s'
+  | l3 {s s' : HOAState r} (h : PathAMove s s') :
+      NonErodingLongTimescaleMove s s'
+  | l4 {s s' : HOAState r} (h : CoInscriptionMove s s') :
+      NonErodingLongTimescaleMove s s'
+
+/-- **Formal B₃ non-decreasing under any single long-timescale move.**
+    Case analysis: L1/L2/L3 all preserve formal B₃ exactly; L4
+    accretes. All four give `≤`. -/
+theorem formalB3_nondecreasing_under_longTimescaleMove
+    {r : Region} (s s' : HOAState r) :
+    LongTimescaleMove s s' →
+      s.formalB3Substrate.val ≤ s'.formalB3Substrate.val := by
+  intro h
+  cases h with
+  | l1 h_l1 => rw [memberTurnoverMove_preserves_formalB3 s s' h_l1]
+  | l2 h_l2 => rw [generationalRenewalMove_preserves_formalB3 s s' h_l2]
+  | l3 h_l3 => rw [pathAMove_preserves_formalB3 s s' h_l3]
+  | l4 h_l4 => exact coInscriptionMove_accretes_formalB3 s s' h_l4
+
+/-- **Formal B₃ non-decreasing over an entire long-timescale trace.**
+    After `i` mixed L1-L4 events, `(trace 0).formalB3 ≤ (trace i).formalB3`.
+    The strongest general claim about formal B₃ dynamics: it never
+    decreases under the four sub-mechanisms formalized here. Real
+    formal-layer erosion via informal-substrate crash would be a
+    distinct mechanism outside L1-L4. -/
+theorem formalB3_nondecreasing_under_longTimescaleTrace
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_trace : ∀ i, LongTimescaleMove (trace i) (trace (i+1))) :
+    ∀ i, (trace 0).formalB3Substrate.val ≤ (trace i).formalB3Substrate.val := by
+  intro i
+  induction i with
+  | zero => exact le_refl _
+  | succ n ih =>
+      have h_step := formalB3_nondecreasing_under_longTimescaleMove
+                       (trace n) (trace (n+1)) (h_trace n)
+      linarith
+
+/-- **Ceiling residue non-decreasing under any single non-eroding
+    long-timescale move.** Case analysis: L2 preserves (≥ by
+    `generationalRenewalMove_maintains_ceiling`); L3 accretes (≥ by
+    `pathAMove_accretes_ceiling`); L4 preserves (= by
+    `coInscriptionMove_preserves_ceilingResidue`). L1 is deliberately
+    excluded — it's the only mechanism that decreases ceiling residue. -/
+theorem ceilingResidue_nondecreasing_under_nonErodingMove
+    {r : Region} (s s' : HOAState r) :
+    NonErodingLongTimescaleMove s s' →
+      s.ceilingResidue.val ≤ s'.ceilingResidue.val := by
+  intro h
+  cases h with
+  | l2 h_l2 => exact generationalRenewalMove_maintains_ceiling s s' h_l2
+  | l3 h_l3 => exact pathAMove_accretes_ceiling s s' h_l3
+  | l4 h_l4 => rw [coInscriptionMove_preserves_ceilingResidue s s' h_l4]
+
+/-- **Ceiling residue non-decreasing over an entire non-eroding
+    long-timescale trace.** If no L1 (turnover) move appears in the
+    trace, ceiling residue never decreases. Companion to
+    `formalB3_nondecreasing_under_longTimescaleTrace` — captures the
+    "no erosion happens" regime. -/
+theorem ceilingResidue_nondecreasing_under_nonErodingTrace
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_trace : ∀ i, NonErodingLongTimescaleMove (trace i) (trace (i+1))) :
+    ∀ i, (trace 0).ceilingResidue.val ≤ (trace i).ceilingResidue.val := by
+  intro i
+  induction i with
+  | zero => exact le_refl _
+  | succ n ih =>
+      have h_step := ceilingResidue_nondecreasing_under_nonErodingMove
+                       (trace n) (trace (n+1)) (h_trace n)
+      linarith
+
 end SCORE
