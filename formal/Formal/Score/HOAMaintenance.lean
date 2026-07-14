@@ -49,13 +49,16 @@ namespace SCORE
 -- ════════════════════════════════════════════════════════════════
 
 /-- The joint coupling-graph state under HOA-maintenance analysis, over a
-    fixed region `r`: the agents currently coupled in `r`, the exogenous
-    substrate weight, and the endogenous loop endowment. Moves may adjust
-    any of the three. -/
+    fixed region `r`: agents, exogenous substrate weight, endogenous loop
+    endowment, and accumulated ceiling residue (Path-A structural
+    manifold-overlap deepening — used by the § 3.2 ceiling-residue
+    extension, §HM9–HM11). Moves may adjust any of the four; the ceiling-
+    residue field is inert at the (B'') aggregate-weight tier. -/
 structure HOAState (r : Region) where
-  agents        : List Agent
-  substrate     : CouplingWeight
-  loopEndowment : CouplingWeight
+  agents         : List Agent
+  substrate      : CouplingWeight
+  loopEndowment  : CouplingWeight
+  ceilingResidue : CouplingWeight
 
 -- ════════════════════════════════════════════════════════════════
 -- §HM2. HYSTERESIS THRESHOLDS (Hysteresis.md § "The claim")
@@ -279,5 +282,159 @@ theorem hoaMaintainedWithin {r : Region} (c : AutocatalyticCombine) :
   | succ n ih =>
       exact hoaPreservedByBasinMove_ifFeedbackEngaged c
         (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n) (tr_basin (n+1))
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM9. CEILING RESIDUE POLICY — the basin-extension mechanism (Hysteresis
+-- § 3.2). Path-A structural restructuring is a state quantity (the
+-- ceilingResidue field) that reduces the EFFECTIVE dissolution threshold
+-- — the loop can maintain the HOA at substrate below the (§ 3.1) formal
+-- dissolution threshold.
+--
+-- SCORE does not commit to a specific dependence of effective dissolution
+-- on residue — the abstract policy captures the shape (four axioms), with
+-- two canonical instances (§HM10) shipped.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Abstract ceiling-residue policy: bundles the effective-dissolution
+    function with the four properties that suffice to state the extended
+    maintenance theorem. See vault: `AutocatalyticFeedback.md` and
+    `CeilingResidue.md`. -/
+structure CeilingResiduePolicy where
+  /-- Effective dissolution threshold as a function of ceiling residue.
+      Reduces the substrate requirement for maintaining an existing HOA. -/
+  effectiveDissolution : Region → CouplingWeight → ℝ
+  /-- At zero residue, effective dissolution equals formal dissolution
+      (no basin extension). -/
+  boundary_at_zero :
+    ∀ (r : Region),
+      effectiveDissolution r ⟨0, le_refl 0, zero_le_one⟩ = (dissolutionThreshold r).val
+  /-- More residue → not-more effective dissolution (basin only widens). -/
+  monotone_residue :
+    ∀ (r : Region) (res₁ res₂ : CouplingWeight),
+      res₁.val ≤ res₂.val →
+      effectiveDissolution r res₂ ≤ effectiveDissolution r res₁
+  /-- Bounded above by formal dissolution (residue never *raises* the
+      substrate requirement). -/
+  bounded :
+    ∀ (r : Region) (res : CouplingWeight),
+      effectiveDissolution r res ≤ (dissolutionThreshold r).val
+  /-- Non-negative (a substrate of exactly zero always dissolves — §HM
+      preserves the "cut off exogenous inputs entirely → dissolve"
+      boundary from Hysteresis.md § 3.1). -/
+  nonneg :
+    ∀ (r : Region) (res : CouplingWeight),
+      0 ≤ effectiveDissolution r res
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM10. TWO CANONICAL INSTANCES
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Linear** ceiling-residue policy: `effective = max(0, formal - residue)`.
+    Ceiling residue reduces the substrate requirement one-for-one, clamped
+    at zero. -/
+noncomputable def linearCeilingResidue : CeilingResiduePolicy where
+  effectiveDissolution r res := max 0 ((dissolutionThreshold r).val - res.val)
+  boundary_at_zero r := by
+    simp
+    exact le_of_lt (dissolutionThreshold_pos r)
+  monotone_residue r res₁ res₂ h := by
+    have : (dissolutionThreshold r).val - res₂.val ≤ (dissolutionThreshold r).val - res₁.val := by
+      linarith
+    exact max_le_max (le_refl 0) this
+  bounded r res := by
+    have h_res_nn : 0 ≤ res.val := res.pos
+    have : (dissolutionThreshold r).val - res.val ≤ (dissolutionThreshold r).val := by linarith
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
+    exact max_le h_d_nn this
+  nonneg r res := le_max_left _ _
+
+/-- **Multiplicative** ceiling-residue policy:
+    `effective = formal * (1 - residue)`. Ceiling residue scales the
+    substrate requirement multiplicatively. Matches biology-flavored
+    efficiency-scaling. -/
+noncomputable def multiplicativeCeilingResidue : CeilingResiduePolicy where
+  effectiveDissolution r res := (dissolutionThreshold r).val * (1 - res.val)
+  boundary_at_zero r := by simp
+  monotone_residue r res₁ res₂ h := by
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
+    have : (1 : ℝ) - res₂.val ≤ 1 - res₁.val := by linarith
+    exact mul_le_mul_of_nonneg_left this h_d_nn
+  bounded r res := by
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
+    have h_res_nn : 0 ≤ res.val := res.pos
+    have : (dissolutionThreshold r).val * (1 - res.val) ≤ (dissolutionThreshold r).val * 1 := by
+      exact mul_le_mul_of_nonneg_left (by linarith) h_d_nn
+    linarith
+  nonneg r res := by
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
+    have h_res_le1 : res.val ≤ 1 := res.le1
+    exact mul_nonneg h_d_nn (by linarith)
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM11. EXTENDED BASIN + EXTENDED MAINTENANCE
+-- ExtendedBasin is a strictly weaker premise than Basin (extends the
+-- maintenance basin downward by the ceiling-residue mechanism).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Extended basin** under a ceiling-residue policy: substrate is at
+    least the *effective* dissolution threshold (which is ≤ formal
+    dissolution, and ≥ 0). Strictly weaker than `Basin` — see
+    `basin_implies_extendedBasin`. -/
+def ExtendedBasin (policy : CeilingResiduePolicy) {r : Region}
+    (s : HOAState r) : Prop :=
+  policy.effectiveDissolution r s.ceilingResidue ≤ s.substrate.val
+
+/-- Any state satisfying formal `Basin` also satisfies `ExtendedBasin`
+    under any policy — ExtendedBasin strictly extends the (B'') basin. -/
+theorem basin_implies_extendedBasin (policy : CeilingResiduePolicy)
+    {r : Region} (s : HOAState r) : Basin s → ExtendedBasin policy s := by
+  intro h_basin
+  unfold Basin ExtendedBasin at *
+  have := policy.bounded r s.ceilingResidue
+  linarith
+
+/-- **Extended autocatalytic-maintenance rule** — the load-bearing axiom
+    for ceiling residue, analogous to how `hoaPreservedByBasinMove_ifFeedbackEngaged`
+    was an axiom at (B') before (B'') discharged it. Says: if HOA exists,
+    feedback is engaged, and the next state satisfies ExtendedBasin
+    (substrate at or above the effective dissolution set by ceiling
+    residue), then the next state also has an existing HOA.
+
+    Discharging this axiom to a theorem requires formalizing the Path-A
+    structural-restructuring mechanism (how ceiling residue makes the loop
+    more efficient per substrate unit) — a future formalization pass
+    analogous to (B'')'s discharge of the aggregate-weight axiom via
+    `AutocatalyticCombine`. -/
+axiom hoaPreservedByExtendedBasinMove_ifFeedbackEngaged
+    (policy : CeilingResiduePolicy) {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s s' : HOAState r),
+      HOAExists c s → HOAMove s s' → feedbackEngaged c s s' →
+      ExtendedBasin policy s' → HOAExists c s'
+
+/-- The HOA extended-maintenance property, parametric on both the
+    combining operator AND the ceiling-residue policy. Reads: for any
+    state with existing HOA and extended-basin, every move-sequence with
+    engaged feedback that stays in extended-basin preserves HOAExists. -/
+def HOAMaintainedExtended {r : Region} (c : AutocatalyticCombine)
+    (policy : CeilingResiduePolicy)
+    (Moves : HOAState r → HOAState r → Prop) : Prop :=
+  MaintainedWithinIfPreserved (ExtendedBasin policy) (HOAExists c) Moves
+    (feedbackEngaged c)
+
+/-- **The extended maintenance theorem.** Under the extended
+    autocatalytic-maintenance rule (axiomatic here), `HOAMove` maintains
+    HOA existence under `ExtendedBasin`. Strictly stronger than
+    `hoaMaintainedWithin` (broader basin). Proof: trivial induction. -/
+theorem hoaMaintainedExtended {r : Region} (c : AutocatalyticCombine)
+    (policy : CeilingResiduePolicy) :
+    HOAMaintainedExtended c policy (@HOAMove r) := by
+  intro s hoa_s ext_basin_s trace tr_0 tr_moves tr_ext_basin tr_feedback i
+  induction i with
+  | zero =>
+      rw [tr_0]; exact hoa_s
+  | succ n ih =>
+      exact hoaPreservedByExtendedBasinMove_ifFeedbackEngaged policy c
+        (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n)
+        (tr_ext_basin (n+1))
 
 end SCORE

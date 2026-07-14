@@ -409,6 +409,15 @@
 
 
 
+    <!-- http://score-theory.org/core#CeilingResidueProperty -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CeilingResidueProperty">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
+        <rdfs:comment>The Hysteresis.md § 3.2 basin-extension mechanism: Path-A structural manifold-restructuring accumulates as a durable state quantity (ceiling residue) that reduces the effective dissolution threshold. Sibling of WithinBasinMaintenance under SelfStabilizationProperty — the two mechanisms extend maintenance in different ways: WithinBasinMaintenance is preservation within the formal basin under engaged feedback (§ 3.1); CeilingResidueProperty widens the basin below formal dissolution to an effective dissolution set by accumulated residue (§ 3.2, intermediate window width per Hysteresis.md). SCORE does not commit to a specific dependence of effective dissolution on residue — the abstract policy captures the shape (four axioms) with canonical linear and multiplicative instances shipped. NOT formalized at this tier: member turnover (Hysteresis.md flags it erodes ceiling residue), LifeCyclePhases generational renewal, and Path-A residue-accumulation dynamics. Lean: CeilingResiduePolicy, linearCeilingResidue, multiplicativeCeilingResidue, ExtendedBasin, hoaPreservedByExtendedBasinMove_ifFeedbackEngaged (axiom, discharge pending), hoaMaintainedExtended (Score/HOAMaintenance.lean §HM9-HM11). See obsidian/SCORE/emergence/mechanism/CeilingResidue.md.</rdfs:comment>
+    </owl:Class>
+
+
+
     <!-- http://score-theory.org/core#HumanCommunity -->
 
     <owl:Class rdf:about="http://score-theory.org/core#HumanCommunity"/>
