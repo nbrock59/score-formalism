@@ -436,6 +436,15 @@
 
 
 
+    <!-- http://score-theory.org/core#AgentHomogeneityFragility -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#AgentHomogeneityFragility">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
+        <rdfs:comment>Dijkstra 1974 "identical machines cannot self-stabilize" applied to SCORE agent populations — the NEGATIVE face (fragility, structural absence) complementing the positive stabilization mechanisms under SelfStabilizationProperty. A fully coupling-homogeneous population (all agents sharing the same CouplingWeightVector) cannot engage the autocatalytic loop that HOA maintenance requires: cycle members with identical manifold profiles cannot reinforce differentiated edges. Every maintenance theorem's `feedbackEngaged` premise becomes unsatisfiable, so no maintenance guarantee applies. This is the SCORE analog of Dijkstra's crucial finding — agent heterogeneity along CouplingWeightVector is the symmetry-breaker HOA maintenance requires. Scope thin: only CouplingWeightVector homogeneity formalized at this tier; LifeCyclePhase and ManifoldShape homogeneity variants are separate future work with analogous shape. Load-bearing axiom `homogeneous_no_feedback` is axiomatic — direct derivation from population-level manifold-overlap dynamics is analogous scope to (B''), not attempted. Falsifiable: peer with agent-heterogeneity toggle testing homogeneous populations for HOA persistence directly tests the axiom. Lean: agentCouplingWeightVector, PopulationCouplingHomogeneous, homogeneous_no_feedback (axiom), hoaMove_preserves_homogeneity (axiom), hoaFragilityHomogeneous (derived theorem) (Score/HOAMaintenance.lean §HM22). See obsidian/SCORE/emergence/mechanism/AgentHomogeneityFragility.md.</rdfs:comment>
+    </owl:Class>
+
+
+
     <!-- http://score-theory.org/core#HumanCommunity -->
 
     <owl:Class rdf:about="http://score-theory.org/core#HumanCommunity"/>

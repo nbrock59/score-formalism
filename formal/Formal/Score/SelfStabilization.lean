@@ -161,11 +161,9 @@ axiom dijkstraRingSelfStabilizes {N K : ℕ} :
 -- the theorem can be stated concretely; recorded here as a planned target.
 -- ════════════════════════════════════════════════════════════════
 
-/-- Structural corollary of Dijkstra's identical-machines-cannot-stabilize
-    finding, applied to SCORE agent populations. Placeholder: awaits a
-    formal predicate for population-homogeneity along the heterogeneity
-    axes ([[CouplingWeightVector]] / [[LifeCyclePhases]] /
-    [[ManifoldShapes]]). -/
-axiom hoaFragilityHomogeneous_planned : Prop
+-- Hook 3 negative theorem (`hoaFragilityHomogeneous`) — Dijkstra's
+-- "identical machines cannot self-stabilize" applied to SCORE — is now
+-- formalized in `Score/HOAMaintenance.lean` §HM22. See vault:
+-- `obsidian/SCORE/emergence/mechanism/AgentHomogeneityFragility.md`.
 
 end SCORE

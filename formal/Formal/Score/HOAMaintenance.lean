@@ -1486,4 +1486,82 @@ noncomputable def multiplicativeLinearFlooredB3Augmented
         field_simp
       linarith [h_prod, h_simp]
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM22. HOOK 3 NEGATIVE THEOREM — homogeneous populations cannot
+-- support persistent HOA maintenance (`hoaFragilityHomogeneous`)
+--
+-- The SCORE analog of Dijkstra 1974's crucial finding that identical
+-- machines cannot self-stabilize. Agent heterogeneity along the
+-- CouplingWeightVector axis is the SCORE symmetry-breaker that makes
+-- the autocatalytic loop's differentiated cycle-member reinforcement
+-- possible; a fully coupling-homogeneous population cannot engage
+-- feedback, so no maintenance theorem's premise is satisfiable.
+--
+-- Scope thin: only CouplingWeightVector homogeneity is formalized.
+-- LifeCyclePhase and ManifoldShape variants are separate future work.
+-- Load-bearing content is axiomatized (`homogeneous_no_feedback`) —
+-- direct derivation from population-level manifold-overlap dynamics
+-- is analogous scope to (B''), not attempted here.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Agent-to-CouplingWeightVector association** (Hook 3 prerequisite).
+    Each agent has a coupling weight vector characterizing its position
+    on the five network dimensions (`Core.lean` §5). Axiomatic here —
+    a peer implementation would supply this from its own agent
+    representation. -/
+axiom agentCouplingWeightVector : Agent → CouplingWeightVector
+
+/-- **Population coupling-homogeneous**: all agents in the state have
+    the same coupling weight vector. The SCORE analog of Dijkstra 1974's
+    "identical machines" precondition. -/
+def PopulationCouplingHomogeneous {r : Region} (s : HOAState r) : Prop :=
+  ∀ a₁ ∈ s.agents, ∀ a₂ ∈ s.agents,
+    agentCouplingWeightVector a₁ = agentCouplingWeightVector a₂
+
+/-- **Hook 3 core axiom** (the load-bearing theoretical claim from
+    Dijkstra 1974's identical-machines-cannot-stabilize finding,
+    translated to SCORE): coupling-homogeneous populations cannot have
+    engaged autocatalytic feedback. The intuition: identical coupling
+    weight vectors mean all agents have identical manifold-overlap
+    profiles, so cycle members cannot reinforce differentiated edges —
+    the autocatalytic loop cannot engage. Discharging this axiom to a
+    theorem requires formalizing population-level manifold-overlap
+    dynamics (analogous scope to (B'')); at this tier the axiom encodes
+    the theoretical claim, and peer implementations that show HOAs
+    persisting in coupling-homogeneous populations would falsify it. -/
+axiom homogeneous_no_feedback
+    {r : Region} (c : AutocatalyticCombine) (s s' : HOAState r) :
+  PopulationCouplingHomogeneous s → ¬ feedbackEngaged c s s'
+
+/-- **Hook 3 preservation axiom** (needed to lift the fragility through
+    move-sequences). HOA moves at the fast-timescale (interaction,
+    substrate/loop-endowment updates) preserve the agent population's
+    coupling structure — agents don't change their coupling weight
+    vectors on this timescale. Long-timescale life-cycle transitions or
+    member turnover would break this; those are separate future work. -/
+axiom hoaMove_preserves_homogeneity {r : Region} (s s' : HOAState r) :
+  HOAMove s s' → PopulationCouplingHomogeneous s → PopulationCouplingHomogeneous s'
+
+/-- **The Hook 3 negative theorem** (`hoaFragilityHomogeneous`). For a
+    coupling-homogeneous initial population, feedback never engages
+    anywhere in the move-sequence — so the premise of every maintenance
+    theorem (`hoaMaintainedWithin`, `hoaMaintainedExtended`,
+    `hoaMaintainedFormalExtended`, `hoaMaintainedCompositelyExtended`)
+    is unsatisfiable and no maintenance guarantee applies. Proof:
+    trivial induction using `hoaMove_preserves_homogeneity` (homogeneity
+    lifts through the trace) and `homogeneous_no_feedback` (homogeneity
+    forbids feedback at each step). -/
+theorem hoaFragilityHomogeneous {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s : HOAState r), PopulationCouplingHomogeneous s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) := by
+  intro s h_hom trace tr_0 tr_moves i
+  have h_hom_i : PopulationCouplingHomogeneous (trace i) := by
+    induction i with
+    | zero => rw [tr_0]; exact h_hom
+    | succ n ih => exact hoaMove_preserves_homogeneity _ _ (tr_moves n) ih
+  exact homogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
+
 end SCORE
