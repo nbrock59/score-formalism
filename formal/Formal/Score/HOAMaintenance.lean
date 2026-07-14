@@ -114,48 +114,75 @@ theorem HOAExists_implies_Basin {r : Region} (s : HOAState r)
 axiom HOAMove {r : Region} : HOAState r → HOAState r → Prop
 
 -- ════════════════════════════════════════════════════════════════
--- §HM5. WITHIN-BASIN MAINTENANCE (the (A) theorem)
--- Instance of `MaintainedWithin` (Score/SelfStabilization.lean) with
--- Basin := SCORE Basin and Property := HOAExists. Reads: from a state
--- that has an existing HOA and lies in basin, every move sequence whose
--- states all stay in basin preserves HOAExists at every step.
+-- §HM5. AUTOCATALYTIC FEEDBACK — the per-move preservation premise (B')
+-- The (A) tier axiomatized preservation as basin-move-implies-HOA-preserved.
+-- (B') separates the two premises honestly: preservation requires BOTH
+-- staying in basin AND the autocatalytic feedback loop being engaged for
+-- the move. Without feedback engagement, a basin-move could drop weight
+-- into the bistable sub-basin without violating any HOA-side premise.
 --
--- The load-bearing content is the autocatalytic-maintenance AXIOM
--- (§HM5.1); the maintenance THEOREM (§HM5.2) is a trivial induction on
--- top of it. This is deliberate: (A) is scaffolding — the (B) theorem
--- will replace the axiom with a derived result from weight dynamics.
+-- `feedbackEngaged` is fully abstract at (B'). The (B'') work will
+-- decompose it into concrete conditions on substrate / loop-contribution
+-- dynamics (see Dijkstra-Edsger.md § Formal-verification target).
 -- ════════════════════════════════════════════════════════════════
 
-/-- The HOA within-basin maintenance property (specialized `MaintainedWithin`).
-    Reads: for any state where an HOA exists and the basin holds, every
-    infinite move-sequence that keeps the state in basin preserves the
-    existence of the HOA at every step. -/
+/-- **Autocatalytic feedback is engaged** for the transition from `s` to `s'`.
+    Fully abstract at (B'); (B'') will decompose this into concrete
+    conditions on substrate/loop-contribution weight dynamics. Named as its
+    own predicate rather than folded into `HOAMove` so the maintenance
+    theorem's honest shape is visible: preservation needs basin AND feedback,
+    not basin alone. -/
+axiom feedbackEngaged {r : Region} : HOAState r → HOAState r → Prop
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM6. WITHIN-BASIN MAINTENANCE (the (A) theorem, (B')-corrected)
+-- Instance of `MaintainedWithinIfPreserved` (Score/SelfStabilization.lean)
+-- — the honest sibling of `MaintainedWithin` that adds a per-step
+-- preservation premise. Reads: for any state where an HOA exists and the
+-- basin holds, every move-sequence that stays in basin AND has
+-- autocatalytic feedback engaged at every step preserves HOAExists.
+--
+-- The load-bearing content is the autocatalytic-maintenance AXIOM
+-- (§HM6.1); the maintenance THEOREM (§HM6.2) is a trivial induction on
+-- top of it. (B'') will decompose `feedbackEngaged` into concrete weight
+-- dynamics and derive the axiom.
+-- ════════════════════════════════════════════════════════════════
+
+/-- The HOA within-basin maintenance property (specialized
+    `MaintainedWithinIfPreserved`). Reads: for any state where an HOA exists
+    and the basin holds, every infinite move-sequence that keeps the state
+    in basin AND has autocatalytic feedback engaged at every step preserves
+    HOAExists at every step. The `feedbackEngaged` premise is what (A)
+    silently assumed; (B') names it. -/
 def HOAMaintainedWithin {r : Region}
     (Moves : HOAState r → HOAState r → Prop) : Prop :=
-  MaintainedWithin (@Basin r) (@HOAExists r) Moves
+  MaintainedWithinIfPreserved (@Basin r) (@HOAExists r) Moves (@feedbackEngaged r)
 
 /-- **Autocatalytic-maintenance rule** (Hysteresis.md § "Aggregate-weight
     hysteresis"): "the cycle acts on the environment to make the environment
-    more hospitable to the cycle's continued existence." Formalized here as
-    an axiom — if the current state has an existing HOA and the next state
-    lies in basin, then the next state also has an existing HOA. The (B)
-    workstream is to derive this from formalized autocatalytic weight
-    dynamics; at (A) it is the theoretical claim, stated. -/
-axiom hoaPreservedByBasinMove {r : Region} :
-  ∀ (s s' : HOAState r), HOAExists s → HOAMove s s' → Basin s' → HOAExists s'
+    more hospitable to the cycle's continued existence." Formalized as an
+    axiom with the (B') feedback premise made explicit — if the current
+    state has an existing HOA, feedback is engaged for the move, and the
+    next state lies in basin, then the next state also has an existing HOA.
+    The (B'') workstream is to derive this from a formalized decomposition
+    of `feedbackEngaged`; at (B') it is the theoretical claim, stated with
+    the honest premise structure. -/
+axiom hoaPreservedByBasinMove_ifFeedbackEngaged {r : Region} :
+  ∀ (s s' : HOAState r),
+    HOAExists s → HOAMove s s' → feedbackEngaged s s' → Basin s' → HOAExists s'
 
-/-- **The (A) maintenance theorem.** Under the autocatalytic-maintenance
-    axiom, `HOAMove` maintains HOA existence within basin. Proof is a
-    trivial induction on the trace index; the theorem's content lives in
-    `hoaPreservedByBasinMove`. -/
+/-- **The (B') maintenance theorem.** Under the autocatalytic-maintenance
+    axiom (with its honest feedback premise), `HOAMove` maintains HOA
+    existence within basin. Proof is a trivial induction on the trace
+    index; the content lives in `hoaPreservedByBasinMove_ifFeedbackEngaged`. -/
 theorem hoaMaintainedWithin {r : Region} :
     HOAMaintainedWithin (@HOAMove r) := by
-  intro s hoa_s basin_s trace tr_0 tr_moves tr_basin i
+  intro s hoa_s basin_s trace tr_0 tr_moves tr_basin tr_feedback i
   induction i with
   | zero =>
       rw [tr_0]; exact hoa_s
   | succ n ih =>
-      exact hoaPreservedByBasinMove
-        (trace n) (trace (n+1)) ih (tr_moves n) (tr_basin (n+1))
+      exact hoaPreservedByBasinMove_ifFeedbackEngaged
+        (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n) (tr_basin (n+1))
 
 end SCORE

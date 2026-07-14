@@ -78,6 +78,31 @@ def MaintainedWithin {State : Type}
       (∀ i, Basin (trace i)) →
       ∀ i, Property (trace i)
 
+/-- Abstract maintenance with a *per-step preservation premise* — the honest
+    sibling of `MaintainedWithin` for systems where the property's preservation
+    across a move requires more than staying in basin. The extra `Preserves :
+    State → State → Prop` premise names what the move must additionally
+    satisfy for `Property` to carry over (e.g., an autocatalytic feedback
+    loop being engaged for the transition; the "acts on the environment"
+    mechanism of Hysteresis.md § "Aggregate-weight hysteresis"). The bare
+    `MaintainedWithin` overreaches for such systems — it implicitly assumes
+    every basin-preserving move preserves the property, which is not so
+    when the basin admits a second stable equilibrium below the property
+    threshold. See `Formal/Score/HOAMaintenance.lean` for the HOA instance
+    (`HOAMaintainedWithin` uses this variant with `Preserves := feedbackEngaged`). -/
+def MaintainedWithinIfPreserved {State : Type}
+    (Basin     : State → Prop)
+    (Property  : State → Prop)
+    (Moves     : State → State → Prop)
+    (Preserves : State → State → Prop) : Prop :=
+  ∀ s, Property s → Basin s →
+    ∀ trace : ℕ → State,
+      trace 0 = s →
+      (∀ i, Moves (trace i) (trace (i+1))) →
+      (∀ i, Basin (trace i)) →
+      (∀ i, Preserves (trace i) (trace (i+1))) →
+      ∀ i, Property (trace i)
+
 -- ════════════════════════════════════════════════════════════════
 -- §SS2. DIJKSTRA 1974 K-STATE RING (Construction 1, p. 643)
 -- N+1 finite-state machines on a ring, each holding a value in [0, K).
