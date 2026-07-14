@@ -427,6 +427,15 @@
 
 
 
+    <!-- http://score-theory.org/core#CompositeBasinExtensionProperty -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#CompositeBasinExtensionProperty">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#SelfStabilizationProperty"/>
+        <rdfs:comment>Peer-selected composition of § 3.2 (CeilingResidueProperty) and § 3.3 (B3SubstrateProsthetic) into a joint basin extension. Hysteresis.md open question #2 (whether the mechanisms compose additively, multiplicatively, or non-linearly) is GENUINELY OPEN in the vault — this class captures the composition SHAPE (abstract policy with monotonicity axioms and a sanity constraint that the composite must be at least as permissive as either individual mechanism alone) with three peer-selectable canonical instances (min/most-permissive, additive-reductions, multiplicative-factors). Ontological status: composition IS a first-class property of a Σ-actor HOA in principle, but WHICH composition applies is a peer choice, not a SCORE commitment. Lean: CompositeBasinExtensionPolicy, compositeMin, compositeAdditiveReductions, compositeMultiplicativeFactors, CompositelyExtendedBasin, extendedBasin_implies_compositelyExtendedBasin, formalExtendedBasin_implies_compositelyExtendedBasin, hoaPreservedByCompositelyExtendedBasinMove_ifFeedbackEngaged (axiom, discharge depends on settling the composition rule), hoaMaintainedCompositelyExtended (Score/HOAMaintenance.lean §HM15-HM17). See obsidian/SCORE/emergence/mechanism/HysteresisComposition.md.</rdfs:comment>
+    </owl:Class>
+
+
+
     <!-- http://score-theory.org/core#HumanCommunity -->
 
     <owl:Class rdf:about="http://score-theory.org/core#HumanCommunity"/>

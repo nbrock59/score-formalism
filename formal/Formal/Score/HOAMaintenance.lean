@@ -613,4 +613,268 @@ theorem hoaMaintainedFormalExtended {r : Region} (c : AutocatalyticCombine)
         (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n)
         (tr_fmt_basin (n+1))
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM15. COMPOSITE BASIN-EXTENSION POLICY — composing § 3.2 with § 3.3
+-- Hysteresis.md open question #2: when a state has BOTH ceiling residue
+-- AND formal B₃ substrate, what is the joint effective dissolution?
+-- The vault answer is OPEN — this formalization ships scaffolding
+-- (abstract policy + three candidate instances) without settling which
+-- composition is theoretically correct.
+--
+-- Three axioms: bounded_above_by_min (sanity — composite is at least as
+-- permissive as either individual mechanism), monotone_in_ceiling_residue,
+-- monotone_in_b3_substrate. Deliberately NO floor axiom — each instance
+-- handles floors as it sees fit.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Abstract composition of a `CeilingResiduePolicy` (§ 3.2) and a
+    `B3SubstratePolicy` (§ 3.3) into a joint effective dissolution. SCORE
+    does not commit to which composition is theoretically correct — the
+    abstract structure captures the SHAPE (three monotonicity axioms)
+    with peer-selectable canonical instances (§HM16). See vault:
+    `HysteresisComposition.md`. -/
+structure CompositeBasinExtensionPolicy where
+  /-- Joint effective dissolution as a function of both policies and their
+      state inputs. -/
+  compose : CeilingResiduePolicy → B3SubstratePolicy → Region →
+            CouplingWeight → CouplingWeight → ℝ
+  /-- **Sanity constraint**: the composite is at most the minimum of the
+      two individual effective dissolutions — i.e., at least as permissive
+      as either mechanism alone. Rules out compositions that make things
+      worse. -/
+  bounded_above_by_min :
+    ∀ (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy) (r : Region)
+      (res_r res_b : CouplingWeight),
+      compose p_r p_b r res_r res_b ≤
+        min (p_r.effectiveDissolution r res_r) (p_b.effectiveDissolution r res_b)
+  /-- More ceiling residue → not-more composite (§ 3.2's monotonicity
+      carries through the composition). -/
+  monotone_in_ceiling_residue :
+    ∀ (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy) (r : Region)
+      (res_r₁ res_r₂ res_b : CouplingWeight),
+      res_r₁.val ≤ res_r₂.val →
+      compose p_r p_b r res_r₂ res_b ≤ compose p_r p_b r res_r₁ res_b
+  /-- More formal B₃ substrate → not-more composite (§ 3.3's monotonicity
+      carries through). -/
+  monotone_in_b3_substrate :
+    ∀ (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy) (r : Region)
+      (res_r res_b₁ res_b₂ : CouplingWeight),
+      res_b₁.val ≤ res_b₂.val →
+      compose p_r p_b r res_r res_b₂ ≤ compose p_r p_b r res_r res_b₁
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM16. THREE CANONICAL INSTANCES — peer-selectable, not SCORE
+-- theoretical commitments. Each corresponds to one of the three candidate
+-- composition shapes documented in HysteresisComposition.md.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Min / most-permissive composition** — `compose = min(d_r, d_b)`.
+    The vault-friendliest reading (fallback hierarchy). All three abstract
+    axioms trivial. -/
+noncomputable def compositeMin : CompositeBasinExtensionPolicy where
+  compose p_r p_b r res_r res_b :=
+    min (p_r.effectiveDissolution r res_r) (p_b.effectiveDissolution r res_b)
+  bounded_above_by_min p_r p_b r res_r res_b := le_refl _
+  monotone_in_ceiling_residue p_r p_b r res_r₁ res_r₂ res_b h := by
+    have h_r : p_r.effectiveDissolution r res_r₂ ≤ p_r.effectiveDissolution r res_r₁ :=
+      p_r.monotone_residue r res_r₁ res_r₂ h
+    exact min_le_min h_r (le_refl _)
+  monotone_in_b3_substrate p_r p_b r res_r res_b₁ res_b₂ h := by
+    have h_b : p_b.effectiveDissolution r res_b₂ ≤ p_b.effectiveDissolution r res_b₁ :=
+      p_b.monotone_b3 r res_b₁ res_b₂ h
+    exact min_le_min (le_refl _) h_b
+
+/-- **Additive-reductions composition** — `compose = max(0, d_r + d_b − d_f)`.
+    Reductions from formal dissolution sum, floored at zero. Reads as
+    "mechanisms contribute independently to substrate reduction." -/
+noncomputable def compositeAdditiveReductions : CompositeBasinExtensionPolicy where
+  compose p_r p_b r res_r res_b :=
+    max 0 (p_r.effectiveDissolution r res_r + p_b.effectiveDissolution r res_b
+           - (dissolutionThreshold r).val)
+  bounded_above_by_min p_r p_b r res_r res_b := by
+    have h_r_bound : p_r.effectiveDissolution r res_r ≤ (dissolutionThreshold r).val :=
+      p_r.bounded r res_r
+    have h_b_bound : p_b.effectiveDissolution r res_b ≤ (dissolutionThreshold r).val :=
+      p_b.bounded_above r res_b
+    have h_r_nn : 0 ≤ p_r.effectiveDissolution r res_r := p_r.nonneg r res_r
+    have h_b_nn_of_irr : 0 < p_b.irreducibleMinimum r := p_b.irreducibleMinimum_pos r
+    have h_b_nn : 0 ≤ p_b.effectiveDissolution r res_b :=
+      le_trans (le_of_lt h_b_nn_of_irr) (p_b.bounded_below_by_irreducible r res_b)
+    -- max(0, r_eff + b_eff - formal) ≤ min(r_eff, b_eff)
+    -- Case (r_eff + b_eff - formal ≤ 0): max = 0 ≤ min (since both non-negative)
+    -- Case (r_eff + b_eff - formal ≥ 0): max = that, ≤ r_eff (since b_eff ≤ formal), ≤ b_eff similarly
+    have h_le_r : p_r.effectiveDissolution r res_r + p_b.effectiveDissolution r res_b
+                    - (dissolutionThreshold r).val ≤ p_r.effectiveDissolution r res_r := by linarith
+    have h_le_b : p_r.effectiveDissolution r res_r + p_b.effectiveDissolution r res_b
+                    - (dissolutionThreshold r).val ≤ p_b.effectiveDissolution r res_b := by linarith
+    have h_0_le_r : (0 : ℝ) ≤ p_r.effectiveDissolution r res_r := h_r_nn
+    have h_0_le_b : (0 : ℝ) ≤ p_b.effectiveDissolution r res_b := h_b_nn
+    exact max_le
+      (le_min h_0_le_r h_0_le_b)
+      (le_min h_le_r h_le_b)
+  monotone_in_ceiling_residue p_r p_b r res_r₁ res_r₂ res_b h := by
+    have h_r : p_r.effectiveDissolution r res_r₂ ≤ p_r.effectiveDissolution r res_r₁ :=
+      p_r.monotone_residue r res_r₁ res_r₂ h
+    have h_sum : p_r.effectiveDissolution r res_r₂ + p_b.effectiveDissolution r res_b
+                 - (dissolutionThreshold r).val
+                 ≤ p_r.effectiveDissolution r res_r₁ + p_b.effectiveDissolution r res_b
+                 - (dissolutionThreshold r).val := by linarith
+    exact max_le_max (le_refl 0) h_sum
+  monotone_in_b3_substrate p_r p_b r res_r res_b₁ res_b₂ h := by
+    have h_b : p_b.effectiveDissolution r res_b₂ ≤ p_b.effectiveDissolution r res_b₁ :=
+      p_b.monotone_b3 r res_b₁ res_b₂ h
+    have h_sum : p_r.effectiveDissolution r res_r + p_b.effectiveDissolution r res_b₂
+                 - (dissolutionThreshold r).val
+                 ≤ p_r.effectiveDissolution r res_r + p_b.effectiveDissolution r res_b₁
+                 - (dissolutionThreshold r).val := by linarith
+    exact max_le_max (le_refl 0) h_sum
+
+/-- **Multiplicative-factors composition** — `compose = d_r × d_b / d_f`.
+    Reduction factors multiply. Uses `dissolutionThreshold_pos` for the
+    division. Non-negative and ≤ min trivially. -/
+noncomputable def compositeMultiplicativeFactors : CompositeBasinExtensionPolicy where
+  compose p_r p_b r res_r res_b :=
+    p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b
+      / (dissolutionThreshold r).val
+  bounded_above_by_min p_r p_b r res_r res_b := by
+    have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_r_bound : p_r.effectiveDissolution r res_r ≤ (dissolutionThreshold r).val :=
+      p_r.bounded r res_r
+    have h_b_bound : p_b.effectiveDissolution r res_b ≤ (dissolutionThreshold r).val :=
+      p_b.bounded_above r res_b
+    have h_r_nn : 0 ≤ p_r.effectiveDissolution r res_r := p_r.nonneg r res_r
+    have h_b_nn : 0 ≤ p_b.effectiveDissolution r res_b :=
+      le_trans (le_of_lt (p_b.irreducibleMinimum_pos r))
+               (p_b.bounded_below_by_irreducible r res_b)
+    -- Goal: r_eff * b_eff / formal ≤ min(r_eff, b_eff)
+    -- ≤ r_eff since (b_eff / formal ≤ 1) and r_eff ≥ 0
+    have h_bf_le_1 : p_b.effectiveDissolution r res_b / (dissolutionThreshold r).val ≤ 1 :=
+      (div_le_one h_d_pos).mpr h_b_bound
+    have h_le_r : p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b
+                    / (dissolutionThreshold r).val ≤ p_r.effectiveDissolution r res_r := by
+      rw [mul_div_assoc]
+      calc p_r.effectiveDissolution r res_r *
+              (p_b.effectiveDissolution r res_b / (dissolutionThreshold r).val)
+            ≤ p_r.effectiveDissolution r res_r * 1 := by
+              exact mul_le_mul_of_nonneg_left h_bf_le_1 h_r_nn
+        _ = p_r.effectiveDissolution r res_r := by ring
+    have h_rf_le_1 : p_r.effectiveDissolution r res_r / (dissolutionThreshold r).val ≤ 1 :=
+      (div_le_one h_d_pos).mpr h_r_bound
+    have h_le_b : p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b
+                    / (dissolutionThreshold r).val ≤ p_b.effectiveDissolution r res_b := by
+      have h_swap : p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b
+                     = p_b.effectiveDissolution r res_b * p_r.effectiveDissolution r res_r := by ring
+      rw [h_swap, mul_div_assoc]
+      calc p_b.effectiveDissolution r res_b *
+              (p_r.effectiveDissolution r res_r / (dissolutionThreshold r).val)
+            ≤ p_b.effectiveDissolution r res_b * 1 := by
+              exact mul_le_mul_of_nonneg_left h_rf_le_1 h_b_nn
+        _ = p_b.effectiveDissolution r res_b := by ring
+    exact le_min h_le_r h_le_b
+  monotone_in_ceiling_residue p_r p_b r res_r₁ res_r₂ res_b h := by
+    have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_r : p_r.effectiveDissolution r res_r₂ ≤ p_r.effectiveDissolution r res_r₁ :=
+      p_r.monotone_residue r res_r₁ res_r₂ h
+    have h_b_nn : 0 ≤ p_b.effectiveDissolution r res_b :=
+      le_trans (le_of_lt (p_b.irreducibleMinimum_pos r))
+               (p_b.bounded_below_by_irreducible r res_b)
+    have h_num : p_r.effectiveDissolution r res_r₂ * p_b.effectiveDissolution r res_b
+                  ≤ p_r.effectiveDissolution r res_r₁ * p_b.effectiveDissolution r res_b :=
+      mul_le_mul_of_nonneg_right h_r h_b_nn
+    exact div_le_div_of_nonneg_right h_num (le_of_lt h_d_pos)
+  monotone_in_b3_substrate p_r p_b r res_r res_b₁ res_b₂ h := by
+    have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_b : p_b.effectiveDissolution r res_b₂ ≤ p_b.effectiveDissolution r res_b₁ :=
+      p_b.monotone_b3 r res_b₁ res_b₂ h
+    have h_r_nn : 0 ≤ p_r.effectiveDissolution r res_r := p_r.nonneg r res_r
+    have h_num : p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b₂
+                  ≤ p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b₁ :=
+      mul_le_mul_of_nonneg_left h_b h_r_nn
+    exact div_le_div_of_nonneg_right h_num (le_of_lt h_d_pos)
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM17. COMPOSITELY-EXTENDED BASIN + COMPOSITE MAINTENANCE
+-- Parallel structure to §HM11 (§ 3.2) and §HM14 (§ 3.3).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Compositely-extended basin** under a composition operator + both
+    individual policies: substrate is at least the composite effective
+    dissolution. At least as permissive as either individual extended
+    basin (by `bounded_above_by_min`). -/
+def CompositelyExtendedBasin (comp : CompositeBasinExtensionPolicy)
+    (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy)
+    {r : Region} (s : HOAState r) : Prop :=
+  comp.compose p_r p_b r s.ceilingResidue s.formalB3Substrate ≤ s.substrate.val
+
+/-- Any state satisfying `ExtendedBasin p_r` (§ 3.2) also satisfies
+    `CompositelyExtendedBasin` under any composition — the composite is at
+    least as permissive as § 3.2 alone. -/
+theorem extendedBasin_implies_compositelyExtendedBasin
+    (comp : CompositeBasinExtensionPolicy)
+    (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy)
+    {r : Region} (s : HOAState r) :
+    ExtendedBasin p_r s → CompositelyExtendedBasin comp p_r p_b s := by
+  intro h_ext
+  unfold ExtendedBasin CompositelyExtendedBasin at *
+  have h_min := comp.bounded_above_by_min p_r p_b r s.ceilingResidue s.formalB3Substrate
+  have h_min_le_r : min (p_r.effectiveDissolution r s.ceilingResidue)
+                        (p_b.effectiveDissolution r s.formalB3Substrate)
+                    ≤ p_r.effectiveDissolution r s.ceilingResidue := min_le_left _ _
+  linarith
+
+/-- Any state satisfying `FormalExtendedBasin p_b` (§ 3.3) also satisfies
+    `CompositelyExtendedBasin` under any composition — the composite is at
+    least as permissive as § 3.3 alone. -/
+theorem formalExtendedBasin_implies_compositelyExtendedBasin
+    (comp : CompositeBasinExtensionPolicy)
+    (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy)
+    {r : Region} (s : HOAState r) :
+    FormalExtendedBasin p_b s → CompositelyExtendedBasin comp p_r p_b s := by
+  intro h_fmt
+  unfold FormalExtendedBasin CompositelyExtendedBasin at *
+  have h_min := comp.bounded_above_by_min p_r p_b r s.ceilingResidue s.formalB3Substrate
+  have h_min_le_b : min (p_r.effectiveDissolution r s.ceilingResidue)
+                        (p_b.effectiveDissolution r s.formalB3Substrate)
+                    ≤ p_b.effectiveDissolution r s.formalB3Substrate := min_le_right _ _
+  linarith
+
+/-- **Composite autocatalytic-maintenance rule** — the load-bearing axiom
+    for the composed mechanisms. Analogous to §HM11 and §HM14's axioms.
+    Discharge would require the composition rule to be *settled*
+    (Hysteresis.md open question #2) — currently peer-selected. -/
+axiom hoaPreservedByCompositelyExtendedBasinMove_ifFeedbackEngaged
+    (comp : CompositeBasinExtensionPolicy)
+    (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy)
+    {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s s' : HOAState r),
+      HOAExists c s → HOAMove s s' → feedbackEngaged c s s' →
+      CompositelyExtendedBasin comp p_r p_b s' → HOAExists c s'
+
+/-- The HOA composite-maintenance property. Parametric on the combining
+    operator, the composition policy, and both individual policies. -/
+def HOAMaintainedCompositelyExtended {r : Region} (c : AutocatalyticCombine)
+    (comp : CompositeBasinExtensionPolicy)
+    (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy)
+    (Moves : HOAState r → HOAState r → Prop) : Prop :=
+  MaintainedWithinIfPreserved (CompositelyExtendedBasin comp p_r p_b)
+    (HOAExists c) Moves (feedbackEngaged c)
+
+/-- **The composite maintenance theorem.** Under the (axiomatic)
+    composite preservation rule, `HOAMove` maintains HOA existence under
+    `CompositelyExtendedBasin`. Strictly stronger than either
+    `hoaMaintainedExtended` (§ 3.2) or `hoaMaintainedFormalExtended`
+    (§ 3.3) alone. Proof: trivial induction. -/
+theorem hoaMaintainedCompositelyExtended {r : Region} (c : AutocatalyticCombine)
+    (comp : CompositeBasinExtensionPolicy)
+    (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy) :
+    HOAMaintainedCompositelyExtended c comp p_r p_b (@HOAMove r) := by
+  intro s hoa_s comp_basin_s trace tr_0 tr_moves tr_comp_basin tr_feedback i
+  induction i with
+  | zero =>
+      rw [tr_0]; exact hoa_s
+  | succ n ih =>
+      exact hoaPreservedByCompositelyExtendedBasinMove_ifFeedbackEngaged comp p_r p_b c
+        (trace n) (trace (n+1)) ih (tr_moves n) (tr_feedback n)
+        (tr_comp_basin (n+1))
+
 end SCORE
