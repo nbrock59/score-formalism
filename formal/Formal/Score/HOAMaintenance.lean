@@ -909,13 +909,16 @@ theorem hoaMaintainedCompositelyExtended {r : Region} (c : AutocatalyticCombine)
     two properties are provable arithmetic. -/
 structure ResidueAugmentedCombine
     (c : AutocatalyticCombine) (p : CeilingResiduePolicy) where
-  /-- Extended combine: takes substrate, endowment, AND ceiling residue.
-      Reduces to `c.combine` at zero residue. -/
-  extendedCombine : CouplingWeight → CouplingWeight → CouplingWeight → ℝ
+  /-- Extended combine: takes region, substrate, endowment, AND ceiling
+      residue. The `Region` parameter allows the extended combine to
+      reference per-region thresholds (needed for multiplicative × multiplicative
+      discharge, which references `formationThreshold r`). Additive
+      instances ignore the region. Reduces to `c.combine` at zero residue. -/
+  extendedCombine : Region → CouplingWeight → CouplingWeight → CouplingWeight → ℝ
   /-- At zero residue, `extendedCombine` equals the base `c.combine`. -/
   boundary_at_zero :
-    ∀ (s e : CouplingWeight),
-      extendedCombine s e ⟨0, le_refl 0, zero_le_one⟩ = c.combine s e
+    ∀ (r : Region) (s e : CouplingWeight),
+      extendedCombine r s e ⟨0, le_refl 0, zero_le_one⟩ = c.combine s e
   /-- **Load-bearing compatibility axiom.** With ceiling residue in play,
       the extended combine reaches formation at substrate as low as the
       policy's `effectiveDissolution` — provided endowment meets the base
@@ -926,7 +929,7 @@ structure ResidueAugmentedCombine
     ∀ (r : Region) (substrate endowment residue : CouplingWeight),
       p.effectiveDissolution r residue ≤ substrate.val →
       c.engagementThreshold r ≤ endowment.val →
-      (formationThreshold r).val ≤ extendedCombine substrate endowment residue
+      (formationThreshold r).val ≤ extendedCombine r substrate endowment residue
 
 /-- **Extended crystallization predicate.** Weight is at least formation
     under the extended combining operator (which accounts for ceiling
@@ -936,7 +939,7 @@ def HOAExistsExtended {r : Region}
     {c : AutocatalyticCombine} {p : CeilingResiduePolicy}
     (aug : ResidueAugmentedCombine c p) (s : HOAState r) : Prop :=
   (formationThreshold r).val ≤
-    aug.extendedCombine s.substrate s.loopEndowment s.ceilingResidue
+    aug.extendedCombine r s.substrate s.loopEndowment s.ceilingResidue
 
 /-- **Consistency lemma.** At zero ceiling residue, `HOAExistsExtended`
     agrees with base `HOAExists` — the extended predicate is a proper
@@ -989,8 +992,8 @@ theorem hoaMaintainedExtendedDerived
     are provable arithmetic. -/
 noncomputable def additiveLinearResidueAugmented :
     ResidueAugmentedCombine combineAdditive linearCeilingResidue where
-  extendedCombine s e res := s.val + e.val + res.val
-  boundary_at_zero s e := by
+  extendedCombine _ s e res := s.val + e.val + res.val  -- region-independent
+  boundary_at_zero _ s e := by
     show s.val + e.val + (0 : ℝ) = s.val + e.val
     ring
   closes_extended_gap r substrate endowment residue h_basin h_feedback := by
@@ -1007,6 +1010,70 @@ noncomputable def additiveLinearResidueAugmented :
     -- endowment ≥ formation - dissolution; substrate + residue ≥ dissolution;
     -- so substrate + endowment + residue ≥ formation
     show (formationThreshold r).val ≤ substrate.val + endowment.val + residue.val
+    linarith
+
+/-- **The multiplicative × multiplicative residue-augmented combine.** For
+    the (`combineMultiplicative`, `multiplicativeCeilingResidue`) pair.
+    `extendedCombine r s e res := s × (1+e) + formation r × res` — the
+    loop's multiplicative interactions on substrate PLUS an additive
+    contribution from ceiling residue proportional to formation. The
+    non-uniform arithmetic (multiplicative in substrate/endowment,
+    additive in residue) is what makes region-dependence necessary in the
+    extended combine — the region-independent shapes (`s × (1+e+res)`,
+    `s × (1+e) × (1+res)`) do NOT close the gap.
+    Interpretively: at maximum residue, the loop contributes `formation`
+    weight directly (independent of substrate) — the strongest reading of
+    "manifold overlap sets the ceiling." -/
+noncomputable def multiplicativeMultiplicativeResidueAugmented :
+    ResidueAugmentedCombine combineMultiplicative multiplicativeCeilingResidue where
+  extendedCombine r s e res := s.val * (1 + e.val) + (formationThreshold r).val * res.val
+  boundary_at_zero r s e := by
+    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) = s.val * (1 + e.val)
+    ring
+  closes_extended_gap r substrate endowment res h_basin h_feedback := by
+    have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt h_d_pos
+    have h_e_nn : 0 ≤ endowment.val := endowment.pos
+    have h_1e_nn : (0 : ℝ) ≤ 1 + endowment.val := by linarith
+    have h_res_nn : 0 ≤ res.val := res.pos
+    have h_res_le1 : res.val ≤ 1 := res.le1
+    have h_1_sub_res_nn : (0 : ℝ) ≤ 1 - res.val := by linarith
+    -- Unfold instance-specific defs
+    have h_eff : multiplicativeCeilingResidue.effectiveDissolution r res =
+                 (dissolutionThreshold r).val * (1 - res.val) := rfl
+    have h_eng : combineMultiplicative.engagementThreshold r =
+                 ((formationThreshold r).val - (dissolutionThreshold r).val)
+                   / (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    -- Step 1: dissolution * (1 + endowment) ≥ formation
+    -- From h_feedback: (f-d)/d ≤ e; multiply by d>0 to get f-d ≤ e*d
+    have h_ed : (formationThreshold r).val - (dissolutionThreshold r).val
+                ≤ endowment.val * (dissolutionThreshold r).val := by
+      have h_mul := mul_le_mul_of_nonneg_right h_feedback h_d_nn
+      rwa [div_mul_cancel₀ _ (ne_of_gt h_d_pos)] at h_mul
+    have h_step1 : (formationThreshold r).val ≤
+                    (dissolutionThreshold r).val * (1 + endowment.val) := by
+      have : (dissolutionThreshold r).val * (1 + endowment.val)
+             = (dissolutionThreshold r).val + endowment.val * (dissolutionThreshold r).val := by ring
+      linarith
+    -- Step 2: substrate * (1+e) ≥ formation * (1 - res)
+    have h_step2 : (formationThreshold r).val * (1 - res.val)
+                    ≤ substrate.val * (1 + endowment.val) := by
+      have h_s_mul : (dissolutionThreshold r).val * (1 - res.val) * (1 + endowment.val)
+                     ≤ substrate.val * (1 + endowment.val) :=
+        mul_le_mul_of_nonneg_right h_basin h_1e_nn
+      have h_reorder : (dissolutionThreshold r).val * (1 - res.val) * (1 + endowment.val)
+                       = (dissolutionThreshold r).val * (1 + endowment.val) * (1 - res.val) := by ring
+      have h_step1_mul : (formationThreshold r).val * (1 - res.val)
+                         ≤ (dissolutionThreshold r).val * (1 + endowment.val) * (1 - res.val) :=
+        mul_le_mul_of_nonneg_right h_step1 h_1_sub_res_nn
+      linarith [h_reorder ▸ h_s_mul, h_step1_mul]
+    -- Step 3: add formation * res to both sides
+    show (formationThreshold r).val ≤
+         substrate.val * (1 + endowment.val) + (formationThreshold r).val * res.val
+    have h_algebra : (formationThreshold r).val * (1 - res.val)
+                     + (formationThreshold r).val * res.val = (formationThreshold r).val := by ring
     linarith
 
 -- ════════════════════════════════════════════════════════════════
@@ -1039,14 +1106,17 @@ noncomputable def additiveLinearResidueAugmented :
     two properties are provable arithmetic. -/
 structure B3AugmentedCombine
     (c : AutocatalyticCombine) (p : B3SubstratePolicy) where
-  /-- Extended combine: takes substrate, endowment, AND formal B₃ substrate.
-      Reduces to `c.combine` at zero formalB3. -/
-  extendedCombine : CouplingWeight → CouplingWeight → CouplingWeight → ℝ
+  /-- Extended combine: takes region, substrate, endowment, AND formal
+      B₃ substrate. Region parameter allows referencing per-region
+      thresholds (mirrors `ResidueAugmentedCombine`'s region-aware
+      design). Additive instances ignore the region. Reduces to
+      `c.combine` at zero formalB3. -/
+  extendedCombine : Region → CouplingWeight → CouplingWeight → CouplingWeight → ℝ
   /-- At zero formal B₃ substrate, `extendedCombine` equals the base
       `c.combine`. -/
   boundary_at_zero :
-    ∀ (s e : CouplingWeight),
-      extendedCombine s e ⟨0, le_refl 0, zero_le_one⟩ = c.combine s e
+    ∀ (r : Region) (s e : CouplingWeight),
+      extendedCombine r s e ⟨0, le_refl 0, zero_le_one⟩ = c.combine s e
   /-- **Load-bearing compatibility axiom.** With formal B₃ substrate in
       play, the extended combine reaches formation at substrate as low as
       the B₃-policy's `effectiveDissolution` — provided endowment meets
@@ -1056,7 +1126,7 @@ structure B3AugmentedCombine
     ∀ (r : Region) (substrate endowment formalB3 : CouplingWeight),
       p.effectiveDissolution r formalB3 ≤ substrate.val →
       c.engagementThreshold r ≤ endowment.val →
-      (formationThreshold r).val ≤ extendedCombine substrate endowment formalB3
+      (formationThreshold r).val ≤ extendedCombine r substrate endowment formalB3
 
 /-- **Formal-extended crystallization predicate.** Weight is at least
     formation under the extended combining operator (which accounts for
@@ -1067,7 +1137,7 @@ def HOAExistsFormalExtended {r : Region}
     {c : AutocatalyticCombine} {p : B3SubstratePolicy}
     (aug : B3AugmentedCombine c p) (s : HOAState r) : Prop :=
   (formationThreshold r).val ≤
-    aug.extendedCombine s.substrate s.loopEndowment s.formalB3Substrate
+    aug.extendedCombine r s.substrate s.loopEndowment s.formalB3Substrate
 
 /-- **Consistency lemma.** At zero formal B₃ substrate,
     `HOAExistsFormalExtended` agrees with base `HOAExists`. For A-actors
@@ -1129,8 +1199,8 @@ noncomputable def additiveLinearFlooredB3Augmented
     (irrMin_below : ∀ r, irrMin r ≤ (dissolutionThreshold r).val) :
     B3AugmentedCombine combineAdditive
       (linearFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
-  extendedCombine s e b3 := s.val + e.val + b3.val
-  boundary_at_zero s e := by
+  extendedCombine _ s e b3 := s.val + e.val + b3.val  -- region-independent
+  boundary_at_zero _ s e := by
     show s.val + e.val + (0 : ℝ) = s.val + e.val
     ring
   closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
@@ -1147,6 +1217,72 @@ noncomputable def additiveLinearFlooredB3Augmented
     -- endowment ≥ formation - dissolution; substrate + b3 ≥ dissolution;
     -- so substrate + endowment + b3 ≥ formation
     show (formationThreshold r).val ≤ substrate.val + endowment.val + b3.val
+    linarith
+
+/-- **The multiplicative × multiplicative-floored B₃-augmented combine.**
+    For the (`combineMultiplicative`, `multiplicativeFlooredB3Substrate`)
+    pair. Same shape as `multiplicativeMultiplicativeResidueAugmented`
+    (§ 3.2): `extendedCombine r s e b3 := s × (1+e) + formation r × b3`.
+    Parametric on the peer-supplied `irrMin` axioms. The `irrMin` floor
+    is preserved through the policy's `effectiveDissolution` (not the
+    extended combine), consistent with the § 3.3 additive × linear
+    discharge's floor-handling approach. -/
+noncomputable def multiplicativeMultiplicativeFlooredB3Augmented
+    (irrMin : Region → ℝ)
+    (irrMin_pos : ∀ r, 0 < irrMin r)
+    (irrMin_below : ∀ r, irrMin r ≤ (dissolutionThreshold r).val) :
+    B3AugmentedCombine combineMultiplicative
+      (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
+  extendedCombine r s e b3 := s.val * (1 + e.val) + (formationThreshold r).val * b3.val
+  boundary_at_zero r s e := by
+    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) = s.val * (1 + e.val)
+    ring
+  closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
+    have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
+    have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt h_d_pos
+    have h_e_nn : 0 ≤ endowment.val := endowment.pos
+    have h_1e_nn : (0 : ℝ) ≤ 1 + endowment.val := by linarith
+    have h_b3_nn : 0 ≤ b3.val := b3.pos
+    have h_b3_le1 : b3.val ≤ 1 := b3.le1
+    have h_1_sub_b3_nn : (0 : ℝ) ≤ 1 - b3.val := by linarith
+    -- Unfold instance-specific defs
+    have h_eff : (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
+                    r b3
+                 = max (irrMin r) ((dissolutionThreshold r).val * (1 - b3.val)) := rfl
+    have h_eng : combineMultiplicative.engagementThreshold r =
+                 ((formationThreshold r).val - (dissolutionThreshold r).val)
+                   / (dissolutionThreshold r).val := rfl
+    rw [h_eff] at h_basin
+    rw [h_eng] at h_feedback
+    -- max_right: d*(1-b3) ≤ max(irrMin, d*(1-b3)) ≤ substrate
+    have h_db_le_substrate : (dissolutionThreshold r).val * (1 - b3.val) ≤ substrate.val :=
+      le_trans (le_max_right _ _) h_basin
+    -- dissolution * (1 + endowment) ≥ formation (from feedback)
+    have h_ed : (formationThreshold r).val - (dissolutionThreshold r).val
+                ≤ endowment.val * (dissolutionThreshold r).val := by
+      have h_mul := mul_le_mul_of_nonneg_right h_feedback h_d_nn
+      rwa [div_mul_cancel₀ _ (ne_of_gt h_d_pos)] at h_mul
+    have h_step1 : (formationThreshold r).val ≤
+                    (dissolutionThreshold r).val * (1 + endowment.val) := by
+      have : (dissolutionThreshold r).val * (1 + endowment.val)
+             = (dissolutionThreshold r).val + endowment.val * (dissolutionThreshold r).val := by ring
+      linarith
+    -- substrate * (1+e) ≥ formation * (1 - b3)
+    have h_step2 : (formationThreshold r).val * (1 - b3.val)
+                    ≤ substrate.val * (1 + endowment.val) := by
+      have h_s_mul : (dissolutionThreshold r).val * (1 - b3.val) * (1 + endowment.val)
+                     ≤ substrate.val * (1 + endowment.val) :=
+        mul_le_mul_of_nonneg_right h_db_le_substrate h_1e_nn
+      have h_reorder : (dissolutionThreshold r).val * (1 - b3.val) * (1 + endowment.val)
+                       = (dissolutionThreshold r).val * (1 + endowment.val) * (1 - b3.val) := by ring
+      have h_step1_mul : (formationThreshold r).val * (1 - b3.val)
+                         ≤ (dissolutionThreshold r).val * (1 + endowment.val) * (1 - b3.val) :=
+        mul_le_mul_of_nonneg_right h_step1 h_1_sub_b3_nn
+      linarith [h_reorder ▸ h_s_mul, h_step1_mul]
+    show (formationThreshold r).val ≤
+         substrate.val * (1 + endowment.val) + (formationThreshold r).val * b3.val
+    have h_algebra : (formationThreshold r).val * (1 - b3.val)
+                     + (formationThreshold r).val * b3.val = (formationThreshold r).val := by ring
     linarith
 
 end SCORE
