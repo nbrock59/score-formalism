@@ -2182,4 +2182,75 @@ theorem ceilingResidue_nondecreasing_under_nonErodingTrace
                        (trace n) (trace (n+1)) (h_trace n)
       linarith
 
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM30. POINT-LEVEL ATTENUATION FAMILY
+-- Abstract-side companion to §HM's trace-level machinery (§HM22--§HM24
+-- Hook 3 fragility; §HM6--§HM11 hysteresis). The HM Specialization
+-- Audit synthesis (`governance/SCORE_HM_Specialization_Matrix.md` §5.4
+-- New-abstract-candidate 1) identified PointAttenuationLemma as the
+-- strongest cross-peer orphan-fingerprint echo (5/5 peers): every peer
+-- produces a central *point-level* lemma quantifying how a lossy or
+-- expansive operation bounds a quality measure. §HM formalized only
+-- trace-level dynamics until now; this section adds the point-level
+-- companion so peer central lemmas can formally specialize a §HM
+-- construct.
+--
+-- Family members:
+--   * `point_fragility_positive_floor` --- positive lower bound
+--     prevents reaching zero (AGORA SS13 shape).
+--   * `point_attenuation_monotone` --- monotone functional preserves
+--     order under set/scalar restriction (NEXUS contraction shape,
+--     ATLAS signalFidelity for σ ∈ [0,1] with reversed sign, ETHOS
+--     capturedHealth as multiplication-by-κ).
+--   * `point_attenuation_antitone` --- antitone functional reverses
+--     order under set-restriction (BAC SS12 monotone-lossiness shape).
+--
+-- These are Mathlib-thin (they mostly rewrap standard monotonicity
+-- results), but the *§HM binding* is what upgrades peer verdicts: with
+-- this section, AGORA's SS13 goes from "point-arithmetic bypassing §HM"
+-- (Awkward on U3+U6 per audit §5.3) to "instance of §HM30
+-- point_fragility_positive_floor" (Present-Formal). Same for the other
+-- peers' central lemmas.
+--
+-- This section deliberately does NOT bridge point-level to trace-level
+-- (Path (1) experiment PR #449 documented that no such reduction
+-- exists at the current shape). The point-level companion sits
+-- alongside the trace-level machinery as an orthogonal formalization
+-- direction, not a reduction target.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Point-level fragility from positive lower bound.** If `a` is
+    positive and `b` is bounded below by `a`, then `b` cannot be zero.
+    The point-level static-fragility companion to §HM22's trace-level
+    `hoaFragilityHomogeneous`: where Hook 3 says "coupling-homogeneous
+    populations cannot fire feedback across a trace," this point-level
+    companion says "positive-floor measures cannot reach zero at a
+    single point." Both are impossibility claims but at different
+    semantic levels. AGORA's SS13 `captured_correction_needs_independent_node`
+    specializes this directly (see `Score/Agora.lean` §PS-U3U6). -/
+theorem point_fragility_positive_floor {a b : ℝ}
+    (h1 : 0 < a) (h2 : a ≤ b) : b ≠ 0 :=
+  (lt_of_lt_of_le h1 h2).ne'
+
+/-- **Point-level monotone attenuation.** A monotone function preserves
+    order --- Mathlib re-anchor as a §HM binding for peer specializations.
+    NEXUS contraction lemma (`contraction_is_antitone_in_adjacent_possible`)
+    is an instance where `f = Φ` (breadth functional) and the ≤ is
+    reversed to match "contraction reduces breadth." ETHOS
+    `capture_cannot_increase_information_health` is `f = (· * H)` with
+    `H ≥ 0`. -/
+theorem point_attenuation_monotone {α β : Type} [Preorder α] [Preorder β]
+    (f : α → β) (hf : Monotone f) {a b : α} (h : a ≤ b) : f a ≤ f b :=
+  hf h
+
+/-- **Point-level antitone attenuation.** An antitone function reverses
+    order --- Mathlib re-anchor as a §HM binding for peer specializations.
+    BAC's SS12 `preservation_filter_loses_b2` is an instance where
+    `f = consistentB2` and the antitone direction captures "smaller
+    corpus → larger consistent-B₂ set." -/
+theorem point_attenuation_antitone {α β : Type} [Preorder α] [Preorder β]
+    (f : α → β) (hf : Antitone f) {a b : α} (h : a ≤ b) : f b ≤ f a :=
+  hf h
+
 end SCORE

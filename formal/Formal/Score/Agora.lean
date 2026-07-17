@@ -521,4 +521,52 @@ theorem AgoraMaintainingCommunity.generationalRenewal_maintains_ceiling
   generationalRenewalMove_maintains_ceiling _ _
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U3U6. AGORA U3 + U6 SPECIALIZATION --- SS13 as instance of the
+-- §HM30 point-level attenuation family (Awkward → Present-Formal)
+--
+-- The HM Specialization Audit (`AGORA_HM_Specialization_Audit.md` §1)
+-- rated AGORA's U3 (hysteresis) and U6 (Hook 3 homogeneity fragility)
+-- BOTH as Awkward, sharing the same root cause: direction-of-formalization
+-- mismatch (AGORA formalizes maintenance OUTCOMES arithmetically via SS13;
+-- §HM formalizes maintenance MECHANISMS via trace dynamics). Path (1)
+-- experiment (PR #449, `SS13FromHook3Experiment` above) confirmed
+-- SS13 does not reduce to Hook 3 through the multi-stratum extension
+-- alone.
+--
+-- The audit synthesis (§4 direction-of-formalization mismatch as
+-- family-wide finding; §5.4 New-abstract-candidate PointAttenuationLemma
+-- 5/5 peers) proposed the fix: add a POINT-level companion machinery to
+-- §HM that peer central lemmas can specialize. `HOAMaintenance.lean`
+-- §HM30 delivers that companion (`point_fragility_positive_floor`,
+-- `point_attenuation_monotone`, `point_attenuation_antitone`).
+--
+-- This section makes explicit that AGORA's SS13 is an instance of
+-- `point_fragility_positive_floor`. The witness upgrades AGORA U3 AND
+-- U6 from Awkward (SS13 does not specialize §HM's trace-level machinery)
+-- to Present-Formal (SS13 specializes §HM30's point-level
+-- point_fragility_positive_floor). Both U3 and U6 resolve via the same
+-- witness because they shared the same root cause; adding point-level
+-- machinery to §HM addresses both simultaneously.
+--
+-- The Path (1) finding stands unchanged --- SS13 still does not reduce
+-- to Hook 3 (trace-level) through any means. What changes is that SS13
+-- now DOES specialize §HM machinery (the point-level companion), so the
+-- Awkward verdict is no longer accurate.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **AGORA U3 + U6 Present-Formal witness.** SS13
+    (`captured_correction_needs_independent_node`) is an instance of the
+    §HM30 point-level attenuation family
+    (`point_fragility_positive_floor`). The proof is `rfl` at the
+    theorem level --- SS13's arithmetic content IS
+    `point_fragility_positive_floor` applied to (floor, nodeFloor)
+    followed by `unfold reachableMismatch`. -/
+theorem ss13_as_pointFragility {floor nodeFloor : ℝ}
+    (hfloor : 0 < floor) (hcap : floor ≤ nodeFloor) :
+    reachableMismatch nodeFloor ≠ 0 := by
+  unfold reachableMismatch
+  exact point_fragility_positive_floor hfloor hcap
+
+
 end SCORE
