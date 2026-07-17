@@ -329,4 +329,72 @@ theorem multistratum_captured_reachable_nonzero
 end SS13FromHook3Experiment
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U2. AGORA U2 SPECIALIZATION --- InstitutionalMaintainingCommunity
+-- as an A-actor-scoped HOAState (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`core/agora/AGORA_HM_Specialization_Audit.md`
+-- §1) rated U2 as Present-Domain because AG-G-02
+-- (`agora:InstitutionalMaintainingCommunity` refining SC-G-25 HOA / SC-G-26
+-- HumanCommunity) named the HOA analog at the glossary + OWL layer but no
+-- Lean specialization instantiated §HM's `HOAState` machinery. This
+-- section is that specialization, made possible by the M2 multi-stratum
+-- extension (`Core.lean` §3 `Constituent = AAgent | SigmaAgent`;
+-- `HOAMaintenance.lean` §HM1 `HOAState.agents : List Constituent`).
+--
+-- The specialization encodes AGORA's Sigma-actor-sustained-by-A-actor-HOA
+-- framing: an `AgoraMaintainingCommunity r` is exactly an `HOAState r`
+-- whose agents field is `Constituent.AAgent`-constrained (role-occupant
+-- nodes are individual A-actors, not Σ-actors). Distinct from ATLAS's
+-- `DeterrenceBasin` (Σ-actor-typed) which would use `Constituent.SigmaAgent`.
+--
+-- Everything §HM provides on HOAState (Basin, effectiveDissolution,
+-- AutocatalyticCombine, ...) is inherited via the `.toHOAState` projection.
+-- Downstream AGORA-specific facts (institutional-health composition, the
+-- A5 CapturedCorrectionUpdate dynamics, ...) can now be stated over
+-- `AgoraMaintainingCommunity` and use the abstract §HM machinery
+-- underneath.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **AGORA's `InstitutionalMaintainingCommunity` as an HOAState subtype**
+    (AG-G-02, refining SC-G-25 HOA). An HOA state whose entire population
+    is A-actor role occupants --- captured by the subtype constraint that
+    every constituent in the `agents` list is a `Constituent.AAgent`. -/
+def AgoraMaintainingCommunity (r : Region) : Type :=
+  { s : HOAState r //
+    ∀ c ∈ s.agents, ∃ a : Agent, c = Constituent.AAgent a }
+
+/-- Extract the underlying `HOAState`; the §HM machinery (Basin,
+    effectiveDissolution, autocatalytic feedback, ...) applies via this
+    projection. -/
+def AgoraMaintainingCommunity.toHOAState {r : Region}
+    (mc : AgoraMaintainingCommunity r) : HOAState r := mc.1
+
+/-- **A-actor constraint witness.** Every constituent of an AGORA
+    maintaining community is a `Constituent.AAgent` --- the direct
+    formalization of the AG-G-02 framing that institutional
+    role-occupants are individual A-actors. Follows immediately from
+    the subtype constraint. -/
+theorem AgoraMaintainingCommunity.agents_are_AAgent {r : Region}
+    (mc : AgoraMaintainingCommunity r) :
+    ∀ c ∈ mc.toHOAState.agents, ∃ a : Agent, c = Constituent.AAgent a :=
+  mc.2
+
+/-- **Coupling homogeneity lifts trivially to the AGORA specialization.**
+    An `AgoraMaintainingCommunity` inherits Hook 3's population predicates
+    through its projection to `HOAState`. This witness makes explicit that
+    the M2 A-actor-scoped filter over `Constituent.AAgent` is exactly the
+    correct scoping for AGORA (whose maintaining community is
+    A-actor-typed by construction), and Hook 3's fragility results apply
+    without any additional AGORA-specific plumbing. -/
+theorem AgoraMaintainingCommunity.populationCouplingHomogeneous_iff_agents
+    {r : Region} (mc : AgoraMaintainingCommunity r) :
+    PopulationCouplingHomogeneous mc.toHOAState ↔
+      ∀ a₁ a₂ : Agent,
+        Constituent.AAgent a₁ ∈ mc.toHOAState.agents →
+        Constituent.AAgent a₂ ∈ mc.toHOAState.agents →
+        agentCouplingWeightVector a₁ = agentCouplingWeightVector a₂ :=
+  Iff.rfl
+
+
 end SCORE
