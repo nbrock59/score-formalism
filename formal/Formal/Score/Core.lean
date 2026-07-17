@@ -131,6 +131,22 @@ axiom InscriptionContent : Type
     Path A/B dynamics. -/
 axiom CognitiveState : Type
 
+/-- A Σ-actor: a higher-order collective actor (institution, discipline,
+    alliance, polity) with a co-inscribed formal B₃ membrane, sufficient
+    reflexive depth, a telos-bearing inscription output, and a maintaining
+    human community. Disjoint from A-actors (`Agent`) and Ω-actors. Peer
+    refinements (`ethos:EpistemicInstitution`, `agora:ConstitutionalSigmaActor`,
+    `atlas:DeterrenceCoalition`, ...) instantiate this axiom.
+
+    Added 2026-07-14 as the M1 gap-close from the HM Specialization Audit
+    (`governance/SCORE_HM_Specialization_Matrix.md` §HM development-gaps):
+    Σ-actor existed at the OWL layer (`core:SigmaActor`, SC-G-09) and in the
+    glossary but had no Lean-level counterpart, blocking peer specializations
+    that need Σ-actor-typed constructs (AGORA/ATLAS/ETHOS Sigma-actor archetype).
+    Prerequisite for any future §HM multi-stratum extension
+    (`governance/SCORE_HM_MultiStratum_Extension_Plan.md`). -/
+axiom SigmaActor : Type
+
 -- ════════════════════════════════════════════════════════════════
 -- §4. THE FOUR MORPHISMS
 -- Cross-domain couplings. Run simultaneously, not sequentially.
