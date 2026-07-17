@@ -147,6 +147,29 @@ axiom CognitiveState : Type
     (`governance/SCORE_HM_MultiStratum_Extension_Plan.md`). -/
 axiom SigmaActor : Type
 
+/-- An HOA constituent: either an A-actor (individual `Agent`) or a Σ-actor
+    (collective `SigmaActor`). §HM's HOAState populations range over these
+    constituents. Peer usage:
+
+    * A-actor-only HOAs (BAC PolityCluster of retained individual histories):
+      populations use `Constituent.AAgent` exclusively.
+    * Σ-actor-only basins (ATLAS DeterrenceBasin of Sigma-actor coalitions):
+      populations use `Constituent.SigmaAgent` exclusively --- the
+      stratum-independence claim (see `ATLAS.md`).
+    * Dual-stratum peers (ETHOS EpistemicCommunity of A-actor researchers +
+      EpistemicInstitution as Σ-actor): populations genuinely mix.
+    * Σ-actor-sustained-by-A-actor-HOA peers (AGORA ConstitutionalSigmaActor
+      sustained by InstitutionalMaintainingCommunity): the maintaining
+      community is an HOA of `Constituent.AAgent` constituents; the sustained
+      Σ-actor is a separate object.
+
+    Added 2026-07-14 as M2 of the §HM multi-stratum extension per Design B
+    (sum-typed `Constituent`) from
+    `governance/SCORE_HM_MultiStratum_Extension_Plan.md` §4. -/
+inductive Constituent
+  | AAgent (a : Agent)
+  | SigmaAgent (s : SigmaActor)
+
 -- ════════════════════════════════════════════════════════════════
 -- §4. THE FOUR MORPHISMS
 -- Cross-domain couplings. Run simultaneously, not sequentially.

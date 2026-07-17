@@ -59,7 +59,7 @@ namespace SCORE
     for A-actors (they don't have a formal B₃ layer); the § 3.3 mechanism
     is vacuous at zero substrate per its `boundary_at_zero` policy axiom. -/
 structure HOAState (r : Region) where
-  agents            : List Agent
+  agents            : List Constituent
   substrate         : CouplingWeight
   loopEndowment     : CouplingWeight
   ceilingResidue    : CouplingWeight
@@ -1511,11 +1511,20 @@ noncomputable def multiplicativeLinearFlooredB3Augmented
     representation. -/
 axiom agentCouplingWeightVector : Agent → CouplingWeightVector
 
-/-- **Population coupling-homogeneous**: all agents in the state have
-    the same coupling weight vector. The SCORE analog of Dijkstra 1974's
-    "identical machines" precondition. -/
+/-- **Population coupling-homogeneous**: all A-actor constituents in the
+    state have the same coupling weight vector. Σ-actor constituents (if
+    any) are unconstrained --- Hook 3 as currently formulated is scoped to
+    A-actor coupling, since `agentCouplingWeightVector` is A-actor-typed.
+    A pure Σ-actor basin (ATLAS DeterrenceBasin with no A-actor constituents)
+    satisfies this vacuously; Hook 3's coupling axis is not the operative
+    constraint for such basins. Σ-actor coupling homogeneity is a genuine
+    theory extension (SC-G-27 InterSigmaCoupling) reserved for future work.
+    The SCORE analog of Dijkstra 1974's "identical machines" precondition,
+    A-actor-scoped. -/
 def PopulationCouplingHomogeneous {r : Region} (s : HOAState r) : Prop :=
-  ∀ a₁ ∈ s.agents, ∀ a₂ ∈ s.agents,
+  ∀ a₁ a₂ : Agent,
+    Constituent.AAgent a₁ ∈ s.agents →
+    Constituent.AAgent a₂ ∈ s.agents →
     agentCouplingWeightVector a₁ = agentCouplingWeightVector a₂
 
 /-- **Hook 3 core axiom** (the load-bearing theoretical claim from
@@ -1584,10 +1593,17 @@ theorem hoaFragilityHomogeneous {r : Region} (c : AutocatalyticCombine) :
     this is a Lean-level global for the abstract mechanism analysis. -/
 axiom agentLifeCyclePhase : Agent → LifeCyclePhase
 
-/-- **Population LifeCyclePhase-homogeneous**: all agents at the same
-    life-cycle stage. -/
+/-- **Population LifeCyclePhase-homogeneous**: all A-actor constituents at
+    the same life-cycle stage. Σ-actor constituents (if any) are
+    unconstrained --- LifeCyclePhase is A-actor-typed (Childhood, Student,
+    Householder, Retirement per `LifeCyclePhase.md`). Σ-actor life cycles
+    (institutional formation → maturity → decline) are a genuine theory
+    extension reserved for future work. Vacuously true for pure Σ-actor
+    basins. -/
 def PopulationLifeCyclePhaseHomogeneous {r : Region} (s : HOAState r) : Prop :=
-  ∀ a₁ ∈ s.agents, ∀ a₂ ∈ s.agents,
+  ∀ a₁ a₂ : Agent,
+    Constituent.AAgent a₁ ∈ s.agents →
+    Constituent.AAgent a₂ ∈ s.agents →
     agentLifeCyclePhase a₁ = agentLifeCyclePhase a₂
 
 /-- **Hook 3 sibling core axiom** for LifeCyclePhase. A population all at
@@ -1645,10 +1661,16 @@ axiom ManifoldShape : Type
 /-- **Agent-to-ManifoldShape association** (Hook 3 sibling prerequisite). -/
 axiom agentManifoldShape : Agent → ManifoldShape
 
-/-- **Population ManifoldShape-homogeneous**: all agents have the same
-    B₂ manifold shape. -/
+/-- **Population ManifoldShape-homogeneous**: all A-actor constituents have
+    the same B₂ manifold shape. Σ-actor constituents (if any) are
+    unconstrained --- ManifoldShape is A-actor-typed (Lefebvre-style
+    dyadic vs triadic reflexive structures). Σ-actor collective manifold
+    shapes (M_Σ in AGORA) are semantically distinct and a genuine theory
+    extension. Vacuously true for pure Σ-actor basins. -/
 def PopulationManifoldShapeHomogeneous {r : Region} (s : HOAState r) : Prop :=
-  ∀ a₁ ∈ s.agents, ∀ a₂ ∈ s.agents,
+  ∀ a₁ a₂ : Agent,
+    Constituent.AAgent a₁ ∈ s.agents →
+    Constituent.AAgent a₂ ∈ s.agents →
     agentManifoldShape a₁ = agentManifoldShape a₂
 
 /-- **Hook 3 sibling core axiom** for ManifoldShape. A monoshape
