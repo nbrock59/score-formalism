@@ -1,4 +1,5 @@
 import Formal.Score.Core
+import Formal.Score.HOAMaintenance
 
 set_option linter.unusedVariables false
 set_option linter.style.whitespace false
@@ -124,6 +125,51 @@ example : ¬ bacNetwork.IsRegion {decree} := by
     hreg (Relation.ReflTransGen.single hc) rfl
   rw [Set.mem_singleton_iff] at hmem
   exact absurd hmem (by decide)
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U2. SCORE-BAC U2 SPECIALIZATION --- PolityCluster as an A-actor-
+-- scoped HOAState (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`core/bac/SCORE_BAC_HM_Specialization_Audit.md`
+-- §1) rated U2 as Present-Domain because BAC-G-01 (`bac:PolityCluster`
+-- refining SC-G-26 HumanCommunity) named the HOA analog at the glossary +
+-- OWL layer but no Lean specialization instantiated §HM's `HOAState`
+-- machinery. This section is that specialization, using M2's Constituent
+-- typing.
+--
+-- BAC's distinctive framing (`SCORE-BAC.md` "retain grain"): individual
+-- elite-agent histories are RETAINED, not coalesced. Polity aggregates
+-- (Hatti, Ugarit, Egypt, Mycenae) are computed on demand. This maps
+-- naturally to `Constituent.AAgent`-scoped subtype of `HOAState`, same
+-- shape as `AgoraMaintainingCommunity` and `EthosEpistemicCommunity`,
+-- distinct type reflecting BAC's peer-level semantics (retrodictive
+-- historical HOA under source-criticism filtering).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **SCORE-BAC's `PolityCluster` as an HOAState subtype** (BAC-G-01,
+    refining SC-G-26 HumanCommunity). An omega-bounded HOA state whose
+    entire population is A-actor elite / administrative agents ---
+    captured by the subtype constraint that every constituent is a
+    `Constituent.AAgent`. BAC's retain-grain: individual histories are
+    preserved at the type layer (not coalesced into a Σ-actor). -/
+def BacPolityCluster (r : Region) : Type :=
+  { s : HOAState r //
+    ∀ c ∈ s.agents, ∃ a : Agent, c = Constituent.AAgent a }
+
+/-- Extract the underlying `HOAState`; §HM machinery inherited via
+    this projection. -/
+def BacPolityCluster.toHOAState {r : Region}
+    (pc : BacPolityCluster r) : HOAState r := pc.1
+
+/-- **A-actor constraint witness.** Every constituent of a BAC polity
+    cluster is a `Constituent.AAgent` --- the direct formalization of
+    the BAC-G-01 retain-grain claim (elite-agent histories preserved
+    individually, not coalesced). -/
+theorem BacPolityCluster.agents_are_AAgent {r : Region}
+    (pc : BacPolityCluster r) :
+    ∀ c ∈ pc.toHOAState.agents, ∃ a : Agent, c = Constituent.AAgent a :=
+  pc.2
 
 
 end SCORE

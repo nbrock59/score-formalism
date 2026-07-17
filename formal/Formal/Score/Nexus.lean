@@ -1,4 +1,5 @@
 import Formal.Score.Core
+import Formal.Score.HOAMaintenance
 
 set_option linter.unusedVariables false
 set_option linter.style.whitespace false
@@ -102,6 +103,52 @@ example : NexusArtifact.priorArt ∈ paradigmCluster {NexusArtifact.platform} :=
   have h2 : nexusNetwork.composesFrom NexusArtifact.component NexusArtifact.standard := rfl
   have h3 : nexusNetwork.composesFrom NexusArtifact.standard NexusArtifact.platform := rfl
   exact ((Relation.ReflTransGen.single h1).tail h2).tail h3
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U2. NEXUS U2 SPECIALIZATION --- InnovationHOA as an unfiltered
+-- HOAState (Present-Domain → Present-Formal); the *fourth polar case*
+-- of Design B's Constituent sum type.
+--
+-- The HM Specialization Audit (`core/nexus/NEXUS_HM_Specialization_Audit.md`
+-- §1) rated U2 as Present-Domain because NX-G-01 (`nexus:InnovationHOA`
+-- refining SC-G-11 HigherOrderAgent) named the HOA at the glossary + OWL
+-- layer but no Lean specialization instantiated §HM's `HOAState`
+-- machinery.
+--
+-- NEXUS is the *fourth polar case* of `Constituent`, orthogonal to
+-- AGORA/ATLAS/ETHOS-community: those three subtypes constrain the
+-- population to one stratum; NEXUS's mixed A/Sigma constituency (Orphan 5
+-- of the NEXUS audit: "researchers + firms + VCs + universities +
+-- regulators") requires the population to admit BOTH `Constituent.AAgent`
+-- (researchers, founders) AND `Constituent.SigmaAgent` (firms, VC funds,
+-- platform incumbents) freely. That is exactly `HOAState r` with no
+-- subtype filter --- NX-G-01's mixed-constituency framing IS the
+-- unrestricted case of Design B's sum type.
+--
+-- Together the four peers exhaust the polar cases:
+--   AGORA / BAC / ETHOS-community: `Constituent.AAgent`-only subtype
+--   ATLAS: `Constituent.SigmaAgent`-only subtype
+--   NEXUS: no filter (mixed A/Σ)
+--   ETHOS-institution: separate `SigmaActor` typedef (dual-stratum)
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS's `InnovationHOA` as an unfiltered HOAState** (NX-G-01,
+    refining SC-G-11 HigherOrderAgent). Mixed A/Σ constituency:
+    researchers / founders (A-actors, appearing as `Constituent.AAgent`)
+    and firms / VC funds / platform incumbents (Σ-actors, appearing as
+    `Constituent.SigmaAgent`) both populate the ecosystem freely. NX-G-01's
+    mixed-constituency framing IS the unrestricted case of Design B ---
+    a typedef over `HOAState` with no subtype filter, distinct from
+    AGORA / ATLAS / ETHOS-community which each constrain to one stratum. -/
+def NexusInnovationHOA (r : Region) : Type := HOAState r
+
+/-- Extract the underlying `HOAState`; §HM machinery applies directly
+    (no projection needed since `NexusInnovationHOA r` reduces to
+    `HOAState r`). Provided for symmetry with the other peer
+    specializations and for future refactoring flexibility. -/
+def NexusInnovationHOA.toHOAState {r : Region}
+    (ih : NexusInnovationHOA r) : HOAState r := ih
 
 
 end SCORE
