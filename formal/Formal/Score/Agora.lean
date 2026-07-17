@@ -287,6 +287,45 @@ would specialize to). The one-directional intuition that Hook 3 is
 "the more general form" was wrong.
 -/
 
+-- ────────────────────────────────────────────────────────────────
+-- M3 witness (post-M2 multi-stratum extension, 2026-07-14)
+--
+-- After M2 (`Core.lean` §3 gained `Constituent = AAgent | SigmaAgent`;
+-- `HOAMaintenance.lean` §HM1 retyped `HOAState.agents : List Constituent`;
+-- Hook 3 population predicates rewritten as A-actor-scoped filters over
+-- `Constituent.AAgent`), the Path (1) verdict must be unchanged: the
+-- typing fix is orthogonal to the direction-of-formalization mismatch.
+--
+-- This is that verification, made explicit at the Lean level: for every
+-- captured correcting node, we exhibit BOTH (a) the M2-provided
+-- `Constituent.AAgent` lift required to populate an HOAState, AND
+-- (b) the SS13 conclusion (reachable mismatch nonzero). The proof of (b)
+-- is `specialization_captured_reachable_nonzero` unchanged --- no Hook 3
+-- invocation, no HOAState machinery, no consultation of the Constituent
+-- structure to close. The Constituent lift is a witness that M2's typing
+-- is real machinery available to the peer bridge, not a required input
+-- to the SS13 arithmetic.
+-- ────────────────────────────────────────────────────────────────
+
+/-- **M3 witness: SS13 verdict survives multi-stratum extension.** For every
+    captured correcting node, we exhibit the `Constituent.AAgent` lift M2
+    provides for populating `HOAState` AND the SS13 nonzero-reachable-
+    mismatch conclusion. The proof of the SS13 conclusion is
+    `specialization_captured_reachable_nonzero` unchanged; the lift is
+    `rfl`. Together: M2's typing plays no role in SS13's proof, confirming
+    that the multi-stratum extension is orthogonal to the direction-of-
+    formalization mismatch documented in the M3-preceding sections. -/
+theorem multistratum_captured_reachable_nonzero
+    {floor : ℝ} {nodes : Set AgoraCorrectingNodeSpec}
+    (h : 0 < floor) (hcap : ∀ n ∈ nodes, floor ≤ nodeFloorOfSpec n) :
+    ∀ n ∈ nodes,
+      ∃ c : Constituent,
+        c = Constituent.AAgent n.1 ∧
+        reachableMismatch (nodeFloorOfSpec n) ≠ 0 := by
+  intro n hn
+  refine ⟨Constituent.AAgent n.1, rfl, ?_⟩
+  exact specialization_captured_reachable_nonzero h hcap n hn
+
 end SS13FromHook3Experiment
 
 
