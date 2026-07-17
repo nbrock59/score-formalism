@@ -327,4 +327,30 @@ theorem EthosEpistemicCommunity.autocatalytic_closes_gap {r : Region}
     ec.toHOAState.substrate ec.toHOAState.loopEndowment hs he
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-PA. ETHOS central-lemma binding to §HM30 point-attenuation
+-- family (audit synthesis §5.4 PointAttenuationLemma 5-peer echo)
+--
+-- ETHOS's `capture_cannot_increase_information_health` is the
+-- scalar-multiplication attenuation shape: `capturedHealth κ H = κ·H`,
+-- and for H ≥ 0 the map `x ↦ x·H` is monotone; applied to `κ ≤ 1`
+-- this yields `κ·H ≤ 1·H = H`. The witness below binds this
+-- explicitly to `point_attenuation_monotone`, making the §HM30
+-- family membership explicit.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ETHOS captured-health as §HM30 `point_attenuation_monotone`.**
+    Formal witness that the capture-cannot-increase-info-health result
+    is an instance of the §HM30 point-level monotone attenuation family.
+    Uses `f = (· * H)` monotone (from `H ≥ 0`) applied to `κ ≤ 1`. -/
+theorem capturedHealth_as_pointAttenuationMonotone
+    {κ H : ℝ} (hκ : κ ≤ 1) (hH : 0 ≤ H) :
+    capturedHealth κ H ≤ H := by
+  have hmono : Monotone (fun x : ℝ => x * H) :=
+    fun _ _ h => mul_le_mul_of_nonneg_right h hH
+  have := point_attenuation_monotone (fun x => x * H) hmono hκ
+  unfold capturedHealth
+  simpa using this
+
+
 end SCORE

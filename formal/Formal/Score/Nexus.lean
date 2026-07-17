@@ -257,4 +257,28 @@ theorem NexusInnovationHOA.generationalRenewal_maintains_ceiling
   generationalRenewalMove_maintains_ceiling _ _
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-PA. NEXUS central-lemma binding to §HM30 point-attenuation
+-- family (audit synthesis §5.4 PointAttenuationLemma 5-peer echo)
+--
+-- NEXUS's `contraction_is_antitone_in_adjacent_possible` is the
+-- monotone-under-set-restriction shape: for a monotone breadth
+-- functional Φ, a contraction (post ⊆ pre) yields Φ post ≤ Φ pre.
+-- The witness below binds this to `point_attenuation_monotone`, making
+-- explicit that NEXUS's central lemma is an instance of the §HM30
+-- family.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS contraction as §HM30 `point_attenuation_monotone`.** Formal
+    witness that the contraction-antitone-in-adjacent-possible result is
+    an instance of the §HM30 point-level monotone attenuation family.
+    Refactor of the original lemma to take `Monotone Φ` directly rather
+    than the unfolded pointwise definition. -/
+theorem contraction_as_pointAttenuationMonotone
+    {α : Type} {pre post : Set α}
+    (h : IsContraction pre post) (Φ : Set α → ℝ) (hΦ : Monotone Φ) :
+    Φ post ≤ Φ pre :=
+  point_attenuation_monotone Φ hΦ h
+
+
 end SCORE

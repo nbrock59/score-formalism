@@ -245,4 +245,32 @@ theorem BacPolityCluster.generationalRenewal_maintains_ceiling
   generationalRenewalMove_maintains_ceiling _ _
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-PA. SCORE-BAC central-lemma binding to §HM30 point-attenuation
+-- family (audit synthesis §5.4 PointAttenuationLemma 5-peer echo)
+--
+-- BAC's SS12 `preservation_filter_loses_b2` is the antitone-under-set-
+-- restriction shape: `consistentB2` is antitone (smaller corpus → larger
+-- consistent-B₂ set). The witness below binds this to
+-- `point_attenuation_antitone`, making explicit that BAC's central
+-- lemma is an instance of the §HM30 family. Documentation-only for
+-- BAC's verdicts (already Present-Domain / Present-Formal on other
+-- cells); establishes the 5-peer PointAttenuation family witness suite.
+-- ════════════════════════════════════════════════════════════════
+
+/-- `consistentB2` is `Antitone` on set-inclusion. Direct restatement
+    of `consistentB2_antitone` in Mathlib's `Antitone` shape. -/
+theorem consistentB2_isAntitone : Antitone consistentB2 :=
+  fun _ _ h => consistentB2_antitone h
+
+/-- **BAC SS12 as §HM30 `point_attenuation_antitone`.** Formal witness
+    that the monotone-lossiness result is an instance of the §HM30
+    point-level antitone attenuation family. -/
+theorem ss12_as_pointAttenuationAntitone
+    {original surviving : Set InscriptionContent}
+    (h : IsPreservationFilter original surviving) :
+    consistentB2 original ⊆ consistentB2 surviving :=
+  point_attenuation_antitone consistentB2 consistentB2_isAntitone h
+
+
 end SCORE

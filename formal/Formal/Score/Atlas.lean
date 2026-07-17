@@ -220,4 +220,33 @@ theorem AtlasDeterrenceBasin.autocatalytic_closes_gap {r : Region}
     db.toHOAState.substrate db.toHOAState.loopEndowment hs he
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-PA. ATLAS central-lemma binding to §HM30 point-attenuation
+-- family (audit synthesis §5.4 PointAttenuationLemma 5-peer echo)
+--
+-- ATLAS's `low_coverage_compounds_with_reflexive_depth` is the
+-- antitone-under-ℕ-restriction shape: for σ ∈ [0,1],
+-- `signalFidelity σ` is antitone in the reflexive depth k
+-- (deeper polygon → not-more fidelity). The witness below binds
+-- this to `point_attenuation_antitone`.
+-- ════════════════════════════════════════════════════════════════
+
+/-- `signalFidelity σ` is `Antitone` in the depth argument when
+    σ ∈ [0,1]. Direct restatement of
+    `low_coverage_compounds_with_reflexive_depth` in Mathlib's
+    `Antitone` shape. -/
+theorem signalFidelity_isAntitone_of_le_one
+    {σ : ℝ} (h0 : 0 ≤ σ) (h1 : σ ≤ 1) : Antitone (signalFidelity σ) :=
+  fun _ _ hjk => low_coverage_compounds_with_reflexive_depth h0 h1 hjk
+
+/-- **ATLAS signal-fidelity as §HM30 `point_attenuation_antitone`.**
+    Formal witness that the coverage-compounds-with-depth result is
+    an instance of the §HM30 point-level antitone attenuation family. -/
+theorem signalFidelity_as_pointAttenuationAntitone
+    {σ : ℝ} (h0 : 0 ≤ σ) (h1 : σ ≤ 1) {j k : ℕ} (hjk : j ≤ k) :
+    signalFidelity σ k ≤ signalFidelity σ j :=
+  point_attenuation_antitone (signalFidelity σ)
+    (signalFidelity_isAntitone_of_le_one h0 h1) hjk
+
+
 end SCORE
