@@ -1,4 +1,5 @@
 import Formal.Score.Core
+import Formal.Score.HOAMaintenance
 
 set_option linter.unusedVariables false
 set_option linter.style.whitespace false
@@ -81,6 +82,84 @@ example : strategicNorm ∈ atlasCorpus {grandStrategy} := by
   have h1 : atlasNetwork.composesFrom strategicNorm militaryDoctrine := rfl
   have h2 : atlasNetwork.composesFrom militaryDoctrine grandStrategy := rfl
   exact (Relation.ReflTransGen.single h1).tail h2
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U2. ATLAS U2 SPECIALIZATION --- DeterrenceBasin as a Σ-actor-scoped
+-- HOAState (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`core/atlas/ATLAS_HM_Specialization_Audit.md`
+-- §1) rated U2 as Present-Domain because AT-G-01
+-- (`atlas:DeterrenceBasin` refining SC-G-11 HigherOrderAgent) named the
+-- HOA at the glossary + OWL layer but no Lean specialization instantiated
+-- §HM's `HOAState` machinery. This section is that specialization, made
+-- possible by the M2 multi-stratum extension.
+--
+-- The specialization encodes ATLAS's stratum-independence framing
+-- (`ATLAS.md`: "an HOA whose constituents are Σ-actors, not A-actors"):
+-- an `AtlasDeterrenceBasin r` is exactly an `HOAState r` whose agents
+-- field is `Constituent.SigmaAgent`-constrained (basin members are
+-- Σ-actors --- states, corporations, alliances --- not individual
+-- A-actors). Symmetric mirror of `AgoraMaintainingCommunity`
+-- (`Score/Agora.lean` §PS-U2) which is `Constituent.AAgent`-constrained;
+-- together the two specializations validate M2's Constituent sum type
+-- as accommodating both polar cases.
+--
+-- Everything §HM provides on HOAState (Basin, effectiveDissolution,
+-- AutocatalyticCombine, ...) is inherited via the `.toHOAState`
+-- projection. Downstream ATLAS-specific facts (BasinStabilityScore
+-- composition, T5 signaling-cascade dynamics, ...) can now be stated
+-- over `AtlasDeterrenceBasin` and use the abstract §HM machinery
+-- underneath.
+--
+-- Hook 3's A-actor-scoped population predicates (from M2) are vacuously
+-- true on `AtlasDeterrenceBasin` --- correct behavior for a pure-Σ basin
+-- as documented in `HOAMaintenance.lean` §HM22 comments. ATLAS's own
+-- fragility results (identical-graph cascade, low-coverage-compounds-with-
+-- reflexive-depth) are not Hook-3-shaped and live at a different semantic
+-- level; see the audit synthesis §2.3 PointAttenuationLemma discussion.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ATLAS's `DeterrenceBasin` as an HOAState subtype** (AT-G-01,
+    refining SC-G-11 HigherOrderAgent). An HOA state whose entire
+    population is Σ-actors --- captured by the subtype constraint that
+    every constituent in the `agents` list is a `Constituent.SigmaAgent`. -/
+def AtlasDeterrenceBasin (r : Region) : Type :=
+  { s : HOAState r //
+    ∀ c ∈ s.agents, ∃ σ : SigmaActor, c = Constituent.SigmaAgent σ }
+
+/-- Extract the underlying `HOAState`; the §HM machinery (Basin,
+    effectiveDissolution, autocatalytic feedback, ...) applies via this
+    projection. -/
+def AtlasDeterrenceBasin.toHOAState {r : Region}
+    (db : AtlasDeterrenceBasin r) : HOAState r := db.1
+
+/-- **Σ-actor constraint witness.** Every constituent of an ATLAS
+    deterrence basin is a `Constituent.SigmaAgent` --- the direct
+    formalization of the AT-G-01 stratum-independence framing that basin
+    members are Σ-actors, not A-actors. Follows immediately from the
+    subtype constraint. -/
+theorem AtlasDeterrenceBasin.agents_are_SigmaAgent {r : Region}
+    (db : AtlasDeterrenceBasin r) :
+    ∀ c ∈ db.toHOAState.agents, ∃ σ : SigmaActor, c = Constituent.SigmaAgent σ :=
+  db.2
+
+/-- **Hook 3 A-actor predicates are vacuously true on an ATLAS
+    deterrence basin.** Since every constituent is a
+    `Constituent.SigmaAgent`, no `Constituent.AAgent` appears in the
+    agents list, and Hook 3's A-actor-scoped `PopulationCouplingHomogeneous`
+    predicate has no hypotheses to constrain --- so it holds trivially.
+    Correct behavior for a pure-Σ basin: Hook 3's A-actor coupling axis
+    is not the operative constraint here. Σ-actor coupling homogeneity
+    would require a separate `PopulationSigmaCouplingHomogeneous`
+    machinery (SC-G-27 InterSigmaCoupling), reserved for future theory
+    work. -/
+theorem AtlasDeterrenceBasin.hook3_vacuous {r : Region}
+    (db : AtlasDeterrenceBasin r) :
+    PopulationCouplingHomogeneous db.toHOAState := by
+  intro a₁ a₂ h1 _
+  obtain ⟨σ, hσ⟩ := db.agents_are_SigmaAgent _ h1
+  exact absurd hσ (by simp)
 
 
 end SCORE
