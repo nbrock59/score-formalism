@@ -292,4 +292,39 @@ def EthosEpistemicCommunity.stabilizesWithin {r : Region}
   SelfStabilizingWithin Basin Legitimate Moves
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U4. ETHOS U4 SPECIALIZATION --- autocatalytic feedback +
+-- B₃-substrate prosthetic (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`ETHOS_HM_Specialization_Audit.md` §1)
+-- rated ETHOS's U4 as Present-Domain: `DisciplinaryCorpus` (ET-G-11)
+-- is the B₃-substrate; `cites` edges (ET-G-12) build the derivation DAG;
+-- `AmplificationChannel` (ET-G-07) is the propagation mechanism.
+-- Autocatalytic loop is explicit at the vocabulary layer (high-quality
+-- content amplified → shapes future producers → produces more
+-- high-quality content). `Score/Ethos.lean` §15 specializes
+-- DisciplinaryCorpus as `Core.DoctrinalNetwork`, NOT as §HM's
+-- `AutocatalyticCombine`. This section binds §HM's autocatalytic
+-- machinery to `EthosEpistemicCommunity` via peer-scoped wrappers.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ETHOS U4: autocatalytic weight of the epistemic community.**
+    Aggregate observable weight under a chosen autocatalytic-combine
+    operator, delegated via the peer's `.toHOAState` projection. -/
+def EthosEpistemicCommunity.autocatalyticWeight {r : Region}
+    (c : AutocatalyticCombine) (ec : EthosEpistemicCommunity r) : ℝ :=
+  HOAState.weight c ec.toHOAState
+
+/-- **ETHOS U4: hysteresis gap closes for the epistemic community.**
+    Direct specialization of `AutocatalyticCombine.closes_hysteresis_gap`
+    via the peer's `.toHOAState` projection. -/
+theorem EthosEpistemicCommunity.autocatalytic_closes_gap {r : Region}
+    (c : AutocatalyticCombine) (ec : EthosEpistemicCommunity r)
+    (hs : (dissolutionThreshold r).val ≤ ec.toHOAState.substrate.val)
+    (he : c.engagementThreshold r ≤ ec.toHOAState.loopEndowment.val) :
+    (formationThreshold r).val ≤ ec.autocatalyticWeight c :=
+  c.closes_hysteresis_gap r
+    ec.toHOAState.substrate ec.toHOAState.loopEndowment hs he
+
+
 end SCORE

@@ -433,4 +433,50 @@ def AgoraMaintainingCommunity.stabilizesWithin {r : Region}
   SelfStabilizingWithin Basin Legitimate Moves
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U4. AGORA U4 SPECIALIZATION --- autocatalytic feedback +
+-- B₃-substrate prosthetic (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`AGORA_HM_Specialization_Audit.md` §1)
+-- rated AGORA's U4 as Present-Domain: `DoctrinalCorpus` (AG-G-12) is
+-- the central B₃-substrate; role-occupant nodes carrying manifold
+-- positions m_i via role templates R IS the autocatalytic maintenance
+-- loop (manifolds shape role behavior → role behavior maintains
+-- constitutional B₃ → B₃ shapes future role templates). Vocabulary
+-- complete. But `Score/Agora.lean` §17 specializes DoctrinalCorpus as a
+-- `Core.DoctrinalNetwork`, NOT as §HM's `AutocatalyticCombine` or
+-- `B3SubstratePolicy`. The Core-level specialization exists; the §HM-
+-- level specialization did not.
+--
+-- This section binds §HM's `HOAState.weight` and `closes_hysteresis_gap`
+-- machinery to `AgoraMaintainingCommunity` via peer-scoped wrappers.
+-- The wrappers make explicit that any concrete autocatalytic-combine
+-- operator (chosen by A3/A5 peer work) can be applied to AGORA's
+-- maintaining community through its `.toHOAState` projection, and the
+-- load-bearing `closes_hysteresis_gap` axiom carries through.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **AGORA U4: autocatalytic weight of the maintaining community.**
+    The aggregate observable weight of an AGORA maintaining community
+    under a chosen autocatalytic-combine operator, delegated to
+    `HOAState.weight` via the peer's `.toHOAState` projection. -/
+def AgoraMaintainingCommunity.autocatalyticWeight {r : Region}
+    (c : AutocatalyticCombine) (mc : AgoraMaintainingCommunity r) : ℝ :=
+  HOAState.weight c mc.toHOAState
+
+/-- **AGORA U4: hysteresis gap closes for the maintaining community.**
+    The load-bearing autocatalytic axiom lifts through the peer's
+    projection: if the maintaining community's substrate is at least
+    dissolution and its loop endowment meets the engagement threshold,
+    the community's autocatalytic weight is at least formation. Direct
+    specialization of `AutocatalyticCombine.closes_hysteresis_gap`. -/
+theorem AgoraMaintainingCommunity.autocatalytic_closes_gap {r : Region}
+    (c : AutocatalyticCombine) (mc : AgoraMaintainingCommunity r)
+    (hs : (dissolutionThreshold r).val ≤ mc.toHOAState.substrate.val)
+    (he : c.engagementThreshold r ≤ mc.toHOAState.loopEndowment.val) :
+    (formationThreshold r).val ≤ mc.autocatalyticWeight c :=
+  c.closes_hysteresis_gap r
+    mc.toHOAState.substrate mc.toHOAState.loopEndowment hs he
+
+
 end SCORE

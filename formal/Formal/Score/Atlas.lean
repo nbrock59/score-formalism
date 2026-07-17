@@ -186,4 +186,38 @@ def AtlasDeterrenceBasin.stabilizesWithin {r : Region}
   SelfStabilizingWithin Basin Legitimate Moves
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U4. ATLAS U4 SPECIALIZATION --- autocatalytic feedback +
+-- B₃-substrate prosthetic (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`ATLAS_HM_Specialization_Audit.md` §1)
+-- rated ATLAS's U4 as Present-Domain: `StrategicCorpus` (AT-G-10) is
+-- the B₃-substrate; `coupledTo` edges (AT-G-11) with superposed weight
+-- (treaty + behavior + manifold-proximity) IS autocatalytic maintenance;
+-- signaling-convention coverage σ(d) (AT-G-06) is a substrate-coverage
+-- measure. Vocabulary complete. `Score/Atlas.lean` §19 specializes
+-- StrategicCorpus as `Core.DoctrinalNetwork`, NOT as §HM's
+-- `AutocatalyticCombine`. This section binds §HM's autocatalytic
+-- machinery to `AtlasDeterrenceBasin` via peer-scoped wrappers.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ATLAS U4: autocatalytic weight of the deterrence basin.**
+    Aggregate observable weight under a chosen autocatalytic-combine
+    operator, delegated via the peer's `.toHOAState` projection. -/
+def AtlasDeterrenceBasin.autocatalyticWeight {r : Region}
+    (c : AutocatalyticCombine) (db : AtlasDeterrenceBasin r) : ℝ :=
+  HOAState.weight c db.toHOAState
+
+/-- **ATLAS U4: hysteresis gap closes for the deterrence basin.**
+    Direct specialization of `AutocatalyticCombine.closes_hysteresis_gap`
+    via the peer's `.toHOAState` projection. -/
+theorem AtlasDeterrenceBasin.autocatalytic_closes_gap {r : Region}
+    (c : AutocatalyticCombine) (db : AtlasDeterrenceBasin r)
+    (hs : (dissolutionThreshold r).val ≤ db.toHOAState.substrate.val)
+    (he : c.engagementThreshold r ≤ db.toHOAState.loopEndowment.val) :
+    (formationThreshold r).val ≤ db.autocatalyticWeight c :=
+  c.closes_hysteresis_gap r
+    db.toHOAState.substrate db.toHOAState.loopEndowment hs he
+
+
 end SCORE

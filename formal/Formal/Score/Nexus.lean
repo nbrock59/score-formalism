@@ -181,4 +181,44 @@ def NexusInnovationHOA.stabilizesWithin {r : Region}
   SelfStabilizingWithin Basin Legitimate Moves
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U4. NEXUS U4 SPECIALIZATION --- autocatalytic feedback +
+-- B₃-substrate prosthetic (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`NEXUS_HM_Specialization_Audit.md` §1)
+-- rated NEXUS's U4 as Present-Domain: two co-existing autocatalytic
+-- stories --- healthy (paradigm-diversity sustained via patent-citation
+-- substrate) and pathological (`NSAsCartel`, NX-G-05, VC/incumbent
+-- interlock as self-reinforcing predatory loop). Patents / standards
+-- (via `paradigmCluster`, §16) provide the real B₃-substrate.
+-- `Score/Nexus.lean` §16 specializes patents-network as
+-- `Core.DoctrinalNetwork`, NOT as §HM's `AutocatalyticCombine`. This
+-- section binds §HM's autocatalytic machinery to `NexusInnovationHOA`
+-- via peer-scoped wrappers; the pathological polarity companion is
+-- reserved for future HealthyVsPathologicalPolarity work per the audit
+-- synthesis §5.5.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS U4: autocatalytic weight of the innovation ecosystem
+    (healthy case).** Aggregate observable weight under a chosen
+    autocatalytic-combine operator, delegated via the peer's
+    `.toHOAState` projection. Pathological (NSAsCartel) counterpart
+    is HealthyVsPathologicalPolarity work. -/
+def NexusInnovationHOA.autocatalyticWeight {r : Region}
+    (c : AutocatalyticCombine) (ih : NexusInnovationHOA r) : ℝ :=
+  HOAState.weight c ih.toHOAState
+
+/-- **NEXUS U4: hysteresis gap closes for the innovation ecosystem
+    (healthy case).** Direct specialization of
+    `AutocatalyticCombine.closes_hysteresis_gap` via the peer's
+    `.toHOAState` projection. -/
+theorem NexusInnovationHOA.autocatalytic_closes_gap {r : Region}
+    (c : AutocatalyticCombine) (ih : NexusInnovationHOA r)
+    (hs : (dissolutionThreshold r).val ≤ ih.toHOAState.substrate.val)
+    (he : c.engagementThreshold r ≤ ih.toHOAState.loopEndowment.val) :
+    (formationThreshold r).val ≤ ih.autocatalyticWeight c :=
+  c.closes_hysteresis_gap r
+    ih.toHOAState.substrate ih.toHOAState.loopEndowment hs he
+
+
 end SCORE
