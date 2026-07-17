@@ -1,4 +1,5 @@
 import Formal.Score.Core
+import Formal.Score.HOAMaintenance
 
 set_option linter.unusedVariables false
 set_option linter.style.whitespace false
@@ -184,6 +185,83 @@ theorem verificationAssurance_mono {k : ℕ} (c c' : Fin k → ℝ)
   have hprod : ∏ j, (1 - c' j) ≤ ∏ j, (1 - c j) :=
     Finset.prod_le_prod (fun j _ => by linarith [h1' j]) (fun j _ => by linarith [hcc j])
   linarith
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U2. ETHOS U2 SPECIALIZATION --- EpistemicCommunity as an A-actor-
+-- scoped HOAState AND EpistemicInstitution as a Σ-actor (Present-Domain
+-- → Present-Formal); together they formalize the dual-stratum framing.
+--
+-- The HM Specialization Audit (`core/ethos/ETHOS_HM_Specialization_Audit.md`
+-- §1) rated U2 as Present-Domain because ET-G-01
+-- (`ethos:EpistemicCommunity` refining SC-G-25 HOA / SC-G-26 HumanCommunity)
+-- named the HOA analog at the glossary + OWL layer but no Lean
+-- specialization instantiated §HM's `HOAState` machinery. This section is
+-- that specialization plus a companion Σ-actor typedef for the co-existing
+-- `EpistemicInstitution` (ET-G-02) that jointly encode the dual-stratum
+-- framing (Orphan 7 of the ETHOS audit: "EpistemicCommunity + Epistemic-
+-- Institution both first-class in E1; neither reduces to the other").
+--
+-- Third and final polar case of Design B's `Constituent` sum type after
+-- AGORA (A-actor only, §PS-U2) and ATLAS (Σ-actor only, §PS-U2). ETHOS's
+-- distinctive contribution: BOTH types co-exist as first-class objects
+-- at the Lean layer, not just at the glossary layer --- the maintaining
+-- community (A-actor HOA) sustains the institution (Σ-actor) and neither
+-- is a reduction of the other.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ETHOS's `EpistemicCommunity` as an HOAState subtype** (ET-G-01,
+    refining SC-G-25 HOA). The A-actor coupling network (journalists,
+    academics, researchers) whose collective NS produces the corpus.
+    Same shape as `AgoraMaintainingCommunity` (both are A-actor HOAs);
+    distinct type because their peer-level semantics differ (institutional
+    maintenance vs epistemic knowledge production). -/
+def EthosEpistemicCommunity (r : Region) : Type :=
+  { s : HOAState r //
+    ∀ c ∈ s.agents, ∃ a : Agent, c = Constituent.AAgent a }
+
+/-- Extract the underlying `HOAState`; the §HM machinery applies via
+    this projection. -/
+def EthosEpistemicCommunity.toHOAState {r : Region}
+    (ec : EthosEpistemicCommunity r) : HOAState r := ec.1
+
+/-- **A-actor constraint witness.** Every constituent of an ETHOS
+    epistemic community is a `Constituent.AAgent` --- the direct
+    formalization of the ET-G-01 A-actor-population claim. -/
+theorem EthosEpistemicCommunity.agents_are_AAgent {r : Region}
+    (ec : EthosEpistemicCommunity r) :
+    ∀ c ∈ ec.toHOAState.agents, ∃ a : Agent, c = Constituent.AAgent a :=
+  ec.2
+
+/-- **ETHOS's `EpistemicInstitution` as a Σ-actor** (ET-G-02, refining
+    SC-G-09). A journal / discipline / news outlet as a co-inscribed
+    formal B₃ membrane plus a maintaining community; the primary
+    B₃-producing actor in the ETHOS domain. Encoded as a typedef over
+    `SigmaActor` --- ETHOS's peer-specific narrative attaches to the
+    Σ-actor role Core already provides; no additional Lean structure
+    needed for this tier. Capture-at-Σ (ownership concentration, funding
+    capture) and capture-at-Ω (engagement-optimizing platforms) live at
+    the peer level, not §HM. -/
+def EthosEpistemicInstitution : Type := SigmaActor
+
+/-!
+## Dual-stratum framing --- documented, enforced by construction
+
+ETHOS's distinctive framing (Orphan 7 of the ETHOS audit) is that community
+and institution co-exist without reduction. That claim is enforced at the
+type layer by construction: `EthosEpistemicCommunity r` is a subtype of
+`HOAState r` (a structure with agents / substrate / loopEndowment / etc.
+fields), while `EthosEpistemicInstitution` is a typedef over `SigmaActor`
+(an opaque Core carrier type). There is no cast between them --- ETHOS's
+dual-stratum claim holds at the Lean type layer with no additional
+theorems required.
+
+Peer-side operations that relate the two --- e.g., "which community
+sustains this institution?" --- would be modeled as separate axiom
+relations (`sustains : EthosEpistemicInstitution → (r : Region) →
+EthosEpistemicCommunity r → Prop`), reserved for future peer-specialization
+work that goes beyond U2's HOA-typing scope.
+-/
 
 
 end SCORE
