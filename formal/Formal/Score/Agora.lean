@@ -479,4 +479,46 @@ theorem AgoraMaintainingCommunity.autocatalytic_closes_gap {r : Region}
     mc.toHOAState.substrate mc.toHOAState.loopEndowment hs he
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U7. AGORA U7 SPECIALIZATION --- L2 GenerationalRenewalMove
+-- (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`AGORA_HM_Specialization_Audit.md` §1)
+-- rated AGORA's U7 as Present-Domain: AGORA's §6.1 mapping table
+-- explicitly names MortalityBoundary Condition 5 (interpretive tradition
+-- supplying an independent standard) ↔ L2 GenerationalRenewalMove and
+-- A5 CapturedCorrectionUpdate ↔ L1 MemberTurnoverMove + failed L2. Peer
+-- has explicitly named the L1/L2 correspondences. But no Lean
+-- specialization of §HM25--§HM28 slow-move types existed. This section
+-- binds the load-bearing L2 slow-move to `AgoraMaintainingCommunity` via
+-- a peer-scoped wrapper. L1 MemberTurnoverMove, L3 PathAMove, and L4
+-- CoInscriptionMove are similarly available under the same pattern and
+-- are natural follow-ups; L2 is chosen here because it is the mapping-
+-- table's load-bearing slow-move for the AGORA/§HM correspondence.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **AGORA U7: L2 generational-renewal slow-move on the maintaining
+    community.** Peer-scoped wrapper for `GenerationalRenewalMove` on
+    `AgoraMaintainingCommunity`, delegated via `.toHOAState`. Named
+    `generationalRenewal` (dropping the abstract's `Move` suffix) to
+    avoid the dot-notation shadowing pattern that would otherwise
+    conflate the peer method with the abstract axiom. -/
+def AgoraMaintainingCommunity.generationalRenewal {r : Region}
+    (a b : AgoraMaintainingCommunity r) : Prop :=
+  GenerationalRenewalMove a.toHOAState b.toHOAState
+
+/-- **AGORA U7: renewal maintains ceiling.** The §HM26
+    `generationalRenewalMove_maintains_ceiling` axiom lifts through the
+    peer's projection: successful generational inscription in the
+    maintaining community preserves (or grows) the ceiling residue.
+    The formal counterpart of AGORA's MortalityBoundary Condition 5 ---
+    the interpretive tradition supplying an independent standard renews
+    the ceiling across generations of role-occupants (§6.1). -/
+theorem AgoraMaintainingCommunity.generationalRenewal_maintains_ceiling
+    {r : Region} (a b : AgoraMaintainingCommunity r) :
+    a.generationalRenewal b →
+      a.toHOAState.ceilingResidue.val ≤ b.toHOAState.ceilingResidue.val :=
+  generationalRenewalMove_maintains_ceiling _ _
+
+
 end SCORE

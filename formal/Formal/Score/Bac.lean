@@ -205,4 +205,44 @@ def BacPolityCluster.stabilizesWithin {r : Region}
   SelfStabilizingWithin Basin Legitimate Moves
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U7. SCORE-BAC U7 SPECIALIZATION --- L2 GenerationalRenewalMove
+-- (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`SCORE_BAC_HM_Specialization_Audit.md` §1)
+-- rated BAC's U7 as Present-Domain, load-bearing on L2 specifically:
+-- `PolityCorpus` (BAC-G-08) is precisely the mechanism BAC models for
+-- L2 GenerationalRenewal --- the graded down-set of the historical-
+-- record DAG whose role is generational transmission of inscription
+-- across polity lifetimes. `derivesFromRecord` composition ($n$-
+-- generation deep down-closure, §20) makes the L2 slow-move explicit
+-- as a region-preservation property. This section binds §HM's L2 axiom
+-- to `BacPolityCluster` via a peer-scoped wrapper. L1 MemberTurnoverMove
+-- and L4 CoInscriptionMove are natural fits per the BAC audit but the
+-- retrodictive-historical timescale makes L3 PathAMove awkward; only
+-- L2 is bound here.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **BAC U7: L2 generational-renewal slow-move on the polity cluster.**
+    Peer-scoped wrapper for `GenerationalRenewalMove` on
+    `BacPolityCluster`. Peer story: `PolityCorpus`'s
+    `derivesFromRecord`-graded down-closure IS the L2 mechanism made
+    explicit as a region. -/
+def BacPolityCluster.generationalRenewal {r : Region}
+    (a b : BacPolityCluster r) : Prop :=
+  GenerationalRenewalMove a.toHOAState b.toHOAState
+
+/-- **BAC U7: renewal maintains ceiling.** The §HM26
+    `generationalRenewalMove_maintains_ceiling` axiom lifts through the
+    peer's projection: successful generational inscription in the polity
+    cluster preserves (or grows) the ceiling residue. The formal
+    counterpart of BAC's PolityCorpus as an L2 generational-transmission
+    mechanism. -/
+theorem BacPolityCluster.generationalRenewal_maintains_ceiling
+    {r : Region} (a b : BacPolityCluster r) :
+    a.generationalRenewal b →
+      a.toHOAState.ceilingResidue.val ≤ b.toHOAState.ceilingResidue.val :=
+  generationalRenewalMove_maintains_ceiling _ _
+
+
 end SCORE

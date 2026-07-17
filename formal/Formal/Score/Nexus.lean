@@ -221,4 +221,40 @@ theorem NexusInnovationHOA.autocatalytic_closes_gap {r : Region}
     ih.toHOAState.substrate ih.toHOAState.loopEndowment hs he
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U7. NEXUS U7 SPECIALIZATION --- L2 GenerationalRenewalMove
+-- (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`NEXUS_HM_Specialization_Audit.md` §1)
+-- rated NEXUS's U7 as Present-Domain: L2 GenerationalRenewal is
+-- particularly natural for NEXUS since patent citations propagate
+-- technical knowledge across generations of components → standards →
+-- platforms (`paradigmCluster`, §16). `Score/Nexus.lean` §16 specializes
+-- patents-network as `Core.DoctrinalNetwork`, NOT as §HM's
+-- `GenerationalRenewalMove`. This section binds §HM's L2 axiom to
+-- `NexusInnovationHOA` via a peer-scoped wrapper. L1 MemberTurnoverMove
+-- (VC funds, founders, firms turning over) is also natural per the audit
+-- but is left as a follow-up under the same pattern.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS U7: L2 generational-renewal slow-move on the innovation
+    ecosystem.** Peer-scoped wrapper for `GenerationalRenewalMove` on
+    `NexusInnovationHOA`. Peer story: patent citations propagate technical
+    knowledge across generations of prior-art → component → standard →
+    platform (`paradigmCluster` down-closure). -/
+def NexusInnovationHOA.generationalRenewal {r : Region}
+    (a b : NexusInnovationHOA r) : Prop :=
+  GenerationalRenewalMove a.toHOAState b.toHOAState
+
+/-- **NEXUS U7: renewal maintains ceiling.** The §HM26
+    `generationalRenewalMove_maintains_ceiling` axiom lifts through the
+    peer's projection: successful generational inscription in the
+    innovation ecosystem preserves (or grows) the ceiling residue. -/
+theorem NexusInnovationHOA.generationalRenewal_maintains_ceiling
+    {r : Region} (a b : NexusInnovationHOA r) :
+    a.generationalRenewal b →
+      a.toHOAState.ceilingResidue.val ≤ b.toHOAState.ceilingResidue.val :=
+  generationalRenewalMove_maintains_ceiling _ _
+
+
 end SCORE
