@@ -172,4 +172,37 @@ theorem BacPolityCluster.agents_are_AAgent {r : Region}
   pc.2
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U1. SCORE-BAC U1 SPECIALIZATION --- PolityCluster self-
+-- stabilization (Natural → Present-Formal)
+--
+-- The HM Specialization Audit (`SCORE_BAC_HM_Specialization_Audit.md` §1)
+-- rated BAC's U1 as Natural: LBA polities historically exhibited
+-- "coherent while alive, then collapsed" behavior --- self-stabilization
+-- within a viability set is the natural mechanism account, but BAC does
+-- not formalize the maintenance dynamic (it formalizes the source-
+-- criticism problem of *studying it after collapse*). This section
+-- introduces a peer-scoped self-stabilization abbrev, upgrading BAC's
+-- U1 from Natural to Present-Formal by giving the concept a peer-scoped
+-- Lean binding on the U2 type `BacPolityCluster`.
+--
+-- Because BAC's central subject IS the retrodictive study of collapsed
+-- polities, the peer's U1 story is dual: what's studied is the
+-- retrodiction of when self-stabilization *stopped*, i.e., the
+-- Basin-loss event that produced the surviving-corpus subset (see the
+-- §12 `preservation_filter_loses_b2` monotone-lossiness result). The
+-- retrodictive-side companion of `SelfStabilizingWithin` is future work.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **BAC U1: self-stabilization of the polity cluster.** Peer-scoped
+    abbrev for `SCORE.SelfStabilizingWithin` on `BacPolityCluster`
+    (BAC-G-01). Concrete Basin/Legitimate/Moves peer-specific / Q4 BIND
+    against retrodictive historical data. -/
+def BacPolityCluster.stabilizesWithin {r : Region}
+    (Basin      : BacPolityCluster r → Prop)
+    (Legitimate : BacPolityCluster r → Prop)
+    (Moves      : BacPolityCluster r → BacPolityCluster r → Prop) : Prop :=
+  SelfStabilizingWithin Basin Legitimate Moves
+
+
 end SCORE

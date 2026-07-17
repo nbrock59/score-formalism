@@ -162,4 +162,28 @@ theorem AtlasDeterrenceBasin.hook3_vacuous {r : Region}
   exact absurd hσ (by simp)
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U1. ATLAS U1 SPECIALIZATION --- DeterrenceBasin self-stabilization
+-- (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`ATLAS_HM_Specialization_Audit.md` §1)
+-- rated ATLAS's U1 as Present-Domain: AT-G-03 (`atlas:DeterrenceStability`)
+-- named the stability construct and AT-G-04 (`BasinStabilityScore`)
+-- measured it, but no Lean specialization of `SelfStabilizingWithin`
+-- existed. Peer-scoped abbrev over §HM's polymorphic predicate,
+-- parameterized on the ATLAS U2 type `AtlasDeterrenceBasin`. Concrete
+-- Basin/Legitimate/Moves are Q4 BIND / peer-specific future work.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ATLAS U1: self-stabilization of the deterrence basin.**
+    Peer-scoped abbrev for `SCORE.SelfStabilizingWithin` on
+    `AtlasDeterrenceBasin` (AT-G-01 / AT-G-03). Concrete
+    Basin/Legitimate/Moves peer-specific. -/
+def AtlasDeterrenceBasin.stabilizesWithin {r : Region}
+    (Basin      : AtlasDeterrenceBasin r → Prop)
+    (Legitimate : AtlasDeterrenceBasin r → Prop)
+    (Moves      : AtlasDeterrenceBasin r → AtlasDeterrenceBasin r → Prop) : Prop :=
+  SelfStabilizingWithin Basin Legitimate Moves
+
+
 end SCORE

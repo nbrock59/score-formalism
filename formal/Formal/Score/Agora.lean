@@ -397,4 +397,40 @@ theorem AgoraMaintainingCommunity.populationCouplingHomogeneous_iff_agents
   Iff.rfl
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U1. AGORA U1 SPECIALIZATION --- InstitutionalMaintainingCommunity
+-- self-stabilization (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`AGORA_HM_Specialization_Audit.md` §1)
+-- rated AGORA's U1 as Present-Domain: the vocabulary layer named
+-- self-stabilization (`InstitutionalMaintainingCommunity` sustaining
+-- constitutional B₃; alignment functional A measuring deviation;
+-- Core-promoted `FitnessCriterion` via POLARIS∩ETHOS) but no Lean
+-- specialization of `SelfStabilizingWithin` existed.
+--
+-- The specialization is a peer-scoped abbrev over `SelfStabilization.lean`'s
+-- polymorphic `SelfStabilizingWithin`, parameterized on the AGORA U2 type
+-- `AgoraMaintainingCommunity`. Concrete Basin/Legitimate/Moves choices
+-- (the A3 InstitutionalHealthScore threshold as Legitimate; A5
+-- CapturedCorrectionUpdate as Moves; "no capture yet" as Basin) are
+-- peer-specific work and Q4 BIND, reserved for future PRs. The alias
+-- establishes the Present-Formal binding at the type layer.
+--
+-- Companion `MaintainedWithin` / `MaintainedWithinIfPreserved` (the
+-- maintenance variants in `SelfStabilization.lean`) apply symmetrically;
+-- omitted here to keep the U1 upgrade minimal but available under the
+-- same alias pattern if a future PR needs them.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **AGORA U1: self-stabilization of the maintaining community.**
+    Peer-scoped abbrev for `SCORE.SelfStabilizingWithin` on
+    `AgoraMaintainingCommunity`. Concrete Basin/Legitimate/Moves are
+    peer-specific / Q4 BIND. -/
+def AgoraMaintainingCommunity.stabilizesWithin {r : Region}
+    (Basin      : AgoraMaintainingCommunity r → Prop)
+    (Legitimate : AgoraMaintainingCommunity r → Prop)
+    (Moves      : AgoraMaintainingCommunity r → AgoraMaintainingCommunity r → Prop) : Prop :=
+  SelfStabilizingWithin Basin Legitimate Moves
+
+
 end SCORE

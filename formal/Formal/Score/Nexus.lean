@@ -151,4 +151,34 @@ def NexusInnovationHOA.toHOAState {r : Region}
     (ih : NexusInnovationHOA r) : HOAState r := ih
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U1. NEXUS U1 SPECIALIZATION --- InnovationHOA self-stabilization
+-- (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`NEXUS_HM_Specialization_Audit.md` §1)
+-- rated NEXUS's U1 as Present-Domain: two co-existing self-stabilization
+-- stories --- healthy (InnovationHOA maintenance) and pathological
+-- (`NSAsCartel`, NX-G-05, "self-maintaining but net-information-
+-- decreasing"). No Lean specialization of `SelfStabilizingWithin`
+-- existed. Peer-scoped abbrev over §HM's polymorphic predicate,
+-- parameterized on the NEXUS U2 type `NexusInnovationHOA`. The
+-- healthy-vs-pathological polarity contrast (audit's Joint-abstraction
+-- candidate #4) is a genuine theory extension reserved for future
+-- HealthyVsPathologicalPolarity work; here we bind only the healthy
+-- case at the type layer.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS U1: self-stabilization of the innovation ecosystem.**
+    Peer-scoped abbrev for `SCORE.SelfStabilizingWithin` on
+    `NexusInnovationHOA` (NX-G-01). Healthy case; pathological
+    (`NSAsCartel`) counterpart reserved for future
+    HealthyVsPathologicalPolarity work. Concrete Basin/Legitimate/Moves
+    peer-specific / Q4 BIND. -/
+def NexusInnovationHOA.stabilizesWithin {r : Region}
+    (Basin      : NexusInnovationHOA r → Prop)
+    (Legitimate : NexusInnovationHOA r → Prop)
+    (Moves      : NexusInnovationHOA r → NexusInnovationHOA r → Prop) : Prop :=
+  SelfStabilizingWithin Basin Legitimate Moves
+
+
 end SCORE

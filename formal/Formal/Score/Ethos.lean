@@ -264,4 +264,32 @@ work that goes beyond U2's HOA-typing scope.
 -/
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-U1. ETHOS U1 SPECIALIZATION --- EpistemicCommunity self-
+-- stabilization (Present-Domain → Present-Formal)
+--
+-- The HM Specialization Audit (`ETHOS_HM_Specialization_Audit.md` §1)
+-- rated ETHOS's U1 as Present-Domain: EpistemicCommunity sustaining a
+-- corpus IS self-stabilization at vocabulary level; Core-promoted
+-- `FitnessCriterion` (via POLARIS∩ETHOS) is the fitness under which the
+-- community self-stabilizes. No Lean specialization of
+-- `SelfStabilizingWithin` existed. Peer-scoped abbrev over §HM's
+-- polymorphic predicate, parameterized on the ETHOS U2 type
+-- `EthosEpistemicCommunity`. Concrete Basin/Legitimate/Moves choices
+-- (Legitimate = InfosphereHealthScore threshold; Moves = capture
+-- dynamics; Basin = uncaptured domain) are Q4 BIND / peer-specific
+-- future work.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ETHOS U1: self-stabilization of the epistemic community.**
+    Peer-scoped abbrev for `SCORE.SelfStabilizingWithin` on
+    `EthosEpistemicCommunity` (ET-G-01). Concrete Basin/Legitimate/Moves
+    peer-specific. -/
+def EthosEpistemicCommunity.stabilizesWithin {r : Region}
+    (Basin      : EthosEpistemicCommunity r → Prop)
+    (Legitimate : EthosEpistemicCommunity r → Prop)
+    (Moves      : EthosEpistemicCommunity r → EthosEpistemicCommunity r → Prop) : Prop :=
+  SelfStabilizingWithin Basin Legitimate Moves
+
+
 end SCORE
