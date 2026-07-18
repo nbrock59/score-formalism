@@ -2357,4 +2357,112 @@ theorem EventDiscriminant.classification_exhaustive {Event : Type}
   · exact Or.inr (not_lt.mp h)
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM33. JOINT-ABSTRACTION CONFIRMATION --- HOA-with-basin
+--
+-- Audit synthesis §5.5 Joint-abstraction candidate 1: U1
+-- (self-stabilization) and U2 (HOA state / basin / effective
+-- dissolution) co-occur as Present-Domain in ALL 5 peers. The audit
+-- proposed: rather than U1 and U2 as separate §HM units, an
+-- integrated "self-stabilizing HOA with basin" construct all peers
+-- instantiate together.
+--
+-- **Status: implicitly confirmed by peer specializations.** After
+-- PRs #465--#469 (U2 subtype/typedef per peer) and #470 (U1
+-- `.stabilizesWithin` per peer), every peer's `.stabilizesWithin`
+-- method is DEFINED ON that peer's U2 type (`AgoraMaintainingCommunity`,
+-- `AtlasDeterrenceBasin`, `EthosEpistemicCommunity`, `BacPolityCluster`,
+-- `NexusInnovationHOA`). The joint pattern holds structurally at the
+-- Lean layer without an explicit §HM-side integration --- each peer
+-- carries both its HOA typing (U2) and its self-stabilization predicate
+-- (U1) as first-class methods on the same type.
+--
+-- No new §HM code needed for this joint-abstraction confirmation.
+-- A future refactor could bundle U1+U2 into a single §HM structure,
+-- but the current peer specializations already realize the joint
+-- abstraction implicitly.
+-- ════════════════════════════════════════════════════════════════
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM34. JOINT-ABSTRACTION CONFIRMATION --- substrate-corpus-with-L2
+--
+-- Audit synthesis §5.5 Joint-abstraction candidate 2: U4 (autocatalytic
+-- + substrate) and U7 (long-timescale L1--L4) co-occur as Present-
+-- Domain in 4 peers (all except BAC, whose U4 is Awkward via direction-
+-- of-study mismatch). The audit proposed: an integrated substrate-
+-- corpus + L2 unit, since peers that specialize one specialize the
+-- other.
+--
+-- **Status: implicitly confirmed by peer specializations.** After
+-- PR #471 (U4 `.autocatalyticWeight` + `.autocatalytic_closes_gap` per
+-- peer) and PR #472 (U7 `.generationalRenewal` + `.generationalRenewal_maintains_ceiling`
+-- for AGORA/BAC/NEXUS), the 4 peers with Present-Formal U4+U7 (AGORA,
+-- NEXUS; ATLAS and ETHOS have U4 PF but U7 Natural per audit) have
+-- both methods on the same peer type. The joint pattern holds
+-- structurally.
+--
+-- Peer coupling between U4 and U7 (e.g., the AGORA §6.1 mapping table's
+-- "CapturedCorrectionUpdate ↔ L1 + failed L2" claim, or NEXUS's
+-- "patent citations propagate across generations") is documented at
+-- the interface-contract layer; formal derivations would live in the
+-- peer's own file. §HM's role is to provide the abstract machinery
+-- both units share; §HM34 confirms the joint pattern without a new
+-- construct.
+-- ════════════════════════════════════════════════════════════════
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM35. HEALTHY-VS-PATHOLOGICAL POLARITY (joint-abstraction candidate 3)
+--
+-- Audit synthesis §5.5 Joint-abstraction candidate 3: three
+-- Contrast-style orphans in 2 peers describe pathological VARIANTS of
+-- Core-level constructs (NEXUS NSAsCartel = pathological
+-- PathologicalAttractor / anti-basin; AGORA CapturedCorrectionUpdate =
+-- pathological CollectiveManifoldUpdate counterfeit; AGORA automatic
+-- correction trigger = healthy CollectiveManifoldShift restoration
+-- pole). The audit proposed: rather than adding N pathological
+-- companions to §HM piecemeal, add a *polarity axis* to §HM machinery
+-- that specializes existing constructs to healthy-vs-pathological
+-- modes.
+--
+-- This section delivers the polarity axis. `Polarity` is a two-valued
+-- inductive type (`healthy`, `pathological`) with a decidable-equality
+-- instance and a simple `opposite` operation. Peers use `Polarity` to
+-- classify their pathological/healthy specializations of Core
+-- constructs; §PS-HM35 sections in `Score/Nexus.lean` and
+-- `Score/Agora.lean` provide the concrete peer labels.
+--
+-- Scope discipline: `Polarity` is a labeling axis, not a proof-theoretic
+-- construct. It does not automatically create new theorems about
+-- healthy-vs-pathological maintenance; those are peer-side (or future
+-- §HM extension) work. What the axis provides is a canonical way to
+-- name the polarity classification at the Lean type layer.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Healthy-vs-pathological polarity.** The two-valued classification
+    peer constructs use to specialize Core constructs into healthy
+    (net-generative, information-increasing, restoration-directed) and
+    pathological (net-degenerative, information-decreasing, disruption-
+    directed) modes. See §HM35 header for peer usage. -/
+inductive Polarity : Type
+  | healthy
+  | pathological
+deriving DecidableEq, Repr
+
+/-- **Polarity opposite.** Flips healthy ↔ pathological. Useful for
+    stating "the healthy counterpart of a pathological construct" or
+    vice versa. -/
+def Polarity.opposite : Polarity → Polarity
+  | Polarity.healthy      => Polarity.pathological
+  | Polarity.pathological => Polarity.healthy
+
+/-- **`opposite` is involutive** --- applying it twice returns the
+    original polarity. -/
+theorem Polarity.opposite_involutive :
+    ∀ p : Polarity, Polarity.opposite (Polarity.opposite p) = p
+  | Polarity.healthy      => rfl
+  | Polarity.pathological => rfl
+
+
 end SCORE

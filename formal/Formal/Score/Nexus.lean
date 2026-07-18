@@ -320,4 +320,34 @@ theorem nexusContraction_isAtOrBelow {α : Type} {pre post : Set α}
   linarith
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM35. NEXUS polarity labels (audit synthesis §5.5
+-- HealthyVsPathologicalPolarity Joint-abstraction candidate 3)
+--
+-- NEXUS's `NSAsCartel` (NX-G-05) is described as "self-maintaining
+-- but net-information-decreasing" --- the paradigmatic PATHOLOGICAL
+-- attractor in the peer family (already Core-promoted as `core:PathologicalAttractor`
+-- subclass on the four-peer recurrence). The healthy counterpart is
+-- the innovation-ecosystem `InnovationHOA` sustaining paradigm diversity.
+-- This section labels NSAsCartel with the §HM35 `Polarity.pathological`
+-- classification, formalizing NEXUS's contribution to the joint-abstraction
+-- HealthyVsPathologicalPolarity axis.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NSAsCartel polarity label.** NX-G-05 `NSAsCartel` classified as
+    `Polarity.pathological`. Formal marker on the §HM35 axis; the
+    healthy `InnovationHOA` counterpart carries `Polarity.healthy`. -/
+def nsAsCartelPolarity : Polarity := Polarity.pathological
+
+/-- **InnovationHOA (healthy case) polarity label.** The healthy
+    counterpart to NSAsCartel on the same §HM35 axis. -/
+def innovationHOAHealthyPolarity : Polarity := Polarity.healthy
+
+/-- **The two NEXUS polarities are opposites.** Direct instance of
+    `Polarity.opposite`: NSAsCartel and the healthy InnovationHOA sit
+    on opposite ends of the §HM35 polarity axis. -/
+theorem nsAsCartel_and_healthyHOA_are_opposites :
+    nsAsCartelPolarity = innovationHOAHealthyPolarity.opposite := rfl
+
+
 end SCORE

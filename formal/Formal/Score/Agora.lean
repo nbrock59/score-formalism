@@ -606,4 +606,60 @@ noncomputable def agoraInstitutionalHealthScore {r : Region} :
     factor := ![agoraPhiAlign, agoraPhiCorrection, agoraPhiIndependence] }
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM35. AGORA polarity labels (audit synthesis §5.5
+-- HealthyVsPathologicalPolarity Joint-abstraction candidate 3)
+--
+-- AGORA contributes two Contrast-style orphans to the
+-- HealthyVsPathologicalPolarity fingerprint family:
+--
+-- 1. `CapturedCorrectionUpdate` (AG-G-10) is a PATHOLOGICAL variant of
+--    `core:CollectiveManifoldUpdate` --- a counterfeit that produces
+--    manifold change via constituent substitution without the healthy
+--    comparator-driven update. Same observable signature (manifold
+--    moved) but pathological provenance.
+--
+-- 2. The automatic correction trigger (AG-G-13 reading of
+--    `core:CollectiveManifoldShift`) is the HEALTHY restoration pole
+--    --- an externally-initiated shift routed through an independent
+--    node, restoring healthy dynamics.
+--
+-- This section labels both with their §HM35 polarity classifications.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **CapturedCorrectionUpdate polarity label** (AG-G-10). Classified
+    as `Polarity.pathological`: constituent-substitution counterfeit of
+    the healthy `core:CollectiveManifoldUpdate` operator. -/
+def capturedCorrectionUpdatePolarity : Polarity := Polarity.pathological
+
+/-- **Healthy CollectiveManifoldUpdate polarity label.** The healthy
+    counterpart to `CapturedCorrectionUpdate` on the §HM35 axis ---
+    the ordinary comparator-driven manifold update. -/
+def healthyCollectiveManifoldUpdatePolarity : Polarity := Polarity.healthy
+
+/-- **AGORA automatic correction trigger polarity label** (AG-G-13
+    reading of SC-G-43). Classified as `Polarity.healthy`: the
+    restoration-pole reading of `core:CollectiveManifoldShift`, routed
+    through an independent node ahead of capture. -/
+def automaticCorrectionTriggerPolarity : Polarity := Polarity.healthy
+
+/-- **Disruption-pole CollectiveManifoldShift polarity label.** The
+    pathological counterpart to the automatic correction trigger on
+    the §HM35 axis --- an externally-driven shift by a capturing actor
+    (adjacent to but not identical with `CapturedCorrectionUpdate`;
+    the AGORA distinction is that the correction operator produces
+    manifold change via constituent substitution, while the disruption-
+    pole shift is unmediated by the correction operator entirely). -/
+def disruptionCollectiveManifoldShiftPolarity : Polarity := Polarity.pathological
+
+/-- **AGORA polarity pairs are internally consistent.** Direct
+    instances of `Polarity.opposite`: captured-correction and healthy-
+    update are opposite; auto-correction-trigger and disruption-shift
+    are opposite. -/
+theorem agora_polarity_pairs_opposite :
+    capturedCorrectionUpdatePolarity = healthyCollectiveManifoldUpdatePolarity.opposite ∧
+    automaticCorrectionTriggerPolarity = disruptionCollectiveManifoldShiftPolarity.opposite := by
+  exact ⟨rfl, rfl⟩
+
+
 end SCORE
