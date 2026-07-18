@@ -2465,4 +2465,112 @@ theorem Polarity.opposite_involutive :
   | Polarity.pathological => rfl
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM36. ADJACENT-POSSIBLE MEASURE
+-- Development-gap resolution for audit synthesis §5.6 items 4+5:
+-- `core:AdjacentPossibleConstraint` (SC-G-44) and `core:AdjacentPossibleMeasure`
+-- (SC-G-33). NEXUS (KillZoneExtent) and ETHOS (κ) already specialize
+-- SC-G-33; ATLAS/NEXUS SELECT SC-G-44 as intervention operator. This
+-- section adds §HM machinery for the reachable-set + breadth-measure
+-- pattern that both peers use.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Adjacent-possible measure.** A reachable-set of configurations
+    plus a real-valued breadth functional over subsets. Peers with
+    concrete instances: NEXUS `nexusAdjacentPossible` (`Score/Nexus.lean`
+    §PS-HM36; NX-G-06 KillZoneExtent's Φ as breadth); ETHOS
+    `ethosAdjacentPossible` (`Score/Ethos.lean` §PS-HM36; ET-G-06 κ as
+    breadth over incorporation-consistent configurations). -/
+structure AdjacentPossibleMeasure (α : Type) where
+  /-- The reachable set of configurations. -/
+  reachable : Set α
+  /-- Real-valued breadth functional. -/
+  breadth   : Set α → ℝ
+
+/-- **Contraction on adjacent possible.** A move from state `m₁` to
+    `m₂` is contracting if `m₂.reachable ⊆ m₁.reachable`. NEXUS
+    kill-zone events are contracting; healthy selection events are
+    expansive. -/
+def AdjacentPossibleMeasure.isContracting {α : Type}
+    (m₁ m₂ : AdjacentPossibleMeasure α) : Prop :=
+  m₂.reachable ⊆ m₁.reachable
+
+/-- **Contraction is antitone in breadth under monotone Φ.** For
+    monotone breadth functionals, contraction reduces breadth --- the
+    §HM version of NEXUS's `contraction_is_antitone_in_adjacent_possible`
+    lifted to the AdjacentPossibleMeasure structure. -/
+theorem AdjacentPossibleMeasure.contraction_reduces_breadth {α : Type}
+    (m₁ m₂ : AdjacentPossibleMeasure α)
+    (Φ : Set α → ℝ) (hΦ : Monotone Φ)
+    (h : m₁.isContracting m₂) :
+    Φ m₂.reachable ≤ Φ m₁.reachable :=
+  hΦ h
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM37. PATHOLOGICAL-ATTRACTOR MACHINERY
+-- Development-gap resolution for audit synthesis §5.6 item 3:
+-- `core:PathologicalAttractor` (SC-G-38) is Core-promoted (NEXUS
+-- NSAsCartel triggered the promotion on the four-peer recurrence) but
+-- §HM had no companion machinery for anti-basin / predatory-autocatalysis
+-- until §HM35 introduced the Polarity axis. This section builds on
+-- §HM35 to provide a structured `PathologicalAttractor` type for peer
+-- specialization.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Pathological attractor.** A self-maintaining structure classified
+    as `Polarity.pathological` on the §HM35 axis. Represents anti-basin /
+    predatory-autocatalysis configurations that satisfy Montevil-Mossio
+    constraint closure for themselves but fail Deacon's
+    net-information-increase criterion (NEXUS NX-G-05 characterization).
+
+    Peer instance: NEXUS `nexusNSAsCartelAttractor` (`Score/Nexus.lean`
+    §PS-HM37) with `state = InnovationHOA` in the NSAsCartel configuration. -/
+structure PathologicalAttractor (α : Type) where
+  /-- The attractor state (Sigma-actor, HOA, or other stable configuration). -/
+  attractorState : α
+  /-- Polarity classification (fixed to `pathological` by construction). -/
+  polarity : Polarity := Polarity.pathological
+  /-- Polarity constraint: pathological attractors are always
+      `Polarity.pathological`. -/
+  polarity_is_pathological : polarity = Polarity.pathological := by rfl
+
+/-- **A pathological attractor's polarity is pathological.** Direct
+    consequence of the structure definition. -/
+theorem PathologicalAttractor.polarity_eq_pathological {α : Type}
+    (p : PathologicalAttractor α) : p.polarity = Polarity.pathological :=
+  p.polarity_is_pathological
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM38. FITNESS CRITERION
+-- Development-gap resolution for audit synthesis §5.6 item 7:
+-- `core:FitnessCriterion` was Core-promoted on the POLARIS/ETHOS
+-- intersection (the architecture's first on-demand Q3 promotion), but
+-- §HM has no formalization of what's being selected FOR/AGAINST in
+-- the maintenance dynamics. This section adds a `FitnessCriterion`
+-- structure that peers use to make the selection criterion explicit.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Fitness criterion.** A real-valued fitness function over an
+    abstract state type together with a threshold classifying states as
+    "fit" (above threshold) or "unfit" (at or below). Peers instantiate
+    the criterion (ETHOS `ethosFloridiFitness`, `Score/Ethos.lean`
+    §PS-HM38; POLARIS-side FitnessCriterion is out of scope per audit). -/
+structure FitnessCriterion (α : Type) where
+  /-- Real-valued fitness function. -/
+  fitness   : α → ℝ
+  /-- Fitness threshold. -/
+  threshold : ℝ
+
+/-- **Fit predicate.** A state is "fit" if its fitness exceeds the
+    threshold. -/
+def FitnessCriterion.isFit {α : Type} (fc : FitnessCriterion α)
+    (x : α) : Prop := fc.threshold < fc.fitness x
+
+/-- **Unfit predicate.** Complementary to `isFit`. -/
+def FitnessCriterion.isUnfit {α : Type} (fc : FitnessCriterion α)
+    (x : α) : Prop := fc.fitness x ≤ fc.threshold
+
+
 end SCORE

@@ -390,4 +390,55 @@ noncomputable def ethosInfosphereHealthScore {r : Region} :
     factor := ![ethosContentQuality, ethosCaptureDiscriminant, ethosFairness] }
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM36. ETHOS AdjacentPossibleMeasure instance (audit synthesis
+-- §5.6 development-gap item 5, `core:AdjacentPossibleMeasure`)
+--
+-- ET-G-06 characterizes κ as the epistemic-domain instance of NS
+-- contracting the reachable region of true B₃. This section
+-- constructs an `AdjacentPossibleMeasure` instance parameterized by
+-- the alternative-content type α, with the reachable set being the
+-- corpus-consistent B₂ configurations and the breadth functional
+-- expressing epistemic-reach. Concrete numeric κ is Q4 BIND.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ETHOS adjacent-possible measure.** Parameterized by the
+    alternative type α, the reachable set (corpus-consistent B₂
+    configurations), and the breadth functional. Concrete forms are
+    Q4 BIND. -/
+def ethosAdjacentPossible {α : Type}
+    (reachable : Set α) (Φ : Set α → ℝ) : AdjacentPossibleMeasure α :=
+  { reachable := reachable
+    breadth   := Φ }
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM38. ETHOS FitnessCriterion instance (audit synthesis §5.6
+-- development-gap item 7, `core:FitnessCriterion`)
+--
+-- ET-G-03 Floridi information health is ETHOS's fitness criterion ---
+-- the first-invoked Q3 promotion of FitnessCriterion to Core (on the
+-- POLARIS/ETHOS intersection). This section constructs a
+-- `FitnessCriterion` instance where the fitness function is the
+-- InfosphereHealthScore composite (H = Q × κ × β) evaluated on an
+-- epistemic community, and the threshold is peer-scoped
+-- (Q4 BIND per calibration).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Floridi fitness threshold** for the ETHOS information-health
+    fitness criterion. Q4 BIND per ETHOS-InformationHealth.md
+    calibration. -/
+axiom ethosFloridiFitnessThreshold : ℝ
+
+/-- **ETHOS Floridi FitnessCriterion instance.** Fitness function is
+    `CompositeMeasure.value ethosInfosphereHealthScore` (Q × κ × β
+    lifted to the composite value), threshold is
+    `ethosFloridiFitnessThreshold`. An epistemic community is "fit"
+    when its InfosphereHealthScore exceeds the threshold. -/
+noncomputable def ethosFloridiFitness {r : Region} :
+    FitnessCriterion (EthosEpistemicCommunity r) :=
+  { fitness := ethosInfosphereHealthScore.value
+    threshold := ethosFloridiFitnessThreshold }
+
+
 end SCORE

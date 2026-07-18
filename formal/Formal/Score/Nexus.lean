@@ -350,4 +350,62 @@ theorem nsAsCartel_and_healthyHOA_are_opposites :
     nsAsCartelPolarity = innovationHOAHealthyPolarity.opposite := rfl
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM36. NEXUS AdjacentPossibleMeasure instance (audit synthesis
+-- §5.6 development-gap items 4+5, `core:AdjacentPossibleMeasure` +
+-- `core:AdjacentPossibleConstraint`)
+--
+-- NX-G-06 KillZoneExtent formalizes the adjacent possible as a set of
+-- independently viable paradigm approaches, with Φ = exp(H(weights))
+-- as the breadth functional (Hill number). This section constructs
+-- an `AdjacentPossibleMeasure` instance parameterized by the abstract
+-- alternative-set type α. Concrete numeric Φ / breadth values are
+-- Q4 BIND per NX-G-06.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS adjacent-possible measure.** Parameterized by the alternative
+    type α, the reachable set, and the breadth functional Φ. Concrete
+    numeric form is Q4 BIND. -/
+def nexusAdjacentPossible {α : Type}
+    (reachable : Set α) (Φ : Set α → ℝ) : AdjacentPossibleMeasure α :=
+  { reachable := reachable
+    breadth   := Φ }
+
+/-- **NEXUS kill-zone events are AdjacentPossibleMeasure contractions.**
+    Given a selection event that removes reachable configurations
+    (`post ⊆ pre`), the corresponding adjacent-possible measures are
+    contracting per `AdjacentPossibleMeasure.isContracting`. -/
+theorem nexusKillZone_isContracting {α : Type}
+    (pre post : Set α) (Φ : Set α → ℝ) (h : IsContraction pre post) :
+    (nexusAdjacentPossible pre Φ).isContracting
+      (nexusAdjacentPossible post Φ) := h
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM37. NEXUS NSAsCartel as PathologicalAttractor instance
+-- (audit synthesis §5.6 development-gap item 3, `core:PathologicalAttractor`)
+--
+-- NX-G-05 characterizes NSAsCartel as "self-maintaining but net-
+-- information-decreasing" --- the paradigmatic pathological attractor
+-- that triggered `core:PathologicalAttractor`'s Core promotion. This
+-- section constructs a `PathologicalAttractor` instance parameterized
+-- by the InnovationHOA state type, using the §HM35 polarity axis for
+-- classification.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS NSAsCartel as PathologicalAttractor instance.**
+    Parameterized by an `InnovationHOA` state carrying the NSAsCartel
+    configuration. The polarity is `pathological` by structure. -/
+def nexusNSAsCartelAttractor {r : Region}
+    (state : NexusInnovationHOA r) : PathologicalAttractor (NexusInnovationHOA r) :=
+  { attractorState := state }
+
+/-- **NSAsCartel attractor's polarity is pathological.** Direct
+    consequence of `PathologicalAttractor.polarity_eq_pathological`. -/
+theorem nexusNSAsCartelAttractor_polarity {r : Region}
+    (state : NexusInnovationHOA r) :
+    (nexusNSAsCartelAttractor state).polarity = Polarity.pathological :=
+  PathologicalAttractor.polarity_eq_pathological _
+
+
 end SCORE
