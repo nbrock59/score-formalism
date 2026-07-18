@@ -281,4 +281,43 @@ theorem contraction_as_pointAttenuationMonotone
   point_attenuation_monotone Φ hΦ h
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM32. NEXUS selection-event discriminant as §HM32
+-- `EventDiscriminant` instance (audit synthesis §5.4 ThresholdCrossingEventDiscriminant
+-- 2-peer echo).
+--
+-- NX-G-06 kill-zone extent: `δ = Φ(post) − Φ(pre)`. A selection event
+-- (acquisition, funding decision, regulation) maps a pre-set of
+-- approaches to a post-set. `δ > 0` classifies expansion (healthy
+-- selection); `δ ≤ 0` classifies contraction (kill-zone). This section
+-- constructs an `EventDiscriminant` instance whose events are
+-- (pre, post) pairs of approach sets, discriminant is `Φ post − Φ pre`,
+-- and threshold is 0. The Hill-number breadth functional Φ (NX-G-06)
+-- is a parameter --- concrete numeric form is Q4 BIND per NX-G-06.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS selection-event discriminant as §HM32 EventDiscriminant.**
+    Parameterized by the breadth functional Φ. For a (pre, post) pair
+    of approach sets, `discriminant = Φ post − Φ pre`; threshold is 0
+    (kill-zone boundary). `isAbove` classifies expansion (healthy
+    selection); `isAtOrBelow` classifies contraction (kill-zone). -/
+def nexusSelectionEventDiscriminant {α : Type} (Φ : Set α → ℝ) :
+    EventDiscriminant (Set α × Set α) :=
+  { discriminant := fun ev => Φ ev.2 - Φ ev.1
+    threshold := 0 }
+
+/-- **NEXUS contraction → EventDiscriminant.isAtOrBelow.** A contraction
+    (post ⊆ pre) under monotone Φ maps to at-or-below classification
+    (`δ ≤ 0`) in the event-discriminant view --- the formal link between
+    NEXUS's §NEXUS-antitone contraction lemma and the §HM32 event
+    discriminant. -/
+theorem nexusContraction_isAtOrBelow {α : Type} {pre post : Set α}
+    (h : IsContraction pre post) (Φ : Set α → ℝ) (hΦ : Monotone Φ) :
+    (nexusSelectionEventDiscriminant Φ).isAtOrBelow (pre, post) := by
+  unfold EventDiscriminant.isAtOrBelow nexusSelectionEventDiscriminant
+  have hle : Φ post ≤ Φ pre :=
+    contraction_as_pointAttenuationMonotone h Φ hΦ
+  linarith
+
+
 end SCORE

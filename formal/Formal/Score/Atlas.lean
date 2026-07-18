@@ -290,4 +290,44 @@ noncomputable def atlasBasinStabilityScore {r : Region} :
                 atlasCascadeRisk, atlasCapabilityGrowth] }
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM32. ATLAS misinterpretation-cascade risk as §HM32
+-- `EventDiscriminant` instance (audit synthesis §5.4
+-- ThresholdCrossingEventDiscriminant 2-peer echo).
+--
+-- AT-G-09 misinterpretation-cascade risk: a coupling edge `(i, j)`
+-- with weight `w` cascades under a shock producing distortion `Δ` when
+-- `w * Δ > θ`. The event-level shape is a per-edge threshold-crossing
+-- test on the pair `(w, Δ)`. This section constructs an
+-- `EventDiscriminant` instance whose events are `(w, Δ)` weight-
+-- distortion pairs, discriminant is `w * Δ`, and threshold is
+-- `atlasCascadeThreshold` (θ from AT-G-09). `isAbove` classifies
+-- cascading edges; the aggregate cascade risk in AT-G-09 is the count
+-- of `isAbove` events over the basin's edge set (aggregate structure
+-- is peer-side future work; the event-level test is bound here).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Cascade threshold θ.** The cascade activation threshold used in
+    the per-edge test `w * Δ > θ`. Q4 BIND per AT-G-09. -/
+axiom atlasCascadeThreshold : ℝ
+
+/-- **ATLAS cascade edge-level discriminant as §HM32 EventDiscriminant.**
+    For a (weight, distortion) pair, discriminant is `w * Δ`; threshold
+    is `atlasCascadeThreshold`. `isAbove (w, Δ)` classifies the edge
+    as cascading (contributing 1 to AT-G-09's aggregate cascade risk);
+    `isAtOrBelow` classifies as safe. -/
+noncomputable def atlasEdgeCascadeDiscriminant :
+    EventDiscriminant (ℝ × ℝ) :=
+  { discriminant := fun ev => ev.1 * ev.2
+    threshold := atlasCascadeThreshold }
+
+/-- **The per-edge cascade test IS the EventDiscriminant.isAbove
+    classification.** For an edge `(w, Δ)`, `w * Δ > θ` iff the event
+    discriminant classifies the edge as above-threshold. Definitional
+    unfolding. -/
+theorem atlasCascadeEdge_isAbove_iff (w Δ : ℝ) :
+    atlasEdgeCascadeDiscriminant.isAbove (w, Δ) ↔
+      atlasCascadeThreshold < w * Δ := Iff.rfl
+
+
 end SCORE

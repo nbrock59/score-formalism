@@ -2298,4 +2298,63 @@ theorem CompositeMeasure.value_nonneg {α : Type} (m : CompositeMeasure α)
   exact Finset.prod_nonneg (fun i _ => h i)
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM32. EVENT-DISCRIMINANT FAMILY
+-- Abstract-side companion for the audit synthesis §5.4
+-- New-abstract-candidate 3 `ThresholdCrossingEventDiscriminant`
+-- (2-peer echo: ATLAS misinterpretation-cascade risk `w*Δ > θ`
+-- threshold-crossing edge-count; NEXUS selection event
+-- `δ = Φ(post) − Φ(pre)` pre/post discriminant classifying expansion
+-- vs contraction). §HM formalized trace-level dynamics (§HM1--§HM29),
+-- point-level attenuation (§HM30), and composite measures (§HM31)
+-- until now; this section adds the *event-discriminant* companion so
+-- peer event-level constructs can formally specialize a §HM construct.
+--
+-- The family covers any real-valued function on some event type
+-- classified against a threshold. Peers instantiate `Event` at
+-- different granularities: NEXUS at the selection-event level
+-- (pre × post sets), ATLAS at the coupling-edge level (weight × distortion
+-- pair). The signature is agnostic; the peer chooses granularity.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Event discriminant.** A real-valued function on an abstract event
+    type together with a threshold that classifies events into two
+    regimes (above-threshold = one regime, at-or-below = the other).
+    Peer instantiations: NEXUS `nexusSelectionEventDiscriminant`
+    (`Score/Nexus.lean` §PS-HM32; Event = Set × Set, discriminant =
+    `Φ post − Φ pre`, threshold = 0); ATLAS `atlasEdgeCascadeDiscriminant`
+    (`Score/Atlas.lean` §PS-HM32; Event = ℝ × ℝ weight-distortion pair,
+    discriminant = `w * Δ`, threshold = θ = `atlasCascadeThreshold`). -/
+structure EventDiscriminant (Event : Type) where
+  /-- Real-valued discriminant assigned to each event. -/
+  discriminant : Event → ℝ
+  /-- Classification threshold. Peers use 0 (NEXUS δ classification)
+      or a domain-specific value (ATLAS θ). -/
+  threshold    : ℝ
+
+/-- **Above-threshold classification.** Events whose discriminant
+    exceeds the threshold (NEXUS: δ > 0 = expansion; ATLAS: w*Δ > θ =
+    cascading edge). Structural convention: `isAbove` names the
+    "critical" regime the peer domain flags for action (NEXUS: expansion
+    = healthy; ATLAS: cascading = risky). Interpretation is peer-specific;
+    the abstract construct is agnostic. -/
+def EventDiscriminant.isAbove {Event : Type} (e : EventDiscriminant Event)
+    (ev : Event) : Prop := e.threshold < e.discriminant ev
+
+/-- **At-or-below classification** --- complementary to `isAbove`. -/
+def EventDiscriminant.isAtOrBelow {Event : Type}
+    (e : EventDiscriminant Event) (ev : Event) : Prop :=
+  e.discriminant ev ≤ e.threshold
+
+/-- **Classification is exhaustive.** Every event falls into exactly
+    one of the two regimes. -/
+theorem EventDiscriminant.classification_exhaustive {Event : Type}
+    (e : EventDiscriminant Event) (ev : Event) :
+    e.isAbove ev ∨ e.isAtOrBelow ev := by
+  unfold EventDiscriminant.isAbove EventDiscriminant.isAtOrBelow
+  by_cases h : e.threshold < e.discriminant ev
+  · exact Or.inl h
+  · exact Or.inr (not_lt.mp h)
+
+
 end SCORE
