@@ -431,7 +431,12 @@ axiom nexusParadigmClusterGetter : ∀ {r : Region},
     Successful generational renewal in an InnovationHOA preserves the
     paradigmCluster down-closure as a `nexusNetwork`-region. Formal
     counterpart of the audit's "patent citations propagate technical
-    knowledge across generations" claim. -/
+    knowledge across generations" claim.
+
+    LOAD-BEARING per `governance/SCORE_HM_Peer_Axiom_Audit.md` §5.2
+    (Category C): Phase F could falsify this if a real NEXUS L2 event
+    (patent-generation transition) either shrinks the paradigmCluster
+    or produces a non-region post-state. -/
 axiom nexusParadigmCluster_L2preserves : ∀ {r : Region} (s s' : HOAState r),
   DoctrinalNetworkL2Preserves nexusNetwork nexusParadigmClusterGetter s s'
 

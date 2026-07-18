@@ -460,7 +460,10 @@ noncomputable def ethosFloridiFitness {r : Region} :
 axiom ethosSpectralEWSWeights : Fin 3 → ℝ
 
 /-- **Nonneg-weight condition on ETHOS spectral weights.** Q4 BIND
-    calibration constraint. -/
+    calibration constraint --- LOAD-BEARING per
+    `governance/SCORE_HM_Peer_Axiom_Audit.md` §5.1 (Category C):
+    Phase F could falsify this if calibration warrants a negative
+    weight on some signature (e.g., anti-correlation with EWS). -/
 axiom ethosSpectralEWSWeights_nonneg : ∀ i, 0 ≤ ethosSpectralEWSWeights i
 
 /-- **ETHOS SpectralEWS as §HM40 SpectralEWSInstance.** Arity 3 with
@@ -494,7 +497,12 @@ axiom ethosCorpusGetter : ∀ {r : Region},
     Successful generational renewal in an epistemic community preserves
     the DisciplinaryCorpus down-closure as an `ethosNetwork`-region.
     Formalizes the citation-across-research-generations transmission
-    story. -/
+    story.
+
+    LOAD-BEARING per `governance/SCORE_HM_Peer_Axiom_Audit.md` §5.2
+    (Category C): Phase F could falsify this if a real ETHOS L2 event
+    (research-generation transition via citation propagation) either
+    shrinks the DisciplinaryCorpus or produces a non-region post-state. -/
 axiom ethosCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
   DoctrinalNetworkL2Preserves ethosNetwork ethosCorpusGetter s s'
 

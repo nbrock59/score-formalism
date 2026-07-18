@@ -298,7 +298,12 @@ axiom bacPolityCorpusGetter : ∀ {r : Region},
     Successful generational renewal in a BAC polity cluster preserves
     the PolityCorpus down-closure as a `bacNetwork`-region. The formal
     counterpart of the audit's "PolityCorpus IS the L2 mechanism made
-    explicit as region-preservation" claim. -/
+    explicit as region-preservation" claim.
+
+    LOAD-BEARING per `governance/SCORE_HM_Peer_Axiom_Audit.md` §5.2
+    (Category C): Phase F could falsify this if a historical BAC L2
+    event either (a) shrinks the PolityCorpus rather than preserving
+    it, or (b) produces a post-corpus that isn't a `bacNetwork`-region. -/
 axiom bacPolityCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
   DoctrinalNetworkL2Preserves bacNetwork bacPolityCorpusGetter s s'
 

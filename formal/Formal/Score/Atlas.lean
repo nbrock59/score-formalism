@@ -353,7 +353,13 @@ axiom atlasCorpusGetter : ∀ {r : Region},
     Successful generational renewal in a deterrence basin preserves
     the StrategicCorpus down-closure as an `atlasNetwork`-region.
     Formalizes the doctrine-evolution-across-generations story implicit
-    in ATLAS's `derivesFromDoctrine` chain-DAG structure. -/
+    in ATLAS's `derivesFromDoctrine` chain-DAG structure.
+
+    LOAD-BEARING per `governance/SCORE_HM_Peer_Axiom_Audit.md` §5.2
+    (Category C): Phase F could falsify this if a real ATLAS L2 event
+    (strategic-doctrine transition across a strategic-thinker
+    generation) either shrinks the StrategicCorpus or produces a
+    non-region post-state. -/
 axiom atlasCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
   DoctrinalNetworkL2Preserves atlasNetwork atlasCorpusGetter s s'
 

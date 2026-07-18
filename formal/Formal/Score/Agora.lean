@@ -730,7 +730,13 @@ axiom agoraCorpusGetter : ∀ {r : Region},
     preserves the DoctrinalCorpus down-closure as an `agoraNetwork`-
     region. Formal counterpart of the audit's §6.1 mapping table
     "MortalityBoundary Condition 5 ↔ L2 GenerationalRenewalMove"
-    correspondence. -/
+    correspondence.
+
+    LOAD-BEARING per `governance/SCORE_HM_Peer_Axiom_Audit.md` §5.2
+    (Category C): Phase F could falsify this if a real AGORA L2 event
+    (interpretive-tradition transition across a judicial generation)
+    either shrinks the DoctrinalCorpus or produces a non-region
+    post-state. -/
 axiom agoraCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
   DoctrinalNetworkL2Preserves agoraNetwork agoraCorpusGetter s s'
 
