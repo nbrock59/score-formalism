@@ -569,4 +569,41 @@ theorem ss13_as_pointFragility {floor nodeFloor : ℝ}
   exact point_fragility_positive_floor hfloor hcap
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM31. AGORA InstitutionalHealthScore as §HM31 CompositeMeasure
+-- instance (audit synthesis §5.4 CompositeSigmaActorHealthScore 3-peer
+-- echo).
+--
+-- AG-G-04 InstitutionalHealthScore is a distribution-valued composite
+-- H = Φ_align × Φ_correction × Φ_independence. This section constructs
+-- a `CompositeMeasure` instance over `AgoraMaintainingCommunity` whose
+-- three factors are peer-scoped opaque functions (Q4 BIND) matching
+-- the AG-G-04 decomposition. Scalar-valued at this tier;
+-- distribution-valued lifting is future peer work.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Φ_align factor** of AGORA's InstitutionalHealthScore. Alignment
+    of role-occupant manifold positions with the RoleTemplateSet.
+    Q4 BIND (concrete values are peer-specific data). -/
+axiom agoraPhiAlign {r : Region} : AgoraMaintainingCommunity r → ℝ
+
+/-- **Φ_correction factor** of AGORA's InstitutionalHealthScore.
+    Correction-capability of the maintaining community's independent
+    nodes. Q4 BIND. -/
+axiom agoraPhiCorrection {r : Region} : AgoraMaintainingCommunity r → ℝ
+
+/-- **Φ_independence factor** of AGORA's InstitutionalHealthScore.
+    Node-independence readout (distinct from the SS13 arithmetic floor).
+    Q4 BIND. -/
+axiom agoraPhiIndependence {r : Region} : AgoraMaintainingCommunity r → ℝ
+
+/-- **AGORA InstitutionalHealthScore as §HM31 CompositeMeasure
+    instance.** H = Φ_align × Φ_correction × Φ_independence lifts to
+    `CompositeMeasure.value` on the peer's U2 type. -/
+noncomputable def agoraInstitutionalHealthScore {r : Region} :
+    CompositeMeasure (AgoraMaintainingCommunity r) :=
+  { arity := 3,
+    factor := ![agoraPhiAlign, agoraPhiCorrection, agoraPhiIndependence] }
+
+
 end SCORE

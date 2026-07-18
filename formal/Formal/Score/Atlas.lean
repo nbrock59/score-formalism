@@ -249,4 +249,45 @@ theorem signalFidelity_as_pointAttenuationAntitone
     (signalFidelity_isAntitone_of_le_one h0 h1) hjk
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM31. ATLAS BasinStabilityScore as §HM31 CompositeMeasure
+-- instance (audit synthesis §5.4 CompositeSigmaActorHealthScore 3-peer
+-- echo).
+--
+-- AT-G-04 BasinStabilityScore is a distribution-valued 4-factor
+-- composite over a DeterrenceBasin: coupling density in the stability
+-- basin; B₃ signaling-convention coverage by domain; misinterpretation-
+-- cascade risk; corporate deterrence-capability growth vs governance-
+-- framework coverage. This section constructs a `CompositeMeasure`
+-- instance whose four factors are peer-scoped opaque functions (Q4
+-- BIND). Scalar-valued at this tier.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Coupling-density factor** of ATLAS's BasinStabilityScore. Q4 BIND. -/
+axiom atlasCouplingDensity {r : Region} : AtlasDeterrenceBasin r → ℝ
+
+/-- **B₃-coverage factor** of ATLAS's BasinStabilityScore. Aggregate
+    signaling-convention coverage across the five signaling domains.
+    Q4 BIND. -/
+axiom atlasB3Coverage {r : Region} : AtlasDeterrenceBasin r → ℝ
+
+/-- **Cascade-risk factor** of ATLAS's BasinStabilityScore (inverse of
+    the misinterpretation-cascade risk). Q4 BIND. -/
+axiom atlasCascadeRisk {r : Region} : AtlasDeterrenceBasin r → ℝ
+
+/-- **Capability-growth factor** of ATLAS's BasinStabilityScore.
+    Corporate deterrence-capability growth vs governance-framework
+    coverage. Q4 BIND. -/
+axiom atlasCapabilityGrowth {r : Region} : AtlasDeterrenceBasin r → ℝ
+
+/-- **ATLAS BasinStabilityScore as §HM31 CompositeMeasure instance.**
+    Four factors lifted to `CompositeMeasure.value` on the peer's U2
+    type. -/
+noncomputable def atlasBasinStabilityScore {r : Region} :
+    CompositeMeasure (AtlasDeterrenceBasin r) :=
+  { arity := 4,
+    factor := ![atlasCouplingDensity, atlasB3Coverage,
+                atlasCascadeRisk, atlasCapabilityGrowth] }
+
+
 end SCORE

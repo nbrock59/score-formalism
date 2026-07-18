@@ -2253,4 +2253,49 @@ theorem point_attenuation_antitone {α β : Type} [Preorder α] [Preorder β]
     (f : α → β) (hf : Antitone f) {a b : α} (h : a ≤ b) : f b ≤ f a :=
   hf h
 
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM31. COMPOSITE MEASURE FAMILY
+-- Abstract-side companion for the audit synthesis §5.4
+-- New-abstract-candidate 2 `CompositeSigmaActorHealthScore` (3-peer
+-- echo: AGORA InstitutionalHealthScore = Φ_align × Φ_correction ×
+-- Φ_independence; ATLAS BasinStabilityScore 4-factor composite;
+-- ETHOS InfosphereHealthScore = Q × κ × β). §HM formalized only trace-
+-- level dynamics + point-level attenuation (§HM30) until now; this
+-- section adds the *composite measure* companion so peer central
+-- health scores can formally specialize a §HM construct.
+--
+-- Distribution-valued vs scalar-valued distinction (audit noted peers
+-- use distribution-valued) is orthogonal to the composite structure
+-- itself and would be modeled peer-side by lifting the factor codomain
+-- from ℝ to a distribution monad. Kept scalar-valued here to preserve
+-- tight scope.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Composite measure.** A multi-factor scalar-valued measure over an
+    abstract state type `α`. Each factor maps `α` to a real
+    contribution; the composite value is the product of factor values.
+    Peer instantiations: AGORA `agoraInstitutionalHealthScore`
+    (`Score/Agora.lean` §PS-HM31), ATLAS `atlasBasinStabilityScore`
+    (`Score/Atlas.lean` §PS-HM31), ETHOS `ethosInfosphereHealthScore`
+    (`Score/Ethos.lean` §PS-HM31). -/
+structure CompositeMeasure (α : Type) where
+  /-- Number of factor sub-measures composing the composite. -/
+  arity  : ℕ
+  /-- The `i`-th factor sub-measure. -/
+  factor : Fin arity → α → ℝ
+
+/-- Multiplicative composite value: the product of factor values. -/
+noncomputable def CompositeMeasure.value {α : Type}
+    (m : CompositeMeasure α) (x : α) : ℝ :=
+  ∏ i : Fin m.arity, m.factor i x
+
+/-- **Nonnegative composite from nonnegative factors.** If every factor
+    is nonnegative on `x`, the composite value is nonnegative. -/
+theorem CompositeMeasure.value_nonneg {α : Type} (m : CompositeMeasure α)
+    (x : α) (h : ∀ i, 0 ≤ m.factor i x) : 0 ≤ m.value x := by
+  unfold CompositeMeasure.value
+  exact Finset.prod_nonneg (fun i _ => h i)
+
+
 end SCORE

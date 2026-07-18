@@ -353,4 +353,41 @@ theorem capturedHealth_as_pointAttenuationMonotone
   simpa using this
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM31. ETHOS InfosphereHealthScore as §HM31 CompositeMeasure
+-- instance (audit synthesis §5.4 CompositeSigmaActorHealthScore 3-peer
+-- echo).
+--
+-- ET-G-04 InfosphereHealthScore is a distribution-valued composite
+-- H = Q × κ × β (Floridi content quality × capture discriminant ×
+-- OMBF fairness). This section constructs a `CompositeMeasure`
+-- instance over `EthosEpistemicCommunity` whose three factors are
+-- peer-scoped opaque functions (Q4 BIND) matching the ET-G-04
+-- decomposition. Scalar-valued at this tier.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Q factor** of ETHOS's InfosphereHealthScore --- Floridi content
+    quality per ET-G-05. Q4 BIND. -/
+axiom ethosContentQuality {r : Region} : EthosEpistemicCommunity r → ℝ
+
+/-- **κ factor** of ETHOS's InfosphereHealthScore --- capture
+    discriminant per ET-G-06. Q4 BIND. The reusable point-level
+    attenuation content is captured by
+    `capturedHealth_as_pointAttenuationMonotone` (§PS-PA) at a
+    different scope. -/
+axiom ethosCaptureDiscriminant {r : Region} : EthosEpistemicCommunity r → ℝ
+
+/-- **β factor** of ETHOS's InfosphereHealthScore --- OMBF equitable-
+    propagation term per ET-G-09. Q4 BIND. -/
+axiom ethosFairness {r : Region} : EthosEpistemicCommunity r → ℝ
+
+/-- **ETHOS InfosphereHealthScore as §HM31 CompositeMeasure instance.**
+    H = Q × κ × β lifts to `CompositeMeasure.value` on the peer's U2
+    type. -/
+noncomputable def ethosInfosphereHealthScore {r : Region} :
+    CompositeMeasure (EthosEpistemicCommunity r) :=
+  { arity := 3,
+    factor := ![ethosContentQuality, ethosCaptureDiscriminant, ethosFairness] }
+
+
 end SCORE
