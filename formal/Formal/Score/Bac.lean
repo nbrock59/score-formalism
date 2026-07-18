@@ -273,4 +273,34 @@ theorem ss12_as_pointAttenuationAntitone
   point_attenuation_antitone consistentB2 consistentB2_isAntitone h
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM41. SCORE-BAC PolityCorpus binding to §HM41
+-- DoctrinalNetworkL2Preserves (audit synthesis §5.6 development-gap
+-- item 8, universal DoctrinalNetwork L2-specialization)
+--
+-- BAC-G-08 PolityCorpus is BAC's DoctrinalNetwork specialization ---
+-- graded down-set of the historical-record DAG under `derivesFromRecord`.
+-- The audit noted (`SCORE_BAC_HM_Specialization_Audit.md`) that
+-- PolityCorpus IS the L2 mechanism made explicit as region-preservation.
+-- This section constructs an axiom asserting the L2/PolityCorpus
+-- correspondence at the §HM41 level. Analogous witnesses for NEXUS,
+-- AGORA, ATLAS, ETHOS are the natural follow-up (all 5 peers have
+-- DoctrinalNetwork specializations).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **BAC PolityCorpus getter** for §HM41 binding. Projects an
+    HOAState to its BAC PolityCorpus down-closure. Q4 BIND per BAC-G-08
+    when concrete state carries the frontier. -/
+axiom bacPolityCorpusGetter : ∀ {r : Region},
+  HOAState r → Set HistoricalInscription
+
+/-- **BAC PolityCorpus preserves under L2** (§PS-HM41 axiom).
+    Successful generational renewal in a BAC polity cluster preserves
+    the PolityCorpus down-closure as a `bacNetwork`-region. The formal
+    counterpart of the audit's "PolityCorpus IS the L2 mechanism made
+    explicit as region-preservation" claim. -/
+axiom bacPolityCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
+  DoctrinalNetworkL2Preserves bacNetwork bacPolityCorpusGetter s s'
+
+
 end SCORE

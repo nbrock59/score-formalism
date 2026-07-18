@@ -441,4 +441,34 @@ noncomputable def ethosFloridiFitness {r : Region} :
     threshold := ethosFloridiFitnessThreshold }
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM40. ETHOS SpectralEWS instance (audit synthesis §5.6
+-- development-gap item 6, `core:SpectralEarlyWarningIndicator`)
+--
+-- ET-G-13 InfosphereSpectralEWS is the n=3 filler of SC-G-49 alongside
+-- POLARIS SEWI. `Score/Ethos.lean` already carries `ethosSpectralEWS`
+-- and `ethosSpectralEWS_monotone` (built on `SCORE.spectralEWS` /
+-- `SCORE.spectral_ews_monotone` from Core.lean §Spectral). This section
+-- wraps ETHOS's arity-3 signature-weight configuration in a §HM40
+-- `SpectralEWSInstance` structure.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ETHOS signature weights** for the arity-3 spectral EWS.
+    Three nonneg weights composing critical-slowing-down signatures
+    (low-frequency variance ratio, lag-1 autocorrelation, spectral-
+    centroid drift). Q4 BIND per E5 calibration. -/
+axiom ethosSpectralEWSWeights : Fin 3 → ℝ
+
+/-- **Nonneg-weight condition on ETHOS spectral weights.** Q4 BIND
+    calibration constraint. -/
+axiom ethosSpectralEWSWeights_nonneg : ∀ i, 0 ≤ ethosSpectralEWSWeights i
+
+/-- **ETHOS SpectralEWS as §HM40 SpectralEWSInstance.** Arity 3 with
+    the peer's signature weights. -/
+noncomputable def ethosSpectralEWSInstance : SpectralEWSInstance :=
+  { arity := 3
+    weights := ethosSpectralEWSWeights
+    weights_nonneg := ethosSpectralEWSWeights_nonneg }
+
+
 end SCORE

@@ -662,4 +662,48 @@ theorem agora_polarity_pairs_opposite :
   exact ⟨rfl, rfl⟩
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM39. AGORA manifold-dynamics instances (audit synthesis §5.6
+-- development-gap items 1+2, `core:CollectiveManifoldUpdate` +
+-- `core:CollectiveManifoldShift`)
+--
+-- AG-G-10 CapturedCorrectionUpdate specializes SC-G-32 as a pathological
+-- update operator. AG-G-13 automatic correction trigger reads SC-G-43
+-- as a healthy restoration-pole shift operator. This section constructs
+-- both as §HM39 CollectiveManifoldUpdate / CollectiveManifoldShift
+-- instances with §HM35 polarity classifications.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **AGORA collective manifold state type** for the §HM39 dynamics.
+    Opaque axiom; peer-specific manifold shape is Q4 BIND. -/
+axiom AgoraCollectiveManifoldState : Type
+
+/-- **AGORA CapturedCorrectionUpdate step function.** Constituent-
+    substitution counterfeit: pathological manifold update via
+    incorporator replacement. Concrete step semantics are Q4 BIND
+    per A5 CapturedCorrectionUpdate dynamics. -/
+axiom agoraCapturedCorrectionStep :
+    AgoraCollectiveManifoldState → AgoraCollectiveManifoldState
+
+/-- **AGORA CapturedCorrectionUpdate as §HM39 CollectiveManifoldUpdate
+    instance.** Pathological polarity per §PS-HM35. -/
+noncomputable def agoraCapturedCorrectionUpdate :
+    CollectiveManifoldUpdate AgoraCollectiveManifoldState :=
+  { step := agoraCapturedCorrectionStep
+    polarity := Polarity.pathological }
+
+/-- **AGORA automatic correction trigger transition relation.**
+    Externally-initiated restoration-pole shift routed through an
+    independent node. Q4 BIND. -/
+axiom agoraAutomaticCorrectionTransition :
+    AgoraCollectiveManifoldState → AgoraCollectiveManifoldState → Prop
+
+/-- **AGORA automatic correction trigger as §HM39 CollectiveManifoldShift
+    instance.** Healthy polarity per §PS-HM35. -/
+noncomputable def agoraAutomaticCorrectionShift :
+    CollectiveManifoldShift AgoraCollectiveManifoldState :=
+  { transition := agoraAutomaticCorrectionTransition
+    polarity := Polarity.healthy }
+
+
 end SCORE

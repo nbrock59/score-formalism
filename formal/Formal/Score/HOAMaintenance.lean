@@ -2573,4 +2573,98 @@ def FitnessCriterion.isUnfit {α : Type} (fc : FitnessCriterion α)
     (x : α) : Prop := fc.fitness x ≤ fc.threshold
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM39. COLLECTIVE MANIFOLD DYNAMICS
+-- Development-gap resolution for audit synthesis §5.6 items 1+2:
+-- `core:CollectiveManifoldUpdate` (SC-G-32) and `core:CollectiveManifoldShift`
+-- (SC-G-43). AGORA specializes both (CapturedCorrectionUpdate as
+-- pathological update; automatic correction trigger as healthy shift).
+-- This section adds §HM machinery for both update (incremental) and
+-- shift (large-scale) manifold-dynamics operators over an abstract
+-- manifold-state type.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **CollectiveManifoldUpdate.** An incremental update operator on
+    manifold states. Peers instantiate with peer-specific manifold
+    types and update mechanics (AGORA CapturedCorrectionUpdate is
+    the pathological polarity, `Polarity.pathological` on the §HM35
+    axis). -/
+structure CollectiveManifoldUpdate (α : Type) where
+  /-- The step function: pre-state → post-state. -/
+  step : α → α
+  /-- §HM35 polarity classification (healthy = comparator-driven,
+      pathological = counterfeit like AGORA's constituent substitution). -/
+  polarity : Polarity
+
+/-- **CollectiveManifoldShift.** A large-scale manifold reconfiguration
+    operator. Distinct from `CollectiveManifoldUpdate` (which is
+    incremental); shift is trace-level or event-level. -/
+structure CollectiveManifoldShift (α : Type) where
+  /-- The shift relation: pre-state → post-state. -/
+  transition : α → α → Prop
+  /-- §HM35 polarity: healthy shifts are restoration-directed
+      (AGORA automatic correction trigger); pathological shifts are
+      disruption-directed. -/
+  polarity : Polarity
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM40. SPECTRAL EARLY-WARNING INDICATOR (§HM companion)
+-- Development-gap resolution for audit synthesis §5.6 item 6:
+-- `core:SpectralEarlyWarningIndicator` (SC-G-49) has TWO Core-level
+-- fillers (POLARIS SEWI, ETHOS InfosphereSpectralEWS) via the generic
+-- `SCORE.spectralEWS` and `SCORE.spectral_ews_monotone` in `Core.lean`
+-- §Spectral. §HM had no companion until now. This section wraps the
+-- generic spectral-EWS machinery in a `SpectralEWSInstance` structure
+-- that peers can adopt for §HM-level annotations without re-implementing
+-- the underlying arithmetic.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **Spectral early-warning indicator (§HM instance).** A wrapper
+    around the generic `SCORE.spectralEWS` (`Core.lean` §Spectral)
+    parameterized by an arity `n` (number of critical-slowing-down
+    signatures composed). Peers instantiate at specific arities
+    (POLARIS at n = 3 via `polarisSEWI`; ETHOS at n = 3 via
+    `ethosSpectralEWS`). §HM's role is to provide the structural
+    binding; concrete calibration is Q4 BIND / peer-specific work. -/
+structure SpectralEWSInstance where
+  /-- Arity: number of signatures composed. -/
+  arity   : ℕ
+  /-- Signature weights (from `SCORE.spectralEWS`'s `w` parameter). -/
+  weights : Fin arity → ℝ
+  /-- Nonnegative-weight condition needed by `spectral_ews_monotone`. -/
+  weights_nonneg : ∀ i, 0 ≤ weights i
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §HM41. DOCTRINAL-NETWORK L2 SPECIALIZATION
+-- Development-gap resolution for audit synthesis §5.6 item 8: all 5
+-- peers specialize `Core.DoctrinalNetwork` for their corpora (BAC
+-- PolityCorpus, NEXUS paradigmCluster, AGORA DoctrinalCorpus, ATLAS
+-- StrategicCorpus, ETHOS ethosCorpus). §HM has L2 GenerationalRenewalMove
+-- (§HM26) but no specialization to DoctrinalNetwork-style corpora ---
+-- the SYSTEMATIC universal gap the audit synthesis discovered. This
+-- section adds a predicate binding L2 slow-moves to DoctrinalNetwork
+-- corpus preservation.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **DoctrinalNetwork L2 preservation.** A GenerationalRenewalMove on
+    an HOAState `preserves` a peer's DoctrinalNetwork corpus if the
+    post-state's implicit corpus contains (or equals) the pre-state's
+    corpus. This predicate names the semantic binding between §HM's
+    L2 slow-move and the peer's Core-level DoctrinalNetwork specialization.
+
+    Peer instantiations attach a corpus-projection function
+    (`getCorpus : HOAState r → Set α`) and prove the L2 move preserves
+    it. Concrete peer bindings are Q4 BIND when they depend on runtime
+    data; the structural predicate is what §HM provides. -/
+def DoctrinalNetworkL2Preserves {α : Type} {r : Region}
+    (n : DoctrinalNetwork α)
+    (getCorpus : HOAState r → Set α)
+    (s s' : HOAState r) : Prop :=
+  GenerationalRenewalMove s s' →
+    getCorpus s ⊆ getCorpus s' ∧
+    n.IsRegion (getCorpus s')
+
+
 end SCORE
