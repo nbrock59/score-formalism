@@ -471,4 +471,32 @@ noncomputable def ethosSpectralEWSInstance : SpectralEWSInstance :=
     weights_nonneg := ethosSpectralEWSWeights_nonneg }
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM41. ETHOS ethosCorpus binding to §HM41
+-- DoctrinalNetworkL2Preserves (audit synthesis §5.6 development-gap
+-- item 8, universal DoctrinalNetwork L2-specialization)
+--
+-- ET-G-11 DisciplinaryCorpus is ETHOS's DoctrinalNetwork specialization
+-- (per Ethos.lean §15 = SS15) --- graded down-set of the citation DAG
+-- under `ethosCites`. Epistemic communities transmit knowledge across
+-- research generations via citations (audit's peer-story for L2
+-- correspondence). This section asserts the L2/ethosCorpus
+-- correspondence at the §HM41 level, completing the 5-peer witness
+-- suite for §HM41 (BAC + NEXUS + AGORA + ATLAS + ETHOS).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ETHOS ethosCorpus getter** for §HM41 binding. Projects an HOAState
+    to its ETHOS DisciplinaryCorpus down-closure. Q4 BIND. -/
+axiom ethosCorpusGetter : ∀ {r : Region},
+  HOAState r → Set EClaim
+
+/-- **ETHOS DisciplinaryCorpus preserves under L2** (§PS-HM41 axiom).
+    Successful generational renewal in an epistemic community preserves
+    the DisciplinaryCorpus down-closure as an `ethosNetwork`-region.
+    Formalizes the citation-across-research-generations transmission
+    story. -/
+axiom ethosCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
+  DoctrinalNetworkL2Preserves ethosNetwork ethosCorpusGetter s s'
+
+
 end SCORE

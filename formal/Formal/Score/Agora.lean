@@ -706,4 +706,33 @@ noncomputable def agoraAutomaticCorrectionShift :
     polarity := Polarity.healthy }
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM41. AGORA agoraCorpus binding to §HM41
+-- DoctrinalNetworkL2Preserves (audit synthesis §5.6 development-gap
+-- item 8, universal DoctrinalNetwork L2-specialization)
+--
+-- AG-G-12 DoctrinalCorpus is AGORA's DoctrinalNetwork specialization ---
+-- graded down-set of the legal-authority DAG under `citesAuthority`
+-- (stare decisis). Constitutional interpretation across judicial
+-- generations IS the L2 mechanism for AGORA (audit's §6.1 mapping table
+-- names MortalityBoundary Condition 5 ↔ L2). This section asserts the
+-- L2/agoraCorpus correspondence at the §HM41 level, mirroring BAC
+-- §PS-HM41 (PR #479) and NEXUS above.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **AGORA agoraCorpus getter** for §HM41 binding. Projects an HOAState
+    to its AGORA DoctrinalCorpus down-closure. Q4 BIND. -/
+axiom agoraCorpusGetter : ∀ {r : Region},
+  HOAState r → Set LegalInscription
+
+/-- **AGORA DoctrinalCorpus preserves under L2** (§PS-HM41 axiom).
+    Successful generational renewal in the maintaining community
+    preserves the DoctrinalCorpus down-closure as an `agoraNetwork`-
+    region. Formal counterpart of the audit's §6.1 mapping table
+    "MortalityBoundary Condition 5 ↔ L2 GenerationalRenewalMove"
+    correspondence. -/
+axiom agoraCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
+  DoctrinalNetworkL2Preserves agoraNetwork agoraCorpusGetter s s'
+
+
 end SCORE

@@ -330,4 +330,32 @@ theorem atlasCascadeEdge_isAbove_iff (w Δ : ℝ) :
       atlasCascadeThreshold < w * Δ := Iff.rfl
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM41. ATLAS atlasCorpus binding to §HM41
+-- DoctrinalNetworkL2Preserves (audit synthesis §5.6 development-gap
+-- item 8, universal DoctrinalNetwork L2-specialization)
+--
+-- AT-G-10 StrategicCorpus is ATLAS's DoctrinalNetwork specialization ---
+-- graded down-set of the strategic-doctrine DAG under `derivesFromDoctrine`.
+-- Strategic doctrine evolves across generations of strategic thinkers
+-- (audit's peer-story for U7 L2 correspondence, though ATLAS's U7
+-- verdict was Natural not Present-Domain). This section asserts the
+-- L2/atlasCorpus correspondence at the §HM41 level, mirroring the
+-- pattern established in BAC / NEXUS / AGORA.
+-- ════════════════════════════════════════════════════════════════
+
+/-- **ATLAS atlasCorpus getter** for §HM41 binding. Projects an HOAState
+    to its ATLAS StrategicCorpus down-closure. Q4 BIND. -/
+axiom atlasCorpusGetter : ∀ {r : Region},
+  HOAState r → Set StrategicInscription
+
+/-- **ATLAS StrategicCorpus preserves under L2** (§PS-HM41 axiom).
+    Successful generational renewal in a deterrence basin preserves
+    the StrategicCorpus down-closure as an `atlasNetwork`-region.
+    Formalizes the doctrine-evolution-across-generations story implicit
+    in ATLAS's `derivesFromDoctrine` chain-DAG structure. -/
+axiom atlasCorpus_L2preserves : ∀ {r : Region} (s s' : HOAState r),
+  DoctrinalNetworkL2Preserves atlasNetwork atlasCorpusGetter s s'
+
+
 end SCORE

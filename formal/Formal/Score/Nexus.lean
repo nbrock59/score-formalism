@@ -408,4 +408,32 @@ theorem nexusNSAsCartelAttractor_polarity {r : Region}
   PathologicalAttractor.polarity_eq_pathological _
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §PS-HM41. NEXUS paradigmCluster binding to §HM41
+-- DoctrinalNetworkL2Preserves (audit synthesis §5.6 development-gap
+-- item 8, universal DoctrinalNetwork L2-specialization)
+--
+-- NX-G-07 paradigmCluster is NEXUS's DoctrinalNetwork specialization ---
+-- graded down-set of the patent-citation DAG under `patentCites`. Patent
+-- citations propagate technical knowledge across generations of
+-- prior-art → component → standard → platform (audit synthesis §2.3
+-- fingerprint family 3). This section asserts the L2/paradigmCluster
+-- correspondence at the §HM41 level, mirroring BAC §PS-HM41 (PR #479).
+-- ════════════════════════════════════════════════════════════════
+
+/-- **NEXUS paradigmCluster getter** for §HM41 binding. Projects an
+    HOAState to its NEXUS paradigmCluster down-closure. Q4 BIND when
+    concrete state carries the frontier. -/
+axiom nexusParadigmClusterGetter : ∀ {r : Region},
+  HOAState r → Set NexusArtifact
+
+/-- **NEXUS paradigmCluster preserves under L2** (§PS-HM41 axiom).
+    Successful generational renewal in an InnovationHOA preserves the
+    paradigmCluster down-closure as a `nexusNetwork`-region. Formal
+    counterpart of the audit's "patent citations propagate technical
+    knowledge across generations" claim. -/
+axiom nexusParadigmCluster_L2preserves : ∀ {r : Region} (s s' : HOAState r),
+  DoctrinalNetworkL2Preserves nexusNetwork nexusParadigmClusterGetter s s'
+
+
 end SCORE
