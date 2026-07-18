@@ -2667,4 +2667,180 @@ def DoctrinalNetworkL2Preserves {α : Type} {r : Region}
     n.IsRegion (getCorpus s')
 
 
+-- ════════════════════════════════════════════════════════════════
+-- §HM42. HOOK 3 SCHEMA --- axis-parameterized homogeneity fragility
+--
+-- ADDITIVE. §HM22 (CouplingWeightVector), §HM23 (LifeCyclePhase) and
+-- §HM24 (ManifoldShape) stand unchanged. This section abstracts the
+-- schema those three instantiate and re-derives their fragility
+-- theorems as instances of a single generic theorem. Nothing here
+-- deletes or renames; the originals remain the citable names.
+--
+-- WHY: §HM22/23/24 are the same schema written three times --- per
+-- axis, one association axiom + one predicate + two load-bearing
+-- axioms + one theorem whose proof is character-identical. That is a
+-- copy-paste family, and it is an axiom-proliferation site: six of the
+-- nine axioms across the three sections are schema instances rather
+-- than independent theoretical commitments.
+--
+-- SOUNDNESS (the reason this is a class and not an axiom). A fragility
+-- axiom quantified over *arbitrary* axes would be unsound: instantiate
+-- `proj := fun _ => ()` and every population is vacuously homogeneous,
+-- so the axiom would yield `¬ feedbackEngaged` for every state and
+-- trivialize the whole maintenance theory. The same hazard applies to
+-- quantifying over an arbitrary scope predicate: `inScope := fun _ _ =>
+-- False` is vacuously homogeneous too. So the load-bearing claims are
+-- carried by a per-axis registration (`IsSymmetryBreaking`) rather than
+-- asserted generically, and the scope is fixed at the A-actor
+-- constituency that §HM22/23/24 use. Registering a bogus axis then
+-- requires explicitly supplying a false claim, where an audit can see
+-- it --- which is strictly better than the same commitment buried in a
+-- copy-pasted axiom.
+--
+-- AXIOM LEDGER: this section adds **zero** axioms. The three instances
+-- below are discharged from the existing §HM22/23/24 axioms. The
+-- consolidation saving (six schema axioms collapsing to two) is only
+-- realized if the originals are later retired --- deliberately NOT done
+-- here; that touches the resolved §8-decision-3 neighborhood of
+-- `governance/SCORE_HM_MultiStratum_Extension_Plan.md` and is a
+-- separate call.
+--
+-- NOT COVERED (open theory problem --- see the plan's §9 amendment):
+-- *partial* homogeneity in either sense. Weakening the antecedent, by
+-- scoping to a sub-population (AGORA's role-scoped ask) or by comparing
+-- under a projection of an axis (the platform-sampled / echo-chamber
+-- case), does NOT preserve the negative consequent: agents identical on
+-- a sub-population or on one coupling dimension can still form
+-- differentiated edges through the unconstrained remainder. Partial
+-- homogeneity needs a *graded* conclusion (attenuated feedback), not a
+-- reparameterization of this one. That is why it has not been built
+-- here despite two peers asking for it.
+-- ════════════════════════════════════════════════════════════════
+
+/-- A **symmetry-breaking axis**: an agent-level attribute along which
+    heterogeneity is required for autocatalytic feedback to engage. The
+    structure is deliberately contentless --- it is a carrier for the
+    projection only. The theoretical claim that a given axis really is
+    symmetry-breaking lives in `IsSymmetryBreaking`, not here. -/
+structure SymmetryBreakingAxis where
+  Value : Type
+  proj : Agent → Value
+
+/-- The A-actor constituency scope used by §HM22/23/24: homogeneity is
+    required among A-actor constituents; Σ-actor constituents are
+    unconstrained (per §8 decision 3, Option 2b). -/
+def AActorScope {r : Region} (a : Agent) (s : HOAState r) : Prop :=
+  Constituent.AAgent a ∈ s.agents
+
+/-- **Axis-parameterized population homogeneity.** The `inScope`
+    parameter is carried by the definition (so future graded/partial
+    work has a place to land) but is fixed to `AActorScope` everywhere
+    a fragility claim is made --- see the SOUNDNESS note above. -/
+def PopulationHomogeneousOn {r : Region} (ax : SymmetryBreakingAxis)
+    (inScope : Agent → HOAState r → Prop) (s : HOAState r) : Prop :=
+  ∀ a₁ a₂ : Agent, inScope a₁ s → inScope a₂ s → ax.proj a₁ = ax.proj a₂
+
+/-- **Registration that an axis is genuinely symmetry-breaking.** Carries
+    the two load-bearing claims §HM22/23/24 each assert axiomatically:
+    homogeneity along the axis forbids feedback engagement, and
+    fast-timescale HOA moves preserve homogeneity along it. Supplying an
+    instance is the theoretical commitment; the generic theorem below is
+    then free. -/
+class IsSymmetryBreaking (ax : SymmetryBreakingAxis) : Prop where
+  no_feedback : ∀ {r : Region} (c : AutocatalyticCombine) (s s' : HOAState r),
+    PopulationHomogeneousOn ax AActorScope s → ¬ feedbackEngaged c s s'
+  move_preserves : ∀ {r : Region} (s s' : HOAState r),
+    HOAMove s s' →
+      PopulationHomogeneousOn ax AActorScope s →
+      PopulationHomogeneousOn ax AActorScope s'
+
+/-- **The generic Hook 3 negative theorem.** For any registered
+    symmetry-breaking axis, a homogeneous initial population never
+    engages feedback anywhere in the move-sequence --- so the premise of
+    every maintenance theorem is unsatisfiable. Proof is the induction
+    §HM22/23/24 each carry out separately, done once. -/
+theorem hoaFragilityOn (ax : SymmetryBreakingAxis) [h : IsSymmetryBreaking ax]
+    {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s : HOAState r), PopulationHomogeneousOn ax AActorScope s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) := by
+  intro s h_hom trace tr_0 tr_moves i
+  have h_hom_i : PopulationHomogeneousOn ax AActorScope (trace i) := by
+    induction i with
+    | zero => rw [tr_0]; exact h_hom
+    | succ n ih => exact h.move_preserves _ _ (tr_moves n) ih
+  exact h.no_feedback c (trace i) (trace (i+1)) h_hom_i
+
+-- ── The three §HM22/23/24 axes as instances ──────────────────────
+
+/-- §HM22's axis. -/
+noncomputable def couplingAxis : SymmetryBreakingAxis :=
+  ⟨CouplingWeightVector, agentCouplingWeightVector⟩
+
+/-- §HM23's axis. -/
+noncomputable def lifeCyclePhaseAxis : SymmetryBreakingAxis :=
+  ⟨LifeCyclePhase, agentLifeCyclePhase⟩
+
+/-- §HM24's axis. -/
+noncomputable def manifoldShapeAxis : SymmetryBreakingAxis :=
+  ⟨ManifoldShape, agentManifoldShape⟩
+
+/-- §HM22's predicate is the schema at `couplingAxis`. -/
+theorem populationCouplingHomogeneous_iff {r : Region} (s : HOAState r) :
+    PopulationCouplingHomogeneous s ↔
+      PopulationHomogeneousOn couplingAxis AActorScope s := Iff.rfl
+
+/-- §HM23's predicate is the schema at `lifeCyclePhaseAxis`. -/
+theorem populationLifeCyclePhaseHomogeneous_iff {r : Region} (s : HOAState r) :
+    PopulationLifeCyclePhaseHomogeneous s ↔
+      PopulationHomogeneousOn lifeCyclePhaseAxis AActorScope s := Iff.rfl
+
+/-- §HM24's predicate is the schema at `manifoldShapeAxis`. -/
+theorem populationManifoldShapeHomogeneous_iff {r : Region} (s : HOAState r) :
+    PopulationManifoldShapeHomogeneous s ↔
+      PopulationHomogeneousOn manifoldShapeAxis AActorScope s := Iff.rfl
+
+instance : IsSymmetryBreaking couplingAxis where
+  no_feedback c s s' h := homogeneous_no_feedback c s s' h
+  move_preserves s s' hm h := hoaMove_preserves_homogeneity s s' hm h
+
+instance : IsSymmetryBreaking lifeCyclePhaseAxis where
+  no_feedback c s s' h := lifeCyclePhaseHomogeneous_no_feedback c s s' h
+  move_preserves s s' hm h := hoaMove_preserves_lifeCyclePhaseHomogeneity s s' hm h
+
+instance : IsSymmetryBreaking manifoldShapeAxis where
+  no_feedback c s s' h := manifoldShapeHomogeneous_no_feedback c s s' h
+  move_preserves s s' hm h := hoaMove_preserves_manifoldShapeHomogeneity s s' hm h
+
+-- ── The three §HM22/23/24 theorems recovered from the schema ──────
+-- Each is `hoaFragilityOn` at the corresponding axis, demonstrating the
+-- generic theorem subsumes all three. The originals remain in place.
+
+theorem hoaFragilityHomogeneous' {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s : HOAState r), PopulationCouplingHomogeneous s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) :=
+  fun s h => hoaFragilityOn couplingAxis c s h
+
+theorem hoaFragilityLifeCyclePhaseHomogeneous' {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s : HOAState r), PopulationLifeCyclePhaseHomogeneous s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) :=
+  fun s h => hoaFragilityOn lifeCyclePhaseAxis c s h
+
+theorem hoaFragilityManifoldShapeHomogeneous' {r : Region} (c : AutocatalyticCombine) :
+    ∀ (s : HOAState r), PopulationManifoldShapeHomogeneous s →
+      ∀ trace : ℕ → HOAState r,
+        trace 0 = s →
+        (∀ i, HOAMove (trace i) (trace (i+1))) →
+        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) :=
+  fun s h => hoaFragilityOn manifoldShapeAxis c s h
+
+
 end SCORE
