@@ -65,10 +65,22 @@ axiom secondOrderPerceive : (a : Agent) → HasSecondOrderPerception a →
 -- ── FA3: Perceptibility thresholds ─────────────────────────────
 
 /-- The perceptibility threshold δ for an agent: minimum magnitude of B₁
-    modification resolvable by the agent's perception morphism given
-    current manifold grain. Related to but distinct from the percept filter
-    (§8): the filter determines WHAT registers; δ determines the MINIMUM
-    MAGNITUDE that registers at all. -/
+    change registrable by the agent across the SHARED -> INDEXED direction
+    given current manifold grain -- the resolution floor on BOTH B2-input
+    morphisms, Perception (B1->B2) and Incorporation (B3->B2). Related to but
+    distinct from the percept filter (§8): the filter determines WHAT
+    registers; δ determines the MINIMUM MAGNITUDE that registers at all.
+
+    Scope corrected 2026-07-18 (audit re-run). This docstring previously said
+    "B1 modification ... perception morphism", which was narrower than the
+    type: `Modification` is abstract, so nothing here ever restricted δ to
+    B1-sourced change -- and the vault was already applying it to B3-delivered
+    steering (IncorporationAsymmetry § "The two-threshold structure").
+    DomainTrichotomy § Cardinality licenses the wider reading: the percept and
+    incorporation filters are ONE mechanism on the two shared sources, and δ is
+    that filter's magnitude axis. No proof changes -- VC-IL-2, VC-DI-1/2/3 and
+    Theorems DI-A/DI-B are stated over generic `Modification` and are
+    unaffected. -/
 axiom perceptibilityThreshold : Agent → CouplingWeight
 
 -- ── FA4: Inscription coverage ──────────────────────────────────
@@ -96,7 +108,13 @@ axiom vc_il_1 :
 -- modifications: for any first-order agent, there exists a B₁
 -- modification below their perceptibility threshold.
 
-/-- A B₁ modification magnitude. -/
+/-- A change whose magnitude is compared against the perceptibility threshold.
+    Deliberately abstract: ranges over B1-sourced modification (the action
+    instantiation) AND B3-delivered content change (the incorporation
+    instantiation) alike, since δ is a resolution floor on the shared ->
+    indexed direction, not on one source domain. (Docstring corrected
+    2026-07-18: previously read "A B₁ modification magnitude", which described
+    one instantiation as though it were the type.) -/
 axiom Modification : Type
 axiom modificationMagnitude : Modification → CouplingWeight
 
