@@ -2134,9 +2134,24 @@ theorem formalB3_nondecreasing_under_longTimescaleMove
 /-- **Formal B₃ non-decreasing over an entire long-timescale trace.**
     After `i` mixed L1-L4 events, `(trace 0).formalB3 ≤ (trace i).formalB3`.
     The strongest general claim about formal B₃ dynamics: it never
-    decreases under the four sub-mechanisms formalized here. Real
-    formal-layer erosion via informal-substrate crash would be a
-    distinct mechanism outside L1-L4. -/
+    decreases under the four sub-mechanisms formalized here.
+
+    **Scope — the result holds BECAUSE two erosion routes are excluded**
+    (made explicit 2026-07-18, audit item VC-C3; the vault note's
+    completeness argument had named only the first):
+
+      1. *Informal-substrate crash* — the formal prosthetic loses the
+         cycle it was holding open (Hysteresis § 3.3; West lifetimes).
+      2. *Direct exogenous dissolution* — conquest, legal dissolution,
+         withdrawal of recognition (SigmaActorArchitecture § Lifecycle
+         derivation, **death pathway 2**). Neither informal-substrate-
+         mediated nor member-turnover-mediated, and a slow move by any
+         reading — but not a `LongTimescaleMove` constructor.
+
+    Both are outside L1-L4, so this theorem is sound as stated; its
+    hypothesis `∀ i, LongTimescaleMove ..` simply does not admit them.
+    Admitting either as an L5 constructor would **falsify** the
+    non-decrease claim, which is the honest cost of extending coverage. -/
 theorem formalB3_nondecreasing_under_longTimescaleTrace
     {r : Region} (trace : ℕ → HOAState r)
     (h_trace : ∀ i, LongTimescaleMove (trace i) (trace (i+1))) :
