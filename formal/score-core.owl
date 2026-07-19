@@ -683,6 +683,33 @@
 
 
 
+    <!-- http://score-theory.org/core#DisruptRhythm -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#DisruptRhythm">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#InterventionClass"/>
+        <rdfs:comment>Subtractive dual of CreateRhythm: removes an entrainment pattern. Bypasses the perceptual filter for the same reason its dual does - the somatic channel precedes filtering, and no agent need assent to stop being entrained. Lean: Intervention.disruptRhythm. Added 2026-07-19 (audit item VC-1). NOTE: the activation-energy ordering does NOT extend to the subtractive family; Lean activationEnergy is deliberately undefined (none) there.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#SeverEdge -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#SeverEdge">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#InterventionClass"/>
+        <rdfs:comment>Subtractive dual of CreateEdge: removes connectivity between existing nodes. Lean: Intervention.severEdge. Added 2026-07-19 (audit item VC-1).</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#DissolveNode -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#DissolveNode">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#InterventionClass"/>
+        <rdfs:comment>Subtractive dual of CreateNode: removes organizational structure. Takes no seed size - that is a creation parameter; dissolution cost is governed by the target's accumulated persistence stack (Hysteresis's three mechanisms in window-width order), not by a quantity of the operator. Lean: Intervention.dissolveNode. Added 2026-07-19 (audit item VC-1).</rdfs:comment>
+    </owl:Class>
+
+
+
     <!-- http://score-theory.org/core#InterSigmaCoupling -->
 
     <owl:Class rdf:about="http://score-theory.org/core#InterSigmaCoupling">
@@ -863,6 +890,9 @@
             <rdf:Description rdf:about="http://score-theory.org/core#CreateRhythm"/>
             <rdf:Description rdf:about="http://score-theory.org/core#CreateEdge"/>
             <rdf:Description rdf:about="http://score-theory.org/core#CreateNode"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#DisruptRhythm"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#SeverEdge"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#DissolveNode"/>
         </owl:members>
     </rdf:Description>
     <rdf:Description>

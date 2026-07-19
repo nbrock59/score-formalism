@@ -381,9 +381,32 @@ axiom polarizationAsBifurcation :
       perceptualFilter e v₁ ≠ perceptualFilter e v₂
 
 -- ════════════════════════════════════════════════════════════════
--- §9. THE THREE INTERVENTION CLASSES
--- Ordered by activation energy. create_rhythm is the only operator
--- that bypasses the perceptual filter via the somatic channel.
+-- §9. THE INTERVENTION CLASSES -- ADDITIVE AND SUBTRACTIVE
+-- Additive operators are ordered by activation energy. Rhythm-CLASS
+-- operators (both polarities) bypass the perceptual filter via the
+-- somatic channel.
+--
+-- SUBTRACTIVE FAMILY ADDED 2026-07-19 (audit item VC-1). GraphFoundation's
+-- primitive row names three polarities -- add / remove / modify -- and this
+-- taxonomy instantiated only the first. The objects are the same (a rhythm,
+-- an edge, a node), so the subtractive operators act on the same three.
+--
+-- WHAT DOES **NOT** CARRY OVER: the activation-energy ordering. VC-1's
+-- result is that rhythm < edge < node neither survives negation nor
+-- inverts -- a different ordering governs, over a different INDEX SET.
+-- The additive family is ordered by *what you build*; the subtractive by
+-- *which persistence mechanisms the target has accumulated* (Hysteresis's
+-- three, in window-width order: autocatalytic weight < ceiling residue <
+-- B3 formal prosthetic). A node held only by autocatalytic weight dies in
+-- one interaction cycle; one with deep ceiling residue AND a formal
+-- prosthetic is very hard to kill.
+--
+-- That negative result is ENCODED, not merely commented: `activationEnergy`
+-- returns `Option (Fin 3)` and is `none` on the subtractive family. Assigning
+-- subtractive operators 0/1/2 would assert the mirrored ordering VC-1
+-- refuted. The subtractive cost ordering is NOT formalized here -- it would
+-- have to range over a target's HOAMaintenance persistence stack rather than
+-- over the operator, and that is a separate construct.
 -- ════════════════════════════════════════════════════════════════
 
 /-- The three intervention operator classes. -/
@@ -402,34 +425,97 @@ inductive Intervention : Type where
       activation energy than householder-phase targets. -/
   | createNode (target : Region) (stratum : Stratum) (seedSize : ℕ)
       : Intervention
+  /-- disrupt_rhythm: the subtractive dual of create_rhythm. Removes an
+      entrainment pattern. Bypasses the perceptual filter for the same
+      reason its dual does -- no agent need agree to *stop* being entrained,
+      so the operation sits below the filter on the somatic channel. -/
+  | disruptRhythm (period amplitude phase_ : ℝ) (anchor : Option Region)
+      : Intervention
+  /-- sever_edge: removes connectivity between existing nodes. -/
+  | severEdge (from_ to_ : Region) : Intervention
+  /-- dissolve_node: removes organizational structure. No `seedSize` -- that
+      is a creation parameter; what governs dissolution cost is the target's
+      accumulated persistence stack, not a quantity of the operator. -/
+  | dissolveNode (target : Region) (stratum : Stratum) : Intervention
 
-/-- Activation energy, represented ordinally. -/
-def activationEnergy : Intervention → Fin 3
-  | .createRhythm .. => ⟨0, by omega⟩
-  | .createEdge   .. => ⟨1, by omega⟩
-  | .createNode   .. => ⟨2, by omega⟩
+/-- Operator polarity. `GraphFoundation`'s third polarity (*modify*) is
+    deliberately not instantiated -- logged as audit item VC-27. -/
+inductive InterventionPolarity : Type where
+  | additive
+  | subtractive
+  deriving DecidableEq
 
-/-- create_rhythm has strictly lower activation energy than create_node. -/
+/-- Which pole an operator acts on. -/
+def interventionPolarity : Intervention → InterventionPolarity
+  | .createRhythm ..  => .additive
+  | .createEdge   ..  => .additive
+  | .createNode   ..  => .additive
+  | .disruptRhythm .. => .subtractive
+  | .severEdge    ..  => .subtractive
+  | .dissolveNode ..  => .subtractive
+
+/-- Activation energy, represented ordinally -- **defined on the additive
+    family only**. `none` on the subtractive family is the load-bearing part:
+    it encodes VC-1's finding that the rhythm < edge < node ordering does not
+    carry across polarity. Giving subtractive operators ordinal values here
+    would assert the mirrored ordering that finding refuted. -/
+def activationEnergy : Intervention → Option (Fin 3)
+  | .createRhythm ..  => some ⟨0, by omega⟩
+  | .createEdge   ..  => some ⟨1, by omega⟩
+  | .createNode   ..  => some ⟨2, by omega⟩
+  | .disruptRhythm .. => none
+  | .severEdge    ..  => none
+  | .dissolveNode ..  => none
+
+/-- Activation energy is defined exactly on the additive family. -/
+theorem activationEnergy_isSome_iff_additive (i : Intervention) :
+    (activationEnergy i).isSome = true ↔ interventionPolarity i = .additive := by
+  cases i <;> simp [activationEnergy, interventionPolarity]
+
+/-- create_rhythm has strictly lower activation energy than create_node.
+    Both are defined (the additive family), and rhythm is strictly below. -/
 theorem rhythm_lower_energy_than_node
     (p a ph : ℝ) (anc : Option Region) (r : Region) (s : Stratum) (n : ℕ) :
-    (activationEnergy (.createRhythm p a ph anc)).val <
-    (activationEnergy (.createNode r s n)).val := by
-  simp [activationEnergy]
+    ∃ er en : Fin 3,
+      activationEnergy (.createRhythm p a ph anc) = some er ∧
+      activationEnergy (.createNode r s n) = some en ∧
+      er.val < en.val :=
+  ⟨⟨0, by omega⟩, ⟨2, by omega⟩, rfl, rfl, by decide⟩
 
-/-- Whether an intervention bypasses the perceptual filter. -/
+/-- Whether an intervention bypasses the perceptual filter. **Both**
+    rhythm-class operators do: the somatic channel precedes filtering, and
+    removing an entrainment pattern needs an agent's assent no more than
+    installing one does. -/
 def bypassesFilter : Intervention → Prop
-  | .createRhythm .. => True   -- somatic channel precedes filtering
-  | .createEdge   .. => False  -- partial bypass only (not modeled here)
-  | .createNode   .. => False  -- full filtering applies
+  | .createRhythm ..  => True   -- somatic channel precedes filtering
+  | .disruptRhythm .. => True   -- same channel, opposite polarity
+  | .createEdge   ..  => False  -- partial bypass only (not modeled here)
+  | .createNode   ..  => False  -- full filtering applies
+  | .severEdge    ..  => False
+  | .dissolveNode ..  => False
 
-/-- Only create_rhythm bypasses the perceptual filter. -/
-theorem only_rhythm_bypasses_filter (i : Intervention) :
-    bypassesFilter i → ∃ p a ph anc, i = .createRhythm p a ph anc := by
-  intro h
-  match i with
-  | .createRhythm p a ph anc => exact ⟨p, a, ph, anc, rfl⟩
-  | .createEdge   ..         => exact absurd h (by simp [bypassesFilter])
-  | .createNode   ..         => exact absurd h (by simp [bypassesFilter])
+/-- Rhythm-class membership -- the property that actually governs filter
+    bypass, across both polarities. -/
+def isRhythmClass : Intervention → Prop
+  | .createRhythm ..  => True
+  | .disruptRhythm .. => True
+  | _                 => False
+
+/-- **Only rhythm-CLASS operators bypass the perceptual filter.**
+
+    Supersedes the former `only_rhythm_bypasses_filter`, which said "only
+    `createRhythm`" and became **false** when the subtractive family landed:
+    `disruptRhythm` bypasses too, on the same somatic channel. The bypass
+    property was never about the *additive* operator -- it was about the
+    *channel*, which is polarity-independent. (Audit item VC-1, 2026-07-19.) -/
+theorem only_rhythm_class_bypasses_filter (i : Intervention) :
+    bypassesFilter i → isRhythmClass i := by
+  cases i <;> simp [bypassesFilter, isRhythmClass]
+
+/-- The bypass set, enumerated: exactly the two rhythm-class operators. -/
+theorem bypassesFilter_iff_rhythm_class (i : Intervention) :
+    bypassesFilter i ↔ isRhythmClass i := by
+  cases i <;> simp [bypassesFilter, isRhythmClass]
 
 -- ════════════════════════════════════════════════════════════════
 -- §10. SEQUENCING PRINCIPLE
