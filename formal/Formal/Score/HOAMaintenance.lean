@@ -2713,12 +2713,28 @@ def DoctrinalNetworkL2Preserves {α : Type} {r : Region}
 -- copy-pasted axiom.
 --
 -- AXIOM LEDGER: this section adds **zero** axioms. The three instances
--- below are discharged from the existing §HM22/23/24 axioms. The
--- consolidation saving (six schema axioms collapsing to two) is only
--- realized if the originals are later retired --- deliberately NOT done
--- here; that touches the resolved §8-decision-3 neighborhood of
--- `governance/SCORE_HM_MultiStratum_Extension_Plan.md` and is a
--- separate call.
+-- below are discharged from the existing §HM22/23/24 axioms. (Verified
+-- with `#print axioms`: the schema-derived theorems have axiom sets
+-- identical to the originals'.)
+--
+-- CORRECTION 2026-07-19. This comment previously claimed a further
+-- "consolidation saving (six schema axioms collapsing to two), realized
+-- if the originals are later retired". **That saving does not exist**,
+-- and the error is instructive: it contradicts this section's own
+-- soundness argument. `IsSymmetryBreaking` carries the two load-bearing
+-- claims PER AXIS precisely because a generic axiom quantified over
+-- arbitrary axes is unsound (`proj := fun _ => ()` trivializes it). So
+-- the per-axis claims are IRREDUCIBLE CONTENT: n axes require n pairs of
+-- claims whether they are stated as standalone axioms or as instance
+-- fields. Retiring §HM22/23/24 would RELOCATE the six axioms into the
+-- instance declarations, not remove them --- net axiom change zero.
+--
+-- What retirement would actually save is 3 duplicate predicate defs and
+-- 3 duplicate theorem statements, against a blast radius that includes
+-- peer-bridge theorem STATEMENTS (`Atlas.hook3_vacuous` is typed on
+-- `PopulationCouplingHomogeneous`) and 8-11 files per identifier across
+-- Lean, vault notes, the core glossary (SC-G-58) and the AGORA
+-- contracts. Not worth it; the open call is closed as declined.
 --
 -- NOT COVERED (open theory problem --- see the plan's §9 amendment):
 -- *partial* homogeneity in either sense. Weakening the antecedent, by
