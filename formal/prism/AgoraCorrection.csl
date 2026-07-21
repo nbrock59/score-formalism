@@ -1,0 +1,34 @@
+// ===========================================================================
+// AgoraCorrection.csl  --  properties for AgoraCorrection.sm
+//
+// AGORA peer model (second breadth extension). See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+// ===========================================================================
+
+// --- P1. THE REACHABILITY DICHOTOMY (captured_correction_needs_independent_node)
+//     P[ the institution self-corrects to zero mismatch ]. Swept over
+//     independent-node availability (p1 = p2 = p): 1 for any p > 0, and 0 at
+//     p = 0 (captured-only). A correction route to zero exists iff an independent
+//     node is available -- the impossibility result, run.
+P=? [ F "corrected" ]
+
+// --- P2. EXPECTED CORRECTION TIME vs independent-node scarcity ----------------
+//     First-passage steps to zero mismatch. Rises as availability falls and
+//     DIVERGES (Infinity) at p = 0 -- the impossibility as an infinite expected
+//     correction time. The quantitative content beyond the deterministic impl.
+R{"steps"}=? [ F "corrected" ]
+
+// --- P3. MULTISTRATUM (multistratum_captured_reachable_nonzero) ---------------
+//     Run with one healthy stratum and one captured (p1 = 1, p2 = 0): the joint
+//     correction never reaches zero -- P[ corrected ] = 0 -- because stratum 2
+//     floors, even though stratum 1 fully corrects (P[ s1_zero ] = 1). One
+//     captured stratum floors the joint reachable mismatch above zero.
+P=? [ F "corrected" ]
+P=? [ F "s1_zero" ]
+
+// --- P4. POPULATION-CAPTURED FLOOR (populationCaptured_reachableMismatch_nonzero)
+//     Captured-only (p1 = 0): stratum-1 mismatch reaches the captured floor with
+//     certainty but never zero. The nonzero reachable mismatch of a fully-captured
+//     correcting-node population. (Run p1 = 0.)
+P=? [ F "s1_floored" ]
+P=? [ F "s1_zero" ]

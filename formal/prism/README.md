@@ -615,3 +615,55 @@ is the *second filler of the same `core:SpectralEarlyWarningIndicator`* as
   (attenuated recovery + strengthened erosion → critical slowing down + collapse)
   transfers directly to the other peers' unchecked dynamics (AGORA manifold-update,
   ATLAS cascade) noted in the coverage ledger.
+
+
+## AgoraCorrection.sm — AGORA collective-manifold correction reachability (peer model)
+
+The **second peer model** (after `EthosCapture.sm`), closing the AGORA cell of the
+coverage ledger. AGORA is the institutional-correction peer: its update
+`A_new = max(node_floor, A − η)` (`src/agora/dynamics/manifold_update.py`) lowers a
+role occupant's manifold **mismatch** toward the correcting node's floor but never
+below it, so **captured-only correction (all floors > 0) cannot reach zero — an
+independent node (floor 0) is necessary** (`captured_correction_needs_independent_node`).
+That is a **reachability dichotomy** (model ②'s territory). PRISM adds the
+population/stochastic dimension the deterministic single-node impl lacks: each
+correction step draws a node from a population whose **independent-node availability**
+is `p` per stratum.
+
+```powershell
+# P1 REACHABILITY DICHOTOMY — sweep availability (p1=p2=p):
+& $PRISM $Ma $Pa -property 1 -const p1=0.0:0.2:1.0,p2=0.0:0.2:1.0   # -> 0.0 at p=0, else 1.0
+# P2 EXPECTED CORRECTION TIME diverges as availability falls:
+& $PRISM $Ma $Pa -property 2 -const p1=1.0,p2=1.0   # 4.0 ; p=0.5 -> 7.0 ; p=0.1 -> 29 ; p=0 -> Infinity
+# P3 MULTISTRATUM — one captured stratum floors the joint (p1=1 healthy, p2=0 captured):
+& $PRISM $Ma $Pa -property 3 -const p1=1.0,p2=0.0   # P[corrected]=0.0  (but P[s1_zero]=1.0)
+```
+(`$Ma`/`$Pa` = absolute paths to `AgoraCorrection.sm` / `AgoraCorrection.csl`.)
+
+### What this pins down — the AGORA correction claims
+
+- **The reachability dichotomy — `captured_correction_needs_independent_node`,
+  run.** P[the institution self-corrects to zero mismatch] is **1 for any
+  independent-node availability p > 0 and exactly 0 at p = 0** (captured-only). A
+  route to zero exists iff an independent node is available.
+- **Expected correction time diverges toward capture.** First-passage steps to
+  zero rise **4.0 → 7.0 → 15.3 → 29.1** as availability falls (p = 1 → 0.1) and
+  become **Infinity** at p = 0 — the impossibility as an infinite expected
+  correction time, the quantitative content the deterministic impl does not carry.
+- **Multistratum — `multistratum_captured_reachable_nonzero`.** With one healthy
+  and one captured stratum (p1 = 1, p2 = 0) the joint correction **never reaches
+  zero** (P[corrected] = 0) even though the healthy stratum fully corrects
+  (P[s1_zero] = 1): a single captured stratum floors the joint reachable mismatch.
+- **Depth tie.** `test_manifold_update.py::test_population_reachable_mismatch_dichotomy`
+  guards the population face of the dichotomy (reachable mismatch = min node floor,
+  = 0 iff an independent node present, monotone in capture) on `manifold_update.py`;
+  the module and the model cross-reference each other.
+
+### Scope boundary (AGORA correction)
+
+- **Illustrative, structural, bounded** — no locked AGORA number (AG-G centrality
+  weights, the η dosing) redefined; the claim is the *reachability dichotomy and
+  its diverging timescale*, not the Q4-BIND calibration. Two strata; the full
+  centrality-weighted `M_Σ` population is abstracted to a per-stratum availability.
+- **Reuses model ②'s reachability shape**, peer-typed — the third peer-transfer of
+  the core machinery (after `EthosCapture.sm` ← model ①).

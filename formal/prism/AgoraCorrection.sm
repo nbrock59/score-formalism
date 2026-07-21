@@ -1,0 +1,82 @@
+// ===========================================================================
+// AgoraCorrection.sm  --  AGORA collective-manifold correction reachability (DTMC)
+//
+// The SECOND peer model (breadth), after EthosCapture.sm. See
+// obsidian/SCORE/methodology/ModelCheckedDynamics.md § "Coverage and boundaries"
+// (this closes the AGORA cell) and
+// obsidian/SCORE/emergence/applications/AGORA-CollectiveManifoldUpdate.md.
+//
+// AGORA is the institutional-correction peer. Its collective-manifold-update
+// operator (`src/agora/dynamics/manifold_update.py`, A5) corrects a role
+// occupant's manifold MISMATCH through a correcting node:
+//     A_new = max(node_floor, A − η)
+// -- correction lowers mismatch toward the node's own floor but NEVER below it.
+// The impossibility result (Lean `captured_correction_needs_independent_node`):
+// captured-only correction (every reachable node has floor > 0) cannot drive
+// mismatch to zero; an INDEPENDENT node (floor 0) is necessary for A → 0.
+//
+// This is a REACHABILITY dichotomy -- model ②'s territory. Where the deterministic
+// implementation and the Lean state the *qualitative* impossibility, PRISM adds
+// the POPULATION / STOCHASTIC dimension: each correction step draws a correcting
+// node from a population whose INDEPENDENT-node availability is `p` (per stratum).
+// A drifted institution descends deterministically to the captured floor, then
+// clears the last levels only when independent nodes are drawn. So:
+//   * reachability: P[ mismatch → 0 ] = 1 iff independent nodes are available
+//     (p > 0), and = 0 when captured-only (p = 0) -- the dichotomy, run.
+//   * EXPECTED CORRECTION TIME rises as independent-node availability falls and
+//     DIVERGES at p = 0 (the impossibility as an infinite first-passage) -- the
+//     quantitative content the deterministic single-node impl does not have.
+//   * MULTISTRATUM (`multistratum_captured_reachable_nonzero`): joint correction
+//     across two strata reaches zero only if BOTH strata have an independent node;
+//     one captured stratum floors the joint reachable mismatch above zero.
+//
+// Its executable companion, `test_agora/test_manifold_update.py`, guards the
+// population reachable-mismatch dichotomy on `manifold_update.py` (the depth tie).
+//
+// GOVERNANCE (scope note pre-registration lock): illustrative structural rates --
+// no locked AGORA number (AG-G centrality weights, the η dosing) redefined;
+// structural validation of the correction-reachability SHAPE, not the Q4-BIND
+// calibration. Per [[SemanticSeepage]] the discrete abstraction is flagged.
+// ===========================================================================
+
+dtmc
+
+// ---- mismatch axis + captured floor -----------------------------------------
+const int L     = 4;         // collective manifold mismatch level 0..L (L = fully drifted)
+const int FLOOR = 2;         // captured-node reachable-mismatch floor (> 0 = irreversible)
+
+// ---- independent-node availability (illustrative; the control parameters) ----
+const double p1;             // stratum-1 independent-node availability in [0,1] (SWEPT)
+const double p2;             // stratum-2 independent-node availability in [0,1] (SWEPT)
+
+// ---- corrected predicate -----------------------------------------------------
+formula corrected = (m1 = 0) & (m2 = 0);   // joint zero mismatch across both strata
+
+module agora
+
+  m1 : [0..L] init L;        // stratum-1 collective mismatch M_Σ
+  m2 : [0..L] init L;        // stratum-2 collective mismatch
+
+  // Each step draws a correcting node per stratum. An INDEPENDENT draw (prob p)
+  // lowers mismatch toward 0 (max(m-1,0)); a CAPTURED draw (prob 1-p) lowers it
+  // only while above the floor (m>FLOOR ? m-1 : m) -- it cannot cross the floor.
+  [step] !corrected ->
+        p1 * p2       : (m1' = max(m1-1, 0))                & (m2' = max(m2-1, 0))
+      + p1 * (1 - p2) : (m1' = max(m1-1, 0))                & (m2' = (m2 > FLOOR ? m2-1 : m2))
+      + (1 - p1) * p2 : (m1' = (m1 > FLOOR ? m1-1 : m1))    & (m2' = max(m2-1, 0))
+      + (1-p1)*(1-p2) : (m1' = (m1 > FLOOR ? m1-1 : m1))    & (m2' = (m2 > FLOOR ? m2-1 : m2));
+
+  // absorbing once corrected (clean first-passage; avoids a deadlock warning)
+  [step] corrected -> (m1' = m1);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "corrected"  = (m1 = 0) & (m2 = 0);    // joint zero mismatch (institution self-corrected)
+label "s1_zero"    = m1 = 0;                  // stratum-1 fully corrected
+label "s1_floored" = m1 <= FLOOR;             // stratum-1 reached the captured floor
+
+// ---- reward: steps (expected correction time = the first-passage timescale) --
+rewards "steps"
+  [step] !corrected : 1;
+endrewards
