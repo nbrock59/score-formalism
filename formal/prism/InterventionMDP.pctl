@@ -1,0 +1,44 @@
+// ===========================================================================
+// InterventionMDP.pctl  --  PCTL / reward properties for InterventionMDP.nm
+//
+// Model (2), probabilistic model-checking layer. See the .nm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+//
+// Each property computes the OPTIMAL intervention policy; the experiments
+// (const assignments) turn the three theory claims into checkable comparisons.
+// ===========================================================================
+
+// --- P1. Can the objective even be achieved? (feasibility) ------------------
+//     Max probability the policy ever drives the structure to a SELF-SUSTAINING
+//     (maintained) HOA -- the real objective, not a transient weight blip.
+Pmax=? [ F "established" ]
+
+// --- P2. Optimal (minimum expected) activation energy to reach a formed HOA -
+//     The core quantity. Swept across experiments it adjudicates the theory:
+//       * SEQUENCING: run from a nascent start (INIT_S=1,INIT_E=0, PHASE=0) with
+//         ALLOW_RHYTHM=1 vs 0. Rhythm-enabled cost < rhythm-disabled cost => the
+//         optimal policy uses cheap create_rhythm to prime the manifold before
+//         the expensive create_node, exactly the InterventionClasses sequencing
+//         principle -- derived, not assumed.
+//       * SPONSOR: run from the nascent start with PHASE=0 vs PHASE=1
+//         (ALLOW_RHYTHM=0 to isolate the phase effect). Retirement cost <
+//         householder cost => retirement-phase targets need less activation
+//         energy (LifeCyclePhases sponsorship).
+R{"cost"}min=? [ F "established" ]
+
+// --- P3. Asymmetric leverage: optimal cost to SUPPRESS (weight < Dissolution)-
+//     Prevention vs dissolution (Hysteresis):
+//       * PREVENTION  -- nascent, NOT self-maintaining start (INIT_S=2,INIT_E=0):
+//         cheap, the environment does not regrow it.
+//       * DISSOLUTION -- formed, self-maintaining start (INIT_S=4,INIT_E=2):
+//         dear, the subtractive action fights autocatalytic regrowth.
+//     Dissolution cost >> prevention cost is the asymmetric-leverage corollary.
+R{"cost"}min=? [ F "suppressed" ]
+
+// --- P4. Feasibility of suppression (companion to P3) ------------------------
+Pmax=? [ F "suppressed" ]
+
+// --- P5. Sanity: an adversarial (worst) policy can fail to form -------------
+//     Min probability of ever establishing -- the "actively avoid" policy;
+//     confirms establishment is a policy achievement, not automatic.
+Pmin=? [ F "established" ]

@@ -1,0 +1,159 @@
+// ===========================================================================
+// InterventionMDP.nm  --  intervention-policy MDP over the HOA state (PRISM)
+//
+// Model (2) of the probabilistic model-checking layer scoped in
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md.
+//   Reaches Segment 7 (the intervention design layer).
+//
+// Builds ON model (1): the HOA coupling state (substrate, endowment; the
+// autocatalytic maintenance feedback) is the ENVIRONMENT. On top of it sit the
+// intervention operators of [[InterventionClasses]] as MDP ACTIONS with
+// activation-energy COSTS. PRISM's MDP nondeterminism = the intervention
+// policy; PRISM computes the OPTIMAL one (Rmin / Pmax) and thereby CHECKS THE
+// THEORY'S OWN CLAIMS instead of assuming them:
+//
+//   * SEQUENCING ([[InterventionClasses]] "Sequencing principle"): create_rhythm
+//     before create_node lowers the seed size the node needs -> lower expected
+//     cost to reach a formed HOA. Encoded: create_rhythm sets `prepared`, which
+//     raises create_node's success probability; the cheap rhythm up front beats
+//     repeated expensive unprepared node attempts. Checked by comparing Rmin
+//     with rhythm enabled vs disabled (ALLOW_RHYTHM).
+//   * LIFE-CYCLE SPONSOR ([[LifeCyclePhases]]; InterventionClasses create_node):
+//     "Retirement-phase targets require less activation energy than
+//     householder-phase" (maximum local coupling already established; sponsorship
+//     active). Encoded: PHASE=1 (retirement) gives create_node high success
+//     WITHOUT rhythm. Checked by comparing Rmin at PHASE=0 vs PHASE=1.
+//   * ASYMMETRIC LEVERAGE ([[Hysteresis]] "Interventional consequence"):
+//     preventing/suppressing a PRE-crystallization structure is cheap (no
+//     autocatalytic feedback to fight); dissolving a POST-crystallization,
+//     self-maintaining HOA is expensive (must overcome endogenous maintenance).
+//     Encoded: the environment turn REGROWS a formed+engaged HOA (model (1)'s
+//     `grow`), so the subtractive `dissolve` action fights active regrowth only
+//     once the structure is maintained. Checked by comparing Rmin{cost} to reach
+//     "suppressed" from a nascent vs a maintained start.
+//
+// The subtractive `dissolve` here is the co-present `dissolve_node` of the
+// [[InterventionClasses]] subtractive family; its cost being STATE-indexed (dear
+// against a maintained target, cheap against a nascent one) rather than
+// operator-indexed is exactly that note's key finding, made quantitative.
+//
+// GOVERNANCE (scope note pre-registration lock): costs / probabilities are
+// ILLUSTRATIVE STRUCTURAL parameters -- NOT a redefinition of the locked
+// create_rhythm beta=0.005 dosing or any pre-registered number
+// (validation/pre-registration/). This is structural validation of the policy
+// SHAPE (does the optimal policy reproduce the theory's sequencing / leverage
+// claims), not a calibrated dosing recommendation. Per [[SemanticSeepage]] the
+// discretization is a flagged abstraction.
+//
+// Discretization mirrors model (1) / formal/tla/HOA.tla: L=4, Formation=3,
+// Dissolution=2, Engagement=1; Weight = substrate + endowment.
+// ===========================================================================
+
+mdp
+
+// ---- structural constants (mirror model (1) / HOA.tla) ----------------------
+const int L           = 4;
+const int FORMATION   = 3;
+const int DISSOLUTION = 2;
+const int Engagement  = FORMATION - DISSOLUTION;   // =1
+
+// ---- environment dynamics (illustrative -- see governance note) -------------
+const double grow  = 0.5;   // autocatalytic maintenance regrowth prob (formed+engaged)
+const double decay = 0.2;   // erosion prob per environment step (baseline stress)
+
+// ---- intervention activation-energy COSTS (illustrative ordinal ordering) ---
+//   create_rhythm < create_edge < create_node   (InterventionClasses summary table)
+const double C_RHYTHM   = 1.0;   // Low
+const double C_EDGE     = 2.0;   // Medium
+const double C_NODE     = 5.0;   // High
+const double C_DISSOLVE = 3.0;   // subtractive; leverage comes from STATE, not this number
+
+// ---- intervention success probabilities (filter-bypass structure) -----------
+const double P_EDGE    = 0.7;    // partial filter bypass -> substrate gain, medium reliability
+const double P_NODE_HI = 0.9;    // create_node on a PREPARED manifold or a RETIREMENT target
+const double P_NODE_LO = 0.25;   // create_node unprepared, householder -- full perceptual filtering
+const double P_DISSOLVE = 0.8;   // subtractive hit lands; regrowth is what makes it dear
+
+// ---- experiment switches (passed on the CLI, like a .cfg) -------------------
+const int PHASE;         // 0 = householder target, 1 = retirement target (sponsor)
+const int ALLOW_RHYTHM;  // 1 = create_rhythm available, 0 = disabled (sequencing contrast)
+const int INIT_S;        // start substrate  (nascent: 1  / maintained: 4)
+const int INIT_E;        // start endowment  (nascent: 0  / maintained: 2)
+
+// ---- derived (names mirror model (1)) ---------------------------------------
+formula weight   = s + e;
+formula engaged  = e >= Engagement;
+formula inbasin  = s >= DISSOLUTION;
+formula formed   = weight >= FORMATION;              // HOA exists
+formula maintained = inbasin & engaged;              // autocatalytic self-maintenance active
+// create_node lands with high prob if the manifold is primed OR the target is a
+// retirement-phase sponsor; otherwise it is fully perceptually filtered.
+formula node_hi  = (prepared = 1) | (PHASE = 1);
+
+module intervention
+
+  s : [0..L] init INIT_S;      // substrate  (environment; from model (1))
+  e : [0..L] init INIT_E;      // endowment  (environment; from model (1))
+  prepared : [0..1] init 0;    // manifold primed by create_rhythm (Path-A prep)
+  turn : [0..1] init 0;        // 0 = controller picks an intervention, 1 = environment acts
+
+  // ------- CONTROLLER TURN (turn=0): the intervention policy's choice ---------
+
+  // create_rhythm -- Low energy, somatic channel, bypasses the perceptual filter.
+  // Reliable small endowment gain regardless of filter, AND primes the manifold.
+  [rhythm] turn=0 & ALLOW_RHYTHM=1 ->
+        (e' = min(e+1, L)) & (prepared' = 1) & (turn' = 1);
+
+  // create_edge -- Medium energy, partial bypass -> substrate gain, medium reliability.
+  [edge] turn=0 ->
+        P_EDGE : (s' = min(s+1, L)) & (turn' = 1)
+      + (1-P_EDGE) : (turn' = 1);
+
+  // create_node -- High energy, NO filter bypass. The crystallization snap
+  // (substrate +2, endowment +1) but only lands reliably on a prepared manifold
+  // or a retirement sponsor; unprepared householder attempts mostly fail.
+  [node] turn=0 & node_hi ->
+        P_NODE_HI : (s' = min(s+2, L)) & (e' = min(e+1, L)) & (turn' = 1)
+      + (1-P_NODE_HI) : (turn' = 1);
+  [node] turn=0 & !node_hi ->
+        P_NODE_LO : (s' = min(s+2, L)) & (e' = min(e+1, L)) & (turn' = 1)
+      + (1-P_NODE_LO) : (turn' = 1);
+
+  // dissolve_node -- subtractive (co-present family). Knocks weight down; the
+  // environment's autocatalytic regrowth is what makes it expensive vs a
+  // maintained target (leverage indexed by target state, not operator depth).
+  [dissolve] turn=0 ->
+        P_DISSOLVE : (s' = max(s-2, 0)) & (e' = max(e-1, 0)) & (turn' = 1)
+      + (1-P_DISSOLVE) : (turn' = 1);
+
+  // (No cost-free `wait`: every controller turn takes a costly intervention.
+  //  A free wait/env loop would be a zero-reward cycle that lets an Rmin policy
+  //  stall forever without reaching the goal -- and waiting only ever lets the
+  //  environment erode the formation objective, so removing it is loss-free.)
+
+  // ------- ENVIRONMENT TURN (turn=1): model (1) dynamics ----------------------
+  // A formed+engaged HOA self-maintains (regrows); otherwise it only erodes.
+  [env] turn=1 & maintained ->
+        grow  : (s' = min(s+1, L)) & (turn' = 0)
+      + decay : (s' = max(s-1, 0)) & (turn' = 0)
+      + (1-grow-decay) : (turn' = 0);
+  [env] turn=1 & !maintained ->
+        decay : (s' = max(s-1, 0)) & (turn' = 0)
+      + (1-decay) : (turn' = 0);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "formed"      = weight >= FORMATION;           // HOA exists (transient)
+label "established" = inbasin & engaged;             // SELF-SUSTAINING HOA (maintained) -- the real objective
+label "suppressed"  = weight <  DISSOLUTION;         // objective: driven below the basin floor
+label "dissolved"   = weight <  FORMATION;           // HOA no longer exists
+
+// ---- cost reward: activation energy expended by the policy -------------------
+rewards "cost"
+  [rhythm]   true : C_RHYTHM;
+  [edge]     true : C_EDGE;
+  [node]     true : C_NODE;
+  [dissolve] true : C_DISSOLVE;
+  // [env] costs nothing
+endrewards

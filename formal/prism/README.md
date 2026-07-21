@@ -131,6 +131,90 @@ The three payoffs the scope note names for model ①:
   numbers.
 - **Does not touch the locked pre-registered parameters.** No SEWI threshold,
   β dosing, or ψ_s flag is redefined, computed, or calibrated here.
-- **A stable unformed equilibrium** (full bistability) and the **intervention
-  MDP** (model ②, reaching Segment 7) are **not** in this file — see the scope
-  note's model ②/③ and the hysteresis boundary above.
+- **A stable unformed equilibrium** (full bistability) is **not** in this CTMC —
+  it needs the nucleation barrier described in the (a) boundary above. The
+  **intervention MDP** built on top of this state is model ②, `InterventionMDP.nm`
+  below.
+
+## InterventionMDP.nm — intervention-policy MDP (model ②, → Segment 7)
+
+Model ② of the scope note, and the first pilot to reach **Segment 7** (the
+intervention design layer). It puts model ①'s HOA state underneath as the
+**environment** — the `substrate`/`endowment` coupling state and its autocatalytic
+maintenance — and layers the intervention operators of [[InterventionClasses]] on
+top as MDP **actions** with activation-energy **costs**. The MDP nondeterminism
+is the intervention *policy*; PRISM computes the **optimal** one (`Rmin`, `Pmax`)
+and thereby **checks the theory's own claims** rather than assuming them. Actions
+alternate with an environment turn (`turn` flag) that runs model ①'s dynamics — a
+formed+engaged HOA self-maintains (regrows), everything else erodes.
+
+- `create_rhythm` (cost Low) — somatic channel, sets `prepared`, which raises
+  `create_node`'s success probability (the sequencing principle).
+- `create_edge` (cost Medium) — partial bypass, raises substrate.
+- `create_node` (cost High) — the crystallization snap, but lands reliably only
+  on a **prepared** manifold or a **retirement** target (`PHASE=1`); otherwise
+  fully perceptually filtered.
+- `dissolve` (subtractive `dissolve_node`) — its leverage is indexed by the
+  *target's state*, not operator depth: cheap against a nascent structure, dear
+  against a self-maintaining one, because the environment regrows the latter.
+
+Per-experiment consts (`PHASE`, `ALLOW_RHYTHM`, `INIT_S`, `INIT_E`) are passed on
+the CLI. The objective label `established` = a **self-sustaining** (maintained)
+HOA, not a transient weight blip.
+
+```powershell
+# (1) SEQUENCING — create_rhythm before create_node lowers expected cost.
+#     Rmin{cost} to establish, from a nascent structure, householder phase:
+& $PRISM $M2 $P2 -property 2 -const PHASE=0,ALLOW_RHYTHM=1,INIT_S=1,INIT_E=0   # -> 4.57
+& $PRISM $M2 $P2 -property 2 -const PHASE=0,ALLOW_RHYTHM=0,INIT_S=1,INIT_E=0   # -> 20.00
+#   rhythm enabled is ~4.4x cheaper — the optimal policy primes then nodes.
+
+# (2) LIFE-CYCLE SPONSOR — retirement-phase targets cost less (no rhythm):
+& $PRISM $M2 $P2 -property 2 -const PHASE=0,ALLOW_RHYTHM=0,INIT_S=1,INIT_E=0   # -> 20.00 (householder)
+& $PRISM $M2 $P2 -property 2 -const PHASE=1,ALLOW_RHYTHM=0,INIT_S=1,INIT_E=0   # ->  5.56 (retirement)
+
+# (3) ASYMMETRIC LEVERAGE — prevention << dissolution. Rmin{cost} to suppress:
+& $PRISM $M2 $P2 -property 3 -const PHASE=0,ALLOW_RHYTHM=0,INIT_S=2,INIT_E=0   # -> 3.57 (nascent / prevention)
+& $PRISM $M2 $P2 -property 3 -const PHASE=0,ALLOW_RHYTHM=0,INIT_S=4,INIT_E=2   # -> 7.57 (maintained / dissolution)
+```
+(`$M2`/`$P2` = absolute paths to `InterventionMDP.nm` / `InterventionMDP.pctl`.)
+
+### What this pins down — the three theory claims, derived not assumed
+
+- **Sequencing ([[InterventionClasses]] "Sequencing principle") — confirmed.**
+  With `create_rhythm` available the optimal policy's expected activation energy
+  to establish a self-sustaining HOA is **4.57 vs 20.0** without it (~4.4×). The
+  cheap somatic prep that raises `create_node`'s hit rate beats brute-forcing the
+  expensive node unprepared — PRISM *derives* the rhythm-before-node ordering from
+  cost-minimization. (The differential is itself the proof the optimal policy
+  sequences that way.) Establishment is achievable with probability 1 (`Pmax=1`)
+  yet not automatic (`Pmin=0`).
+- **Life-cycle sponsor ([[LifeCyclePhases]]) — confirmed.** A retirement-phase
+  target costs **5.56 vs 20.0** for a householder (~3.6×): the sponsor's
+  established local coupling lets `create_node` land without priming.
+- **Asymmetric leverage ([[Hysteresis]] "Interventional consequence") —
+  confirmed, directionally.** Suppressing a nascent, not-yet-maintaining structure
+  costs **3.57**; dissolving a formed, self-maintaining HOA costs **7.57**
+  (~2.1×), because the subtractive action must outpace autocatalytic regrowth
+  while the target stays maintained. Prevention < dissolution, as Hysteresis
+  predicts. The ratio is modest — regrowth only fights back while the target
+  remains maintained — an honest bound, not a tuned headline. This is the
+  subtractive family's *state-indexed* cost ([[InterventionClasses]] VC-1 key
+  finding) made quantitative.
+
+### Scope boundary (model ②)
+
+- **Illustrative, structural, bounded** — as everywhere in this layer. The costs
+  and probabilities are ordinal placeholders; the **claim is the ordering** the
+  optimal policy reproduces (rhythm<node sequencing, retirement<householder,
+  prevention<dissolution), not the specific numbers. **No locked pre-registered
+  parameter** (the `create_rhythm` β=0.005 dosing, SEWI thresholds, ψ_s flag) is
+  redefined or calibrated.
+- **Additive + one subtractive operator only.** The full subtractive family and
+  the B₃-mediated channel (the unworked cells of [[InterventionClasses]]'s 2×2)
+  are not modelled. `create_edge`-before-`create_node` in infrastructure-severed
+  sub-communities is representable but not separately exercised here.
+- **A cost-free `wait` was deliberately omitted** — it is a zero-reward loop that
+  makes `Rmin` ill-posed (a policy could stall forever at zero cost), and waiting
+  only ever lets the environment erode the objective. Model ③ (agent-learning
+  DTMC) remains the open third pilot.
