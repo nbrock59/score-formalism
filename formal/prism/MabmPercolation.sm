@@ -1,0 +1,108 @@
+// ===========================================================================
+// MabmPercolation.sm  --  multi-agent crystallization / Phi percolation (DTMC)
+//
+// Model ③ toward the full multi-agent MABM (Brock 2026, Part III).
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md (model ③ MABM step).
+//   Segment 1 §§2.2-2.3 (POLARIS_Segment1_Specification.md): the crystallization
+//   mechanism and its percolation phase transition.
+//
+// Model ③ (AgentLearning.sm) was SINGLE-agent: it could show the within-lineage
+// multigenerational ratchet but NOT the genuinely POPULATION-level phenomenon --
+// HOA crystallization via percolation. Segment 1 §2.3:
+//   Phi(s) = f_giant(s) x rho_cycle(s) x mean_edge_weight(s),
+//   crystallize <=> Phi >= phi_threshold (held for a consolidation period),
+// and §2.2: the oral-social percolation threshold is a DISCONTINUOUS phase
+// transition at eps* ~ 0.30-0.35 -- "a cliff, not a slope" (Erdos-Renyi). HOAs
+// form where B2 manifolds OVERLAP sufficiently ([[HOA]], [[Manifold]] link-
+// formation criterion); f_giant -- the fraction in the largest connected
+// component -- is the order parameter that jumps at the threshold.
+//
+// This model puts N agents on the honor<->dignity manifold axis (as in model ③;
+// attractor at K = dignity, Segment 1 §4.5). Two agents are COUPLED (an edge)
+// when their positions OVERLAP -- |u_i - u_j| <= overlap. `overlap` is the
+// connectivity parameter (the eps of the percolation graph): raising it adds
+// edges. An agent advances toward the attractor only if it is CONNECTED to the
+// growing cluster (a peer ahead within overlap) or is the frontrunner (seed);
+// otherwise it climbs only via rare exogenous `noise`. So the giant cluster
+// grows down through overlapping manifolds from the seed -- and can only span the
+// population if connectivity bridges the gaps. Crystallization = a giant fraction
+// (>= GIANT of N) reach the attractor cluster: f_giant over threshold.
+//
+// The percolation CLIFF: with `noise = 0` the transition is a true step --
+// below the connectivity threshold the giant component cannot span (isolated
+// agents never join, P[crystallize] = 0); at/above it the whole population
+// crystallizes (P = 1). "A cliff, not a slope." With `noise > 0` the cliff shows
+// as a divergence of the expected crystallization TIME below threshold (the
+// population waits for a rare fluctuation to bridge the gap).
+//
+// GOVERNANCE (scope note pre-registration lock): illustrative structural rates;
+// no locked pre-registered number (phi_threshold, the eps* percolation
+// calibration) redefined. This is structural validation of the percolation SHAPE
+// (a discontinuous crystallization cliff driven by f_giant), not the calibrated
+// eps* ~ 0.30-0.35 value. Per [[SemanticSeepage]] the 1-D manifold-overlap graph
+// is a tractable abstraction of the Erdos-Renyi interaction-network percolation;
+// N is small (PRISM-scale) -- larger N is the Storm-scale target.
+// ===========================================================================
+
+dtmc
+
+// ---- manifold axis + population ---------------------------------------------
+const int K = 6;             // honor(0) <-> dignity(K) axis; attractor at K
+const int GIANT = 3;         // giant-component threshold: crystallize when >= GIANT of 4 reach K
+
+// ---- connectivity + dynamics (illustrative) ---------------------------------
+const int overlap;           // manifold-overlap window = edge/connectivity parameter (SWEPT)
+const double noise;          // exogenous exploration: an unconnected agent's rare climb
+
+// ---- initial spread (a fragmented population; gaps set the percolation cliff) -
+const int IA;                // e.g. 0, 1, 3, 6 -> gaps 1,2,3; the 3->6 gap sets the threshold
+const int IB;
+const int IC;
+const int ID;
+
+// ---- coupling: an agent advances if CONNECTED to a peer ahead within overlap,
+//      or is the frontrunner (seed). Otherwise it climbs only via `noise`. ------
+// "peer ahead within overlap" = the manifold-overlap edge to a more-crystallized
+// agent through which the cluster pulls this one in.
+formula connA = (b>a & b-a<=overlap) | (c>a & c-a<=overlap) | (d>a & d-a<=overlap);
+formula connB = (a>b & a-b<=overlap) | (c>b & c-b<=overlap) | (d>b & d-b<=overlap);
+formula connC = (a>c & a-c<=overlap) | (b>c & b-c<=overlap) | (d>c & d-c<=overlap);
+formula connD = (a>d & a-d<=overlap) | (b>d & b-d<=overlap) | (c>d & c-d<=overlap);
+formula maxA = (a>=b & a>=c & a>=d);
+formula maxB = (b>=a & b>=c & b>=d);
+formula maxC = (c>=a & c>=b & c>=d);
+formula maxD = (d>=a & d>=b & d>=c);
+// probability the selected agent climbs one step this turn:
+formula pUpA = (a<K & (connA | maxA)) ? 1.0 : noise;
+formula pUpB = (b<K & (connB | maxB)) ? 1.0 : noise;
+formula pUpC = (c<K & (connC | maxC)) ? 1.0 : noise;
+formula pUpD = (d<K & (connD | maxD)) ? 1.0 : noise;
+
+// ---- f_giant order parameter: how many agents reached the attractor cluster --
+formula countK = (a=K?1:0) + (b=K?1:0) + (c=K?1:0) + (d=K?1:0);
+
+module population
+
+  a : [0..K] init IA;
+  b : [0..K] init IB;
+  c : [0..K] init IC;
+  d : [0..K] init ID;
+
+  // one agent is selected uniformly (1/N) and climbs with prob pUp* (1 if
+  // connected to the cluster or the seed, else the small exogenous `noise`).
+  [step] true ->
+        0.25 * pUpA : (a' = min(a+1, K)) + 0.25 * (1 - pUpA) : (a' = a)
+      + 0.25 * pUpB : (b' = min(b+1, K)) + 0.25 * (1 - pUpB) : (b' = b)
+      + 0.25 * pUpC : (c' = min(c+1, K)) + 0.25 * (1 - pUpC) : (c' = c)
+      + 0.25 * pUpD : (d' = min(d+1, K)) + 0.25 * (1 - pUpD) : (d' = d);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "crystallized" = countK >= GIANT;   // a giant fraction reached the attractor cluster (Phi over threshold)
+label "spanned"      = countK = 4;         // the whole population crystallized
+
+// ---- reward: steps (expected crystallization time = the percolation timescale) -
+rewards "steps"
+  [step] true : 1;
+endrewards

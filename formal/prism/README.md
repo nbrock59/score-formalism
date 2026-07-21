@@ -491,3 +491,72 @@ mediated shift is durable only where plasticity is high — so its durable reach
 
 With this, the [[InterventionClasses]] 2×2 is worked in all four cells (additive
 and subtractive × co-present and mediated).
+
+
+## MabmPercolation.sm — multi-agent Φ crystallization / percolation (model ③ → MABM)
+
+Model ③ toward the full multi-agent MABM (Brock 2026, Part III). Model ③
+(`AgentLearning.sm`) was *single-agent* — it could show the within-lineage
+multigenerational ratchet but **not** the genuinely population-level object: HOA
+crystallization via percolation. Segment 1 §§2.2–2.3 defines
+`Φ = f_giant × ρ_cycle × w̄` and states that oral-social crystallization is a
+**discontinuous percolation transition** at ε* ≈ 0.30–0.35 — "a cliff, not a
+slope" (Erdős–Rényi). HOAs form where B₂ manifolds **overlap** sufficiently
+([[HOA]], [[Manifold]] link-formation); `f_giant` — the fraction in the largest
+connected component — is the order parameter that jumps at the threshold.
+
+N=4 agents sit on the honor↔dignity axis (as in model ③; attractor at K=dignity).
+Two agents are **coupled** (an edge) when their manifolds overlap — `|uᵢ−uⱼ| ≤ overlap`,
+so `overlap` is the connectivity parameter (the graph's ε). An agent advances
+toward the attractor only if it is **connected to the growing cluster** (a peer
+ahead within `overlap`) or is the seed; otherwise it climbs only via rare exogenous
+`noise`. The giant cluster grows down through overlapping manifolds — and can only
+span the population if connectivity bridges the gaps.
+
+```powershell
+# THE PERCOLATION CLIFF (noise=0): P[F crystallized] vs connectivity. Init (0,1,3,6), gaps 1,2,3.
+& $PRISM $Mp $Pp -property 3 -const overlap=1,noise=0.0,IA=0,IB=1,IC=3,ID=6   # -> 0.0
+& $PRISM $Mp $Pp -property 3 -const overlap=2,noise=0.0,IA=0,IB=1,IC=3,ID=6   # -> 0.0
+& $PRISM $Mp $Pp -property 3 -const overlap=3,noise=0.0,IA=0,IB=1,IC=3,ID=6   # -> 0.71  (cliff at the largest gap)
+
+# WITHIN-HORIZON S-CURVE (noise=0.05, T=30) and TIMESCALE.
+& $PRISM $Mp $Pp -property 4 -const overlap=1:1:4,noise=0.05,IA=0,IB=1,IC=3,ID=6,T=30  # -> 0.005, 0.28, 0.75, 0.94
+& $PRISM $Mp $Pp -property 2 -const overlap=1:1:4,noise=0.05,IA=0,IB=1,IC=3,ID=6        # -> 148, 57, 36, 21 (steps)
+```
+(`$Mp`/`$Pp` = absolute paths to `MabmPercolation.sm` / `MabmPercolation.csl`.)
+
+### What this pins down — the population-emergent percolation
+
+- **A giant component is an emergent population object.** A single agent has no
+  `f_giant`; with N coupled agents, a giant crystallized cluster forms at the
+  dignity attractor — the population-scale face of model ③'s convergence and of
+  Segment 1's `Φ` crystallization.
+- **The crystallization cliff — discontinuous, "not a slope".** With no exogenous
+  bridging (`noise=0`) crystallization is **exactly 0** below the connectivity
+  threshold — the giant component provably cannot span the largest manifold gap —
+  then jumps discontinuously above it (0 → 0.71 at the init (0,1,3,6) gap of 3;
+  0 → 0.40 at the init (0,2,4,6) gap of 2). The **threshold location tracks the
+  largest gap**: percolation is limited by the weakest link, exactly as
+  Erdős–Rényi predicts. Under bridging noise the cliff appears as a steep S-curve
+  in the finite-horizon probability (0.005 → 0.28 → 0.75 → 0.94 at T=30) and as a
+  collapse of the crystallization timescale (148 → 21 steps).
+- **Above threshold, crystallization is likely but not certain (`noise=0`).** The
+  sub-unity values reflect **dynamic stranding** — fast leaders can climb past
+  laggards before they connect, opening a gap and stranding them below the
+  attractor. A faithful population subtlety, not a defect: static connectivity
+  above threshold does not *guarantee* a spanning cluster once the nodes are
+  moving.
+
+### Scope boundary (MABM percolation)
+
+- **A tractable stand-in, structural not calibrated.** The 1-D manifold-overlap
+  graph is a PRISM-expressible abstraction of Segment 1's Erdős–Rényi
+  interaction-network percolation; the claim is the **discontinuous cliff and its
+  gap-limited threshold**, not the calibrated ε* ≈ 0.30–0.35 value. `Φ`'s other
+  two factors (`ρ_cycle`, `w̄`) are folded into the single overlap/advance rule and
+  not separately exercised. No locked pre-registered parameter (`φ_threshold`, ε*)
+  is redefined.
+- **N=4 is PRISM-scale; larger N is the Storm-scale target.** The full MABM —
+  many agents on the `S¹⁵` manifold, the stratified Hasse crystallization
+  sequence, the p=0.999 multigenerational aggregate over a real population network
+  — exceeds PRISM's explicit state space and is the intended Storm continuation.

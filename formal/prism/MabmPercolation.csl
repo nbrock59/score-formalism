@@ -1,0 +1,42 @@
+// ===========================================================================
+// MabmPercolation.csl  --  properties for MabmPercolation.sm
+//
+// Model ③ MABM step. See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+// ===========================================================================
+
+const int T;   // step window (for bounded properties)
+
+// --- P1. CRYSTALLIZATION EMERGENCE -- the population-level phenomenon ---------
+//     P[ a giant cluster eventually crystallizes at the attractor ]. Run with
+//     noise > 0 (so every gap is eventually bridgeable): this is 1 above the
+//     percolation threshold and, with noise, eventually 1 below it too -- but the
+//     TIME (P2) is what diverges. A single-agent chain (model ③) has no giant
+//     component; this is the emergent population object.
+P=? [ F "crystallized" ]
+
+// --- P2. THE PERCOLATION TIMESCALE -- expected crystallization time -----------
+//     Swept over `overlap` (connectivity), this diverges sharply below the
+//     threshold (the population waits for a rare `noise` fluctuation to bridge
+//     the largest manifold gap) and collapses above it (the cluster spans
+//     immediately). The steep drop is the percolation cliff seen as a timescale.
+R{"steps"}=? [ F "crystallized" ]
+
+// --- P3. THE CLIFF, exact -- discontinuous transition (run with noise = 0) ----
+//     With no exogenous bridging, crystallization is possible ONLY if the
+//     manifold-overlap graph already connects the population. Swept over
+//     `overlap` this is a STEP: 0 below the connectivity threshold (the giant
+//     component cannot span -- isolated agents never join), 1 at/above it. "A
+//     discontinuous phase transition -- a cliff, not a slope" (Segment 1 §2.2).
+P=? [ F "crystallized" ]
+
+// --- P4. Within-horizon crystallization (the low-frequency ramp under noise) --
+//     P[ crystallize within T ], noise > 0. Complements P2: below threshold the
+//     giant component forms only over long horizons (slow, noise-limited); above,
+//     promptly.
+P=? [ F<=T "crystallized" ]
+
+// --- P5. Full span vs giant component ----------------------------------------
+//     P[ the WHOLE population crystallizes ] (f_giant = 1). Companion order
+//     parameter to P1's giant-fraction threshold.
+P=? [ F "spanned" ]
