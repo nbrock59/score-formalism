@@ -850,7 +850,18 @@ theorem formalExtendedBasin_implies_compositelyExtendedBasin
 /-- **Composite autocatalytic-maintenance rule** — the load-bearing axiom
     for the composed mechanisms. Analogous to §HM11 and §HM14's axioms.
     Discharge would require the composition rule to be *settled*
-    (Hysteresis.md open question #2) — currently peer-selected. -/
+    (Hysteresis.md open question #2) — currently peer-selected.
+
+    Model-checked in `formal/tla/HOAComp.tla` (TLC), which runs ahead of this
+    axiom: with `ExtWeight = substrate + endowment + residue + b3` it (1) gives
+    exhaustive evidence the rule is dischargeable for the additive-reductions
+    composition (585 states, `HOAExists` invariant); (2) machine-compares the
+    three §HM16 candidates — all `≤ min` of the two individual effective
+    dissolutions (`bounded_above_by_min`), additive/multiplicative strictly more
+    permissive — informing open question #2; and (3) shows the composite *loses*
+    the § 3.3 irreducible floor (a maintained HOA reaches `substrate = 0`, since
+    the floorless ceiling mechanism dominates), where B₃ alone held it. See
+    `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 axiom hoaPreservedByCompositelyExtendedBasinMove_ifFeedbackEngaged
     (comp : CompositeBasinExtensionPolicy)
     (p_r : CeilingResiduePolicy) (p_b : B3SubstratePolicy)

@@ -166,5 +166,42 @@ extends the basin below the formal dissolution floor (case 2, `substrate=1`),
 analogous `NeedsFullBasin` was violated at `substrate = 0`. "A formal structure
 rejected by all informal networks is paper without power" (`bounded_below_by_irreducible`,
 §HM12), model-checked. This discharges `hoaMaintainedFormalExtendedDerived` for
-the additive × linear-floored pair. The §HM17 composite extension
-(§ 3.2 ⊕ § 3.3) remains axiomatized.
+the additive × linear-floored pair.
+
+## HOAComp.tla — composite basin extension (§ 3.2 ⊕ § 3.3)
+
+`HOAMaintenance.lean` §HM15–HM17: the composite of ceiling residue and B₃
+substrate. **Unlike §HM11/§HM14, the §HM17 preservation rule is still axiomatic
+in Lean** (`hoaPreservedByCompositelyExtendedBasinMove_ifFeedbackEngaged`) —
+because the composition shape is unsettled (Hysteresis.md open question #2, with
+three peer-selectable candidates). So this model is *ahead* of the Lean. The
+state carries both extension fields; `ExtWeight = substrate + endowment +
+residue + b3`; the three §HM16 compositions are `CompMin = min(EffC, EffB)`,
+`CompAdd = max(0, EffC + EffB − Dissolution)`, `CompMul = (EffC·EffB) ÷ Dissolution`.
+Same `L=4, Formation=3, Dissolution=2, IrreducibleMin=1`; three cases:
+
+```powershell
+# (1) Composite maintenance (additive-reductions) HOLDS -- evidence the §HM17 axiom is dischargeable
+java -cp $jar tlc2.TLC -deadlock -config HOAComp_Maint.cfg   HOAComp.tla
+#   -> No error has been found. (585 states)
+
+# (2) Composition comparison HOLDS -- the three shapes ordered (open question #2)
+java -cp $jar tlc2.TLC -deadlock -config HOAComp_Compare.cfg HOAComp.tla
+#   -> No error has been found. (625 states, full space): all three <= min(EffC,EffB); add,mul <= min
+
+# (3) Floor loss -- FlooredAtIrreducible VIOLATED for the composite
+java -cp $jar tlc2.TLC          -config HOAComp_Floor.cfg    HOAComp.tla
+#   -> Invariant FlooredAtIrreducible is violated: substrate=0, residue=1, b3=2
+```
+
+What this pins down, three things the Lean does not give: (1) exhaustive
+evidence the axiomatic §HM17 preservation rule is **dischargeable** for the
+additive-reductions composition (parallel to §HM19/§HM21); (2) a machine-checked
+**comparison** of the three candidate compositions — all bounded above by
+`min(EffC, EffB)` (`bounded_above_by_min`, §HM15), with additive and
+multiplicative strictly more permissive — concretely informing open question #2;
+and (3) the **floor is lost** — composing the floorless ceiling mechanism with
+the floored B₃ mechanism removes the irreducible floor (`substrate = 0` reachable
+and maintained), where B₃ alone held it (`HOAB3_Floor.cfg`). Exact multiplicative
+maintenance needs rational arithmetic, so `CompMul` is used only in the
+comparison; that is the one modelling boundary here.
