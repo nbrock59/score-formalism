@@ -1,0 +1,39 @@
+// ===========================================================================
+// MediatedChannel.csl  --  PCTL / reward properties for MediatedChannel.sm
+//
+// The B3-mediated channel extension. See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+// ===========================================================================
+
+const int T;   // step window (for the spectral / short-vs-long experiments)
+
+// --- P1. SELF-MASKING / contestability (DI-A) --------------------------------
+//     P[ the steering ever reaches the manifold target uncontested ]. Swept over
+//     delta (perceptibility floor) at fixed amp, PLASTIC=1: while amp < delta
+//     (sub-threshold) this is 1 -- the steering captures the manifold with
+//     certainty, never contested; once delta <= amp (perceptible) it drops below
+//     1 as detection intercepts. Sub-threshold => non-contestable.
+P=? [ F "captured" ]
+
+// --- P2. The other side of the flip: P[ the steering gets contested ] --------
+//     Complement of P1 under PLASTIC=1. 0 while sub-threshold (imperceptible ->
+//     nothing to answer); positive once perceptible. This IS the perceptibility
+//     REMEDY (DI-B remedy 1): lowering delta_i below amp -- disclosure -- turns a
+//     non-contestable steering into a contestable one.
+P=? [ F "contested" ]
+
+// --- P3. SPECTRAL self-masking: short-window is a high-pass filter ------------
+//     P[ the sub-threshold steering completes within window T ]. Run sub-threshold
+//     (amp < delta), PLASTIC=1, sweeping T: near 0 for short T (a short-window RCT
+//     sees the null) rising to 1 only over a long T (the effect lives at low
+//     frequency). The Segment-6 spectral signature of IncorporationAsymmetry.
+P=? [ F<=T "captured" ]
+
+// --- P4. COHORT strong form: durable capture needs plasticity ----------------
+//     Steady-state probability the manifold sits captured. Sub-threshold
+//     (uncontested). For the YOUNG (PLASTIC=1) the shift locks -> 1.0; for the
+//     SETTLED (PLASTIC=0) it is Path-B fragile and reverts -> < 1.0. The mediated
+//     channel durably captures the high-plasticity young (cohort formation), and
+//     only transiently nudges the settled -- IncorporationAsymmetry's strong form
+//     via LifeCyclePhases.
+S=? [ "captured" ]

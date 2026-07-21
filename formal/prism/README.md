@@ -422,3 +422,72 @@ Segment 1 §4.5's framing.
   `S¹⁵`, the Φ percolation/crystallization dynamics, or the population network.
   Convergence here is the *within-lineage* ratchet; the population-level
   p = 0.999 result is its many-agent aggregate.
+
+
+## MediatedChannel.sm — the B₃-mediated intervention channel (model ② extension)
+
+Completes the [[InterventionClasses]] 2×2 by working its second axis: the
+**B₃-mediated channel**. Models ② and `HOASubtractive` deliver interventions
+through the **co-present** channel (bodies in a room — supra-threshold,
+perceptible, contestable, but scale-ceilinged, [[EmbodiedCoPresence]]). The
+mediated channel delivers through inscription/platform infrastructure
+([[IncorporationAsymmetry]]) — a "degenerate continuous `create_rhythm`" whose
+distinctive structure is **two-threshold self-masking**: sub-threshold in
+*amplitude* (below the perceptibility floor `δᵢ` → imperceptible → **non-contestable**,
+Theorem DI-A) and super-threshold only in *accumulated timescale* (the tiny nudge
+accumulates at **low frequency**). Composed with model ③'s Path-A/B learning, the
+mediated shift is durable only where plasticity is high — so its durable reach is
+**cohort formation**, not persuasion of the settled.
+
+```powershell
+# SELF-MASKING + REMEDY (DI-A/DI-B): sweep the perceptibility floor δᵢ at fixed amplitude.
+& $PRISM $Mc $Pc -property 1 -const amp=0.1,delta=0.15,PLASTIC=1   # sub-threshold  -> P[captured]=1.0,  P[contested]=0.0
+& $PRISM $Mc $Pc -property 1 -const amp=0.1,delta=0.10,PLASTIC=1   # perceptible    -> P[captured]=0.06, P[contested]=0.94
+
+# SPECTRAL: a short window is a high-pass filter. P[F<=T captured], sub-threshold.
+& $PRISM $Mc $Pc -property 3 -const amp=0.1,delta=0.15,PLASTIC=1,T=10   # -> 0.013 (short window: ~null)
+& $PRISM $Mc $Pc -property 3 -const amp=0.1,delta=0.15,PLASTIC=1,T=100  # -> 0.99  (long window: sees it)
+
+# COHORT: durable capture needs plasticity. Steady-state S=?[captured], sub-threshold.
+& $PRISM $Mc $Pc -property 4 -const amp=0.1,delta=0.15,PLASTIC=1   # young   -> 1.0
+& $PRISM $Mc $Pc -property 4 -const amp=0.1,delta=0.15,PLASTIC=0   # settled -> 0.008
+```
+(`$Mc`/`$Pc` = absolute paths to `MediatedChannel.sm` / `MediatedChannel.csl`.)
+
+### What this pins down — the mediated channel's three signatures
+
+- **Self-masking ⇒ non-contestable (DI-A), and the disclosure remedy (DI-B).**
+  While the steering amplitude is below `δᵢ` it reaches the manifold with
+  **probability 1, never contested** (`P[contested]=0`); the instant `δᵢ` drops to
+  or below the amplitude — the perceptibility-restoration remedy, i.e. disclosure —
+  contestability flips (`P[contested]=0.94`, `P[captured]` collapses to 0.06). A
+  sharp threshold at `δᵢ = amp`. The perceptible-case 0.0625 = (amp/(amp+p_detect))⁴
+  is an exact analytic check (win the steer-vs-detect race K=4 times).
+- **The spectral signature — a short window is a high-pass filter.** Sub-threshold
+  capture probability rises **0.0001 → 0.013 → 0.13 → 0.75 → 0.99** across windows
+  T = 4, 10, 20, 50, 100: a short-window RCT sees essentially the null while the
+  effect is near-certain over a long horizon. This is why the platform-effects
+  literature splits by design — short crossover studies null, low-frequency
+  designs positive — as [[IncorporationAsymmetry]] predicts (the Segment-6 band).
+- **Cohort formation — durable capture needs the young.** Steady-state capture is
+  **1.0 for a high-plasticity (young) agent** (the shift locks, Path A) but only
+  **0.008 for a settled agent** (Path-B fragile, reverts). The mediated channel
+  durably captures the young and only transiently nudges the settled — the
+  strong-form "owns the formation environment of the next generation"
+  ([[IncorporationAsymmetry]] via [[LifeCyclePhases]]/[[MortalityBoundary]]),
+  composing directly with model ③'s plasticity/κ.
+
+### Scope boundary (mediated channel)
+
+- **Illustrative, structural, bounded.** `amp`/`δᵢ`/`p_detect`/`p_revert` are
+  ordinal; the claims are the *contestability flip at δᵢ = amp*, the *low-frequency
+  ramp*, and the *plasticity-gated durability*, not the numbers. **No locked
+  pre-registered parameter** (`δᵢ`, `ψ_s` flag, SEWI thresholds) is redefined.
+- **Single-agent, so reach/scale is noted not modelled.** The co-present scale
+  ceiling vs mediated scalability is a *population* claim; this chain models one
+  steered agent and the channel's per-agent contestability/durability structure.
+  The full population reach contrast and the multi-owner plurality bound
+  ([[IncorporationAsymmetry]] bound ii) are left open.
+
+With this, the [[InterventionClasses]] 2×2 is worked in all four cells (additive
+and subtractive × co-present and mediated).

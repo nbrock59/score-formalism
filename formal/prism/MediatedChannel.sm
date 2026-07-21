@@ -1,0 +1,100 @@
+// ===========================================================================
+// MediatedChannel.sm  --  the B3-mediated intervention channel (DTMC)
+//
+// The last unworked cell of [[InterventionClasses]]'s 2x2 (the channel axis):
+//   |            | co-present channel | B3-mediated channel |
+//   | additive   | the three operators (worked) | THIS |
+//   | subtractive| HOASubtractive.nm (worked)   | THIS |
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md (model ② extensions).
+//
+// The co-present channel (models ②, HOASubtractive) delivers interventions
+// through bodies in a room: SUPRA-threshold, perceptible, contestable, but
+// scale-ceilinged ([[EmbodiedCoPresence]]). The B3-MEDIATED channel delivers
+// through inscription/platform infrastructure ([[IncorporationAsymmetry]]): a
+// "degenerate continuous create_rhythm" that runs the two cheapest operators
+// invisibly and at scale. Its distinctive structure is the TWO-THRESHOLD
+// SELF-MASKING of IncorporationAsymmetry:
+//   * SUB-threshold in AMPLITUDE (below the perceptibility floor delta_i): each
+//     step is imperceptible, hence NON-CONTESTABLE (an argument can only answer a
+//     perceptible move). This is Theorem DI-A of InscriptionMarket.lean §22
+//     (di_subthreshold_noncontestable): sub-threshold => non-contestable.
+//   * SUPER-threshold only in ACCUMULATED TIMESCALE: the tiny per-step nudge
+//     accumulates at LOW FREQUENCY into a large manifold shift. A short-window
+//     RCT is a high-pass filter and sees the null; only low-frequency designs
+//     see the effect (the Segment-6 spectral signature).
+//
+// Composed with the Path-A/B learning of model ③ ([[AgentResponseMechanism]]):
+// the mediated shift is DURABLE only where plasticity is high. On a settled
+// (low-plasticity) agent it is Path-B fragile and reverts; on a young
+// (high-plasticity) agent it locks (Path A). Hence the [[IncorporationAsymmetry]]
+// strong form via [[LifeCyclePhases]]/[[MortalityBoundary]]: the mediated channel
+// "owns the formation environment of the next generation" -- durable capture is
+// cohort formation, not persuasion of the settled.
+//
+// This model checks three claims: (1) sub-threshold steering reaches the manifold
+// UNCONTESTED while supra-threshold gets contested (DI-A); (2) the perceptibility
+// remedy (force amplitude above delta_i by lowering delta_i = disclosure) flips
+// contestability (DI-B remedy 1); (3) durable capture is concentrated in the
+// high-plasticity young (the cohort strong form).
+//
+// GOVERNANCE (scope note pre-registration lock): illustrative structural rates;
+// no locked pre-registered number (delta_i, the psi_s flag, SEWI thresholds)
+// redefined. Per [[SemanticSeepage]] the single-axis abstraction is flagged; the
+// scale/reach claim is a population statement this single-agent chain notes but
+// does not model.
+// ===========================================================================
+
+dtmc
+
+// ---- manifold axis ----------------------------------------------------------
+const int K = 4;             // manifold position 0..K; the platform steers toward K
+
+// ---- channel parameters (illustrative) --------------------------------------
+const double amp;            // per-step steering AMPLITUDE (prob of a 1-step nudge)
+const double delta;          // perceptibility floor delta_i (IncorporationAsymmetry FA3)
+const double p_detect = 0.10;// per-step prob the target detects & counters -- WHEN perceptible
+const double p_revert = 0.30;// Path-B fragility: settled-agent reversion rate
+
+// ---- experiment switch ------------------------------------------------------
+const int PLASTIC;           // 1 = young / high plasticity (shift LOCKS, Path A durable)
+                             // 0 = settled / low plasticity (shift REVERTS, Path B fragile)
+
+// ---- derived ----------------------------------------------------------------
+// The steering is perceptible (and therefore contestable) only when its
+// amplitude reaches the perceptibility floor. Below it, detection is impossible
+// -- the self-masking core (DI-A).
+formula perceptible = amp >= delta;
+formula p_det = (perceptible ? p_detect : 0.0);
+// Reversion acts only on the settled (low-plasticity) agent (Path-B fragility).
+formula p_rev = (PLASTIC = 1 ? 0.0 : p_revert);
+
+module agent
+
+  m : [0..K] init 0;             // manifold position being steered
+  contested : [0..1] init 0;     // 1 = steering detected and countered (halted)
+
+  // --- steering in progress (not yet captured, not yet contested) ------------
+  [step] contested=0 & m<K ->
+        p_det : (contested' = 1)                         // detected -> countered
+      + amp   : (m' = m+1)                               // sub/supra nudge toward target
+      + p_rev : (m' = max(m-1, 0))                       // Path-B reversion (settled only)
+      + (1 - p_det - amp - p_rev) : (m' = m);            // nothing this step
+
+  // --- captured (m=K): durable if young, reverts if settled ------------------
+  [step] contested=0 & m=K ->
+        p_rev : (m' = m-1)
+      + (1 - p_rev) : (m' = m);
+
+  // --- contested: steering halted (counter-mobilization) ---------------------
+  [step] contested=1 -> (m' = m);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "captured"  = m = K;             // the platform's steering reached the manifold target
+label "contested" = contested = 1;     // the steering was perceived and countered
+
+// ---- reward: steps (for the spectral / accumulation timescale) --------------
+rewards "steps"
+  [step] true : 1;
+endrewards
