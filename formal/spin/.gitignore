@@ -1,0 +1,9 @@
+pan
+pan.exe
+pan_*.exe
+pan.c
+pan.h
+pan.[bmtp]
+*.trail
+_spin_nvr.tmp
+_*.pml

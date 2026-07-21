@@ -20,6 +20,17 @@ smell-test (2026-07-07) cleared R's *differentiation* from ETHOS `H`/SEWI, but t
 observable is still open, so it stays out of Lean.
 
 Revertible per the note's distill path: delete this file and its import line in `Score.lean`.
+
+Model-checked (SPIN): `formal/spin/RevisionLoop.pml` runs this spine as a
+concurrency + liveness model — the two things this single-step, static encoding
+cannot express. Four communities exhibit the failure map: with resolved-claim
+access (own OR vicarious) and an independent corrector the loop *closes*
+(`<>[](err==0)`); without access the error never falls (`strict_revision_requires_
+resolved_claim_access` as a liveness impossibility); with a captured corrector it
+floors above zero (`captured_correction_needs_independent_node`); and the
+vicarious community's convergence is contingent on a separate community resolving
+first (amendment 1's vicarious feedback, as genuine process interaction). See
+`obsidian/SCORE/methodology/ModelCheckedDynamics.md`.
 -/
 
 namespace SCORE

@@ -12,7 +12,8 @@ concept vault (`../obsidian/SCORE/`) by `../scripts/score_check.py`.
 | `catalog-v001.xml` | OASIS catalog mapping the core import IRI to the local file so Protégé/HermiT resolve `owl:imports` offline. |
 | `Formal/SCORE_Lean4.lean` | Lean 4 formalization of the dynamics (domains, morphisms, stratification, HOA, intervention classes). |
 | `Formal.lean`, `lakefile.toml`, `lean-toolchain` | Lean project scaffolding. |
-| `tla/Ring.tla` (+ `.cfg`) | TLA+/TLC **model-checked dynamics** (a third formalism for the dynamical layer). Dijkstra self-stabilizing ring: discharges `Score/SelfStabilization.lean`'s `dijkstraRingSelfStabilizes` axiom for bounded (N,K) and exhibits the identical-machines fragility as a concrete counterexample. See `tla/README.md` and `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. |
+| `tla/*.tla` (+ `.cfg`) | TLA+/TLC **model-checked dynamics** (a third formalism for the dynamical layer): the Dijkstra self-stabilizing ring, the full HOA maintenance family (§HM8–HM17), and the A-/Σ-actor life-cycles. See `tla/README.md` and `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. |
+| `spin/*.pml` | SPIN/Promela model-checked dynamics — the concurrency + liveness companion to `tla/`. `RevisionLoop.pml` runs the revision loop's descriptive/impossibility spine (`Score/RevisionLoop.lean`) as interacting processes with `<>[]` liveness. See `spin/README.md`. |
 
 The layering and the core-vs-implementation decision procedure are documented in
 `../obsidian/SCORE/methodology/RefinementArchitecture.md`.
