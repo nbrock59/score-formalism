@@ -1,0 +1,30 @@
+// ===========================================================================
+// AtlasCascade.csl  --  properties for AtlasCascade.sm
+//
+// ATLAS peer model (third breadth extension). See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+// ===========================================================================
+
+// --- P1. THE CASCADE THRESHOLD CLIFF (atlasCascadeThreshold) ------------------
+//     P[ the misinterpretation cascade reaches a giant fraction of the basin ].
+//     Swept over coverage σ (down) at fixed depth k: a discontinuous STEP — 0
+//     while distortion Δ = 1 − σ^k stays at/below θ (no edge can cross the
+//     threshold, the cascade cannot start) and 1 once Δ exceeds θ (the ring
+//     percolates). "A cascade cliff, not a slope."
+P=? [ F "giant_cascade" ]
+
+// --- P2. REFLEXIVE-DEPTH COMPOUNDING (low_coverage_compounds_with_reflexive_depth)
+//     Same P[giant cascade] swept over reflexive depth k (up) at fixed coverage:
+//     because Δ = 1 − σ^k, each extra reflexive layer multiplies fidelity by σ,
+//     so distortion crosses θ SHARPLY in k — the cascade switches on at a
+//     specific depth. (Run k = 1..4 at a fixed σ near the cliff.)
+P=? [ F "giant_cascade" ]
+
+// --- P3. CASCADE TIMESCALE diverges toward the threshold ---------------------
+//     Expected steps for the cascade to reach the giant fraction. As σ rises
+//     toward the cliff (Δ → θ⁺, prop → 0) this diverges; above the cliff it is
+//     fast. The percolation timescale.
+R{"steps"}=? [ F "giant_cascade" ]
+
+// --- P4. Full basin span (companion order parameter) -------------------------
+P=? [ F "spanned" ]

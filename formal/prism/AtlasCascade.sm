@@ -1,0 +1,91 @@
+// ===========================================================================
+// AtlasCascade.sm  --  ATLAS signaling-cascade percolation (DTMC)
+//
+// The THIRD peer model (breadth), after EthosCapture.sm (model ①) and
+// AgoraCorrection.sm (model ②). See
+// obsidian/SCORE/methodology/ModelCheckedDynamics.md § "Coverage and boundaries"
+// (this closes the ATLAS cell) and
+// obsidian/SCORE/emergence/applications/ATLAS-SignalingCascade.md.
+//
+// ATLAS is the signaling/deterrence peer. A signal crossing a deterrence basin is
+// received through the collective manifold, DISTORTED by the signaling-convention
+// coverage σ and COMPOUNDED by the reflexive depth k of the modeling polygon
+// (`src/atlas/dynamics/signaling_cascade.py`, T5):
+//     fidelity  = σ^k                     (Lean `signalFidelity`)
+//     distortion Δ = 1 − σ^k              (compounds with depth k)
+//     edge (i,j,w) cascades  ⟺  w·Δ > θ    (Lean `atlasCascadeEdge_isAbove_iff`,
+//                                           `atlasCascadeThreshold` θ)
+// When enough basin edges cross the cascade threshold, a misinterpretation
+// cascade PERCOLATES across the deterrence basin — a system-wide deterrence
+// failure. This is **model ③'s percolation cliff, cascade-typed**: distortion is
+// the control parameter, and the giant cascade component emerges discontinuously.
+//
+// Modelled as bootstrap/SIR percolation on a ring of N = 4 Σ-actors. A shock hits
+// one actor; misinterpretation propagates to a neighbour with per-edge probability
+//     prop = max(0, 1 − θ/Δ)             (the P[ w·Δ > θ ] for w ~ U[0,1])
+// which is **0 for Δ ≤ θ** (no edge can cross the threshold — the cascade cannot
+// start) and rises above it. So P[ the cascade reaches a giant fraction ] is a
+// discontinuous STEP at Δ = θ (the cascade threshold), and the cascade timescale
+// diverges as Δ → θ⁺. Sweeping coverage σ (down) or reflexive depth k (up) drives
+// Δ across θ — and because Δ = 1 − σ^k, deeper reflexion COMPOUNDS the distortion,
+// so the onset is sharp in k (`low_coverage_compounds_with_reflexive_depth`).
+//
+// Its executable companion, `test_atlas/test_signaling_cascade.py`, guards the
+// cascade-threshold / reflexive-depth compounding on `signaling_cascade.py`.
+//
+// GOVERNANCE (scope note pre-registration lock): illustrative structural rates —
+// no locked ATLAS number (the θ dosing, coverage estimates) redefined; structural
+// validation of the cascade-percolation SHAPE, not the Q4-BIND calibration. Per
+// [[SemanticSeepage]] the discrete ring abstraction of the basin is flagged.
+// ===========================================================================
+
+dtmc
+
+// ---- deterrence-basin population --------------------------------------------
+const int GIANT = 3;         // giant cascade: >= GIANT of 4 actors misinterpret
+
+// ---- signaling-cascade control (illustrative) -------------------------------
+const double sigma;          // signaling-convention COVERAGE σ ∈ [0,1] (SWEPT down)
+const int    k;              // reflexive-polygon DEPTH k (SWEPT up)
+const double theta = 0.30;   // cascade threshold θ (atlasCascadeThreshold)
+
+// ---- fidelity / distortion / per-edge propagation ---------------------------
+formula fidelity = pow(sigma, k);              // signalFidelity σ^k
+formula dist     = 1 - fidelity;               // distortion Δ = 1 − σ^k
+// an edge cascades iff w·Δ > θ; over w ~ U[0,1] that has probability
+// max(0, 1 − θ/Δ) — exactly 0 below the cascade threshold Δ = θ.
+formula prop     = (dist > theta ? 1 - theta / dist : 0.0);
+
+// ---- ring adjacency + cascade front -----------------------------------------
+formula countC = a + b + c + d;                 // number of cascaded (misinterpreting) actors
+// a neighbour-triggered flip is possible only for an intact actor adjacent (ring
+// a-b-c-d-a) to a cascaded one:
+formula pB = ((b = 0) & (a = 1 | c = 1)) ? prop : 0.0;
+formula pC = ((c = 0) & (b = 1 | d = 1)) ? prop : 0.0;
+formula pD = ((d = 0) & (c = 1 | a = 1)) ? prop : 0.0;
+
+module basin
+
+  a : [0..1] init 1;         // the shocked actor (seed of the cascade)
+  b : [0..1] init 0;
+  c : [0..1] init 0;
+  d : [0..1] init 0;
+
+  // one actor is selected uniformly (1/N); an intact actor adjacent to a cascaded
+  // one misinterprets with probability `prop` (its edge crosses the threshold).
+  [step] true ->
+        0.25          : (a' = a)                       // seed; already cascaded
+      + 0.25 * pB      : (b' = 1) + 0.25 * (1 - pB) : (b' = b)
+      + 0.25 * pC      : (c' = 1) + 0.25 * (1 - pC) : (c' = c)
+      + 0.25 * pD      : (d' = 1) + 0.25 * (1 - pD) : (d' = d);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "giant_cascade" = (a + b + c + d) >= GIANT;   // Φ over threshold: system-wide misinterpretation
+label "spanned"       = (a + b + c + d) = 4;
+
+// ---- reward: steps (expected cascade time = the percolation timescale) -------
+rewards "steps"
+  [step] (a + b + c + d) < GIANT : 1;
+endrewards

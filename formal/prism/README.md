@@ -667,3 +667,59 @@ is `p` per stratum.
   centrality-weighted `M_Σ` population is abstracted to a per-stratum availability.
 - **Reuses model ②'s reachability shape**, peer-typed — the third peer-transfer of
   the core machinery (after `EthosCapture.sm` ← model ①).
+
+
+## AtlasCascade.sm — ATLAS signaling-cascade percolation (peer model)
+
+The **third peer model** (after `EthosCapture.sm` ← model ①, `AgoraCorrection.sm`
+← model ②), closing the ATLAS cell of the coverage ledger. ATLAS is the
+signaling/deterrence peer: a signal crossing a deterrence basin is received through
+the collective manifold, **distorted** by signaling-convention coverage σ and
+**compounded** by the reflexive depth k (`src/atlas/dynamics/signaling_cascade.py`):
+`fidelity = σ^k`, `distortion Δ = 1 − σ^k`, and an edge cascades ⟺ `w·Δ > θ`. When
+enough basin edges cross the threshold the misinterpretation **percolates** — this
+is **model ③'s percolation cliff, cascade-typed**, on a ring of N=4 Σ-actors with
+per-edge propagation `prop = max(0, 1 − θ/Δ)` (exactly 0 below Δ = θ).
+
+```powershell
+# P1 THE CASCADE CLIFF — sweep coverage σ (down), depth k=3, θ=0.3 (Δ = 1 − σ^3):
+& $PRISM $Mt $Pt -property 1 -const sigma=0.95:-0.05:0.70,k=3
+#   -> P[giant cascade] = 0, 0, 1, 1, 1  (STEP at σ ≈ 0.888 where Δ crosses θ)
+# P2 REFLEXIVE-DEPTH COMPOUNDING — sweep depth k (up) at fixed σ=0.85:
+& $PRISM $Mt $Pt -property 2 -const sigma=0.85,k=1:1:4
+#   -> P[giant cascade] = 0, 0, 1, 1  (cascade switches on at k=3)
+# P3 CASCADE TIMESCALE diverges toward the cliff:
+& $PRISM $Mt $Pt -property 3 -const sigma=0.85,k=3   # 18.0 ; σ=0.70 -> 7.4 ; σ=0.50 -> 6.1
+```
+(`$Mt`/`$Pt` = absolute paths to `AtlasCascade.sm` / `AtlasCascade.csl`.)
+
+### What this pins down — the ATLAS cascade claims
+
+- **The cascade cliff — `atlasCascadeThreshold`, run.** P[the misinterpretation
+  cascade reaches a giant fraction] is a **discontinuous step**: **0** while
+  distortion Δ = 1 − σ^k stays at/below θ (no edge can cross the threshold, the
+  cascade cannot start) and **1** once Δ exceeds it. "A cascade cliff, not a slope"
+  — the deterrence-basin analog of model ③'s crystallization cliff.
+- **Reflexive-depth compounding — `low_coverage_compounds_with_reflexive_depth`.**
+  Sweeping reflexive depth k at fixed coverage, the cascade **switches on at a
+  specific depth** (k=3 for σ=0.85): each reflexive layer multiplies fidelity by σ,
+  so distortion crosses θ sharply in k. Deeper strategic reflexion compounds the
+  distortion into a system-wide cascade.
+- **The cascade timescale diverges toward the cliff.** Expected steps to the giant
+  cascade rise as σ → the critical coverage (Δ → θ⁺, prop → 0): **18.0 → 7.4 → 6.1**
+  as σ falls further past the cliff — fast deep in the cascade regime, slow at its
+  edge.
+- **Depth tie.** `test_signaling_cascade.py::test_cascade_risk_is_a_monotone_step_across_the_threshold`
+  guards the threshold-onset (cascade_risk is a non-decreasing step in falling
+  coverage / rising depth, 0 below Δ = θ) on `signaling_cascade.py`; module and
+  model cross-reference each other.
+
+### Scope boundary (ATLAS cascade)
+
+- **Illustrative, structural, bounded** — no locked ATLAS number (θ dosing,
+  coverage estimates) redefined; the claim is the *cascade-percolation cliff and
+  its reflexive-depth compounding*, not the Q4-BIND calibration. Ring of 4 actors
+  with a uniform per-edge propagation; the full weighted-edge basin is abstracted.
+- **Reuses model ③'s percolation cliff**, peer-typed — the fifth peer-transfer of
+  the core machinery, and it makes the AGORA ∩ ATLAS overlap concrete: both
+  specialize `core:CollectiveManifoldUpdate` (a captured node vs a distorted percept).
