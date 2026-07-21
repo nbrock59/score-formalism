@@ -1,0 +1,83 @@
+// ===========================================================================
+// EthosCapture.sm  --  ETHOS epistemic capture + critical slowing down (CTMC)
+//
+// The FIRST peer model (breadth): a SCORE-peer dynamics model-checked, not just
+// core/POLARIS. See obsidian/SCORE/methodology/ModelCheckedDynamics.md
+// § "Coverage and boundaries" (this closes the ETHOS breadth cell) and
+// obsidian/SCORE/emergence/applications/ETHOS-InformationHealth.md.
+//
+// ETHOS is the epistemic-commons peer. Its capture dynamics (E5;
+// `src/ethos/dynamics/capture.py`) are the epistemic instance of model ①'s
+// early-warning structure: as CAPTURE PRESSURE rises toward a bifurcation, an
+// epistemic community's information health loses resilience and collapses into
+// the `core:PathologicalAttractor` basin — and the produced-quality trajectory
+// exhibits CRITICAL SLOWING DOWN (rising autocorrelation/variance) before it,
+// exactly the SEWI signature (`ethos:InfosphereSpectralEWS`, the second filler of
+// `core:SpectralEarlyWarningIndicator` alongside `polarisSEWI`, method-commensurable).
+//
+// This model is a probabilistic lift of model ① (`HOADissolution.sm`) into the
+// ETHOS domain, and it validates two Lean claims of `formal/Formal/Score/Ethos.lean`
+// quantitatively:
+//   * `capture_cannot_increase_information_health` (VC1): capturedHealth κ H = κ·H,
+//     κ ≤ 1 ⇒ κ·H ≤ H. Here CAPTURE ATTENUATES the health-restoring dynamics
+//     (self-correction rate ∝ (1 − cap), the κ = 1 − cap factor), so higher
+//     capture can only lower the steady-state health — checked as monotonicity of
+//     steady healthy-occupancy in `cap`.
+//   * `ethosSpectralEWS_monotone`: the spectral early-warning signal is
+//     nondecreasing in its critical-slowing-down signatures. Here rising capture
+//     slows recovery (weaker mean-reversion = the rising-autocorrelation signal),
+//     so the recovery/collapse timescales worsen MONOTONICALLY in `cap` — the
+//     model-checked face of the EWS-monotone law. Its Python-generator companion
+//     (`test_ethos/test_capture.py::test_ews_monotone_in_capture_pressure`) guards
+//     the same property on the executable trajectory generator (the depth tie).
+//
+// GOVERNANCE (scope note pre-registration lock): illustrative structural rates —
+// no locked pre-registered ETHOS number (ET-G quality weights, the M4 discriminant)
+// redefined; structural validation of the capture early-warning SHAPE, not the Q4
+// BIND calibration. Per [[SemanticSeepage]] the discrete abstraction is flagged.
+// ===========================================================================
+
+ctmc
+
+// ---- epistemic-health axis + attractor --------------------------------------
+const int L = 4;             // information-health level 0..L; healthy commons at L
+
+// ---- capture + dynamics (illustrative) --------------------------------------
+const double cap;            // CAPTURE PRESSURE in [0,1] -- the control parameter (SWEPT).
+                             //   cap = 0 telos-aligned (κ=1, full self-correction);
+                             //   cap → 1 fully captured (κ=0, no self-correction).
+const double restore = 1.0;  // base self-correction (health-restoring) rate
+const double decay   = 0.20; // base erosion rate
+const double erode   = 0.60; // extra erosion induced by capture pressure
+
+// ---- experiment switches (passed on the CLI, like a .cfg) -------------------
+const int INIT_H;            // start health (healthy: L / perturbed: 2)
+const int ABSORB;            // 1 = PathologicalAttractor absorbing (first-passage);
+                             // 0 = reflecting (steady-state VC1 experiment)
+
+// ---- derived (κ = 1 − cap is the ETHOS capturedHealth attenuation factor) ----
+formula pathological = h <= 1;               // core:PathologicalAttractor basin
+formula healthy      = h >= L - 1;           // resilient / telos-aligned band
+formula active       = (ABSORB = 0) | !pathological;
+
+module ethos
+
+  h : [0..L] init INIT_H;   // information health / produced-quality proxy
+
+  // self-correction (recovery toward the healthy commons), ATTENUATED by capture:
+  // rate ∝ (1 − cap) = κ. At full capture the commons cannot self-correct.
+  [] active & h < L -> restore * (1 - cap) : (h' = h + 1);
+
+  // erosion toward the pathological attractor, STRENGTHENED by capture pressure.
+  [] active & h > 0 -> decay + erode * cap : (h' = h - 1);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "pathological" = h <= 1;               // captured / collapsed epistemic commons
+label "healthy"      = h >= L - 1;           // resilient band (recovery target)
+
+// ---- reward: time (expected time-to-collapse = the early-warning lead time) --
+rewards "time"
+  !pathological : 1;
+endrewards

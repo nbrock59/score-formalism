@@ -1,0 +1,35 @@
+// ===========================================================================
+// EthosCapture.csl  --  CSL / reward properties for EthosCapture.sm
+//
+// ETHOS peer model (first breadth extension). See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+// ===========================================================================
+
+const double T;   // time horizon (for bounded properties)
+
+// --- P1. Capture accelerates epistemic collapse (ABSORB=1, healthy start) -----
+//     P[ the commons falls into the PathologicalAttractor within T ]. Swept over
+//     capture pressure `cap` this rises monotonically — the quantitative
+//     early-warning dose-response.
+P=? [ F<=T "pathological" ]
+
+// --- P2. Early-warning lead time: expected time-to-collapse (ABSORB=1) --------
+//     As capture pressure rises the characteristic timescale COLLAPSES — the
+//     lead time the spectral EWS has to fire shrinks. Model ①'s timescale
+//     collapse, epistemically typed.
+R{"time"}=? [ F "pathological" ]
+
+// --- P3. Critical slowing down (ABSORB=1, perturbed start INIT_H=2) -----------
+//     P[ the commons recovers to the healthy band before collapsing, within T ].
+//     Falls MONOTONICALLY as `cap` rises: recovery slows (weaker self-correction
+//     = the rising-autocorrelation signal `ethosSpectralEWS` reads). The
+//     model-checked face of `ethosSpectralEWS_monotone`; its Python companion is
+//     test_ethos/test_capture.py::test_ews_monotone_in_capture_pressure.
+P=? [ F<=T "healthy" ]
+
+// --- P4. VC1 — capture cannot increase health (ABSORB=0, steady-state) --------
+//     Long-run probability the commons sits in the healthy band, in the reflecting
+//     chain. Monotone NON-INCREASING in `cap`: more capture can only lower steady
+//     information health. The probabilistic face of
+//     `capture_cannot_increase_information_health` (capturedHealth κ H = κ·H ≤ H).
+S=? [ "healthy" ]

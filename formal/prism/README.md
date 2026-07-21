@@ -560,3 +560,58 @@ span the population if connectivity bridges the gaps.
   many agents on the `S¹⁵` manifold, the stratified Hasse crystallization
   sequence, the p=0.999 multigenerational aggregate over a real population network
   — exceeds PRISM's explicit state space and is the intended Storm continuation.
+
+
+## EthosCapture.sm — ETHOS epistemic capture + critical slowing down (peer model)
+
+The **first peer model** — a SCORE peer's dynamics model-checked, not just
+core/POLARIS (closing the ETHOS cell of the coverage ledger in
+[[ModelCheckedDynamics]] § "Coverage and boundaries"). ETHOS is the
+epistemic-commons peer; its capture dynamics (`src/ethos/dynamics/capture.py`,
+E5) are the epistemic instance of **model ①'s** early-warning structure: as
+**capture pressure** rises toward a bifurcation, an epistemic community's
+information health loses resilience and collapses into the
+`core:PathologicalAttractor` basin, with **critical slowing down** (rising
+autocorrelation) before it — the SEWI signature, since `ethos:InfosphereSpectralEWS`
+is the *second filler of the same `core:SpectralEarlyWarningIndicator`* as
+`polarisSEWI`. Capture attenuates self-correction (rate ∝ `1 − cap` = the ETHOS
+`capturedHealth` factor κ) and strengthens erosion.
+
+```powershell
+# All four properties are MONOTONE in capture pressure `cap` (sweep 0.2..0.8):
+& $PRISM $Me $Pe -property 1 -const cap=0.2:0.2:0.8,INIT_H=4,ABSORB=1,T=10  # P[collapse<=10] -> 0.17, 0.41, 0.68, 0.89
+& $PRISM $Me $Pe -property 2 -const cap=0.2:0.2:0.8,INIT_H=4,ABSORB=1        # time-to-collapse -> 44.5, 17.2, 8.8, 5.4
+& $PRISM $Me $Pe -property 3 -const cap=0.2:0.2:0.8,INIT_H=2,ABSORB=1,T=10  # recovery (CSD)   -> 0.71, 0.58, 0.42, 0.23
+& $PRISM $Me $Pe -property 4 -const cap=0.2:0.2:0.8,INIT_H=4,ABSORB=0        # steady healthy   -> 0.85, 0.59, 0.22, 0.02
+```
+(`$Me`/`$Pe` = absolute paths to `EthosCapture.sm` / `EthosCapture.csl`.)
+
+### What this pins down — the ETHOS capture claims, and the depth tie
+
+- **Capture accelerates collapse; the early-warning lead time shrinks.** Collapse
+  probability within a horizon rises **0.17 → 0.89** and the expected
+  time-to-collapse falls **44.5 → 5.4** as capture pressure rises — model ①'s
+  timescale collapse, epistemically typed.
+- **Critical slowing down — `ethosSpectralEWS_monotone`, model-checked.** Recovery
+  probability from a perturbed state falls **monotonically 0.71 → 0.23**: the
+  commons self-corrects ever more slowly as capture rises (the rising-autocorrelation
+  signal the spectral EWS reads). This is the model-checked face of the Lean
+  monotonicity law; its executable-generator companion is
+  `test_ethos/test_capture.py::test_ews_monotone_in_capture_pressure`, which guards
+  the *same* monotone dose-response on `src/ethos/dynamics/capture.py` — the **depth
+  tie** that connects a model-checked property to the implementation's test suite.
+- **VC1 — capture cannot increase health.** Steady-state healthy-occupancy is
+  monotone non-increasing in capture, collapsing **0.85 → 0.02**: the probabilistic
+  face of `capture_cannot_increase_information_health` (`capturedHealth κ H = κ·H ≤ H`).
+
+### Scope boundary (ETHOS capture)
+
+- **Illustrative, structural, bounded** — no locked ETHOS number (ET-G quality
+  weights, the M4 discriminant) redefined; the claim is the *monotone dose-response
+  shape* (collapse ↑, lead time ↓, recovery ↓, health ↓ in capture), not the Q4-BIND
+  calibration. Single-community scalar-pressure ramp, not the full Ω-actor
+  amplification simulation.
+- **A reuse of model ①, ETHOS-typed** — it is the first peer model, and the pattern
+  (attenuated recovery + strengthened erosion → critical slowing down + collapse)
+  transfers directly to the other peers' unchecked dynamics (AGORA manifold-update,
+  ATLAS cascade) noted in the coverage ledger.
