@@ -176,7 +176,17 @@ deriving DecidableEq, Repr
 -- abstraction.
 -- ════════════════════════════════════════════════════════════════
 
-/-- The five Σ-actor life-cycle phases, derived from formal/informal closure. -/
+/-- The five Σ-actor life-cycle phases, derived from formal/informal closure.
+
+    The transition dynamics between these phases are model-checked in
+    `formal/tla/SigmaLifeCycle.tla` (TLC), where they are unavailable here (this
+    is the enum only). Over a dual `formal`/`informal` closure state, TLC checks:
+    the stratification constraint (a live Maturity closure needs both layers
+    stable; the formal higher stratum rises only via co-inscription gated on a
+    stable informal lower stratum — SO-NS-Stratification.md); that Reinvention
+    occurs only within a surviving formal shell (never after formal dissolution);
+    and a reachability trace of the full Formation→…→Reinvention trajectory. See
+    `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 inductive SigmaLifeCyclePhase : Type where
   /-- Formation: first achievement of closure — informal networks co-inscribe
       formal B₃ that begins to constrain those networks. HOA crystallization

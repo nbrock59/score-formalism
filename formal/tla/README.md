@@ -205,3 +205,51 @@ the floored B₃ mechanism removes the irreducible floor (`substrate = 0` reacha
 and maintained), where B₃ alone held it (`HOAB3_Floor.cfg`). Exact multiplicative
 maintenance needs rational arithmetic, so `CompMul` is used only in the
 comparison; that is the one modelling boundary here.
+
+## LifeCycle.tla — A-actor life-cycle (Core.lean `LifeCyclePhase`)
+
+The individual life-cycle Childhood → Student → Householder → Retirement (encoded
+`0..3`), with `coupling` the local (HOA-relevant) coupling weight. Core.lean has
+the phase enum, `hasSponsorship`, and `localCouplingAccumulates`; the transition
+dynamics are unformalized. `L=3`; two cases:
+
+```powershell
+java -cp $jar tlc2.TLC -deadlock -config LifeCycle_Mono.cfg    LifeCycle.tla
+#   -> No error (10 states): Monotone HOLDS -- phase and coupling never decrease,
+#      and coupling accumulates only in the settled (phase>=2) phases.
+java -cp $jar tlc2.TLC -deadlock -config LifeCycle_Sponsor.cfg LifeCycle.tla
+#   -> NoPeakSponsor VIOLATED: trace to the peak-coupling Retirement SPONSOR
+#      (the HOA-attractor-maintaining agent), via the accumulation phases.
+```
+
+## SigmaLifeCycle.tla — Σ-actor life-cycle (Sigma.lean §29 `SigmaLifeCyclePhase`)
+
+The collective life-cycle Formation → Maturity → Crossover → Death → Reinvention
+as a **closure-driven** state machine over a dual layer: a `formal` (B₃, higher
+stratum) and an `informal` (B₂, lower stratum) layer, closure being their mutual
+maintenance (`FormalInformalClosure.md` § "Lifecycle derivation"). Sigma.lean has
+only the phase enum; the dynamics are here. `L=3, Theta=2`; three cases:
+
+```powershell
+java -cp $jar tlc2.TLC -deadlock -config SigmaLifeCycle_Strat.cfg SigmaLifeCycle.tla
+#   -> No error (25 states): Stratification HOLDS -- a live (Maturity) closure
+#      requires BOTH layers stable; the formal (higher stratum) is live only on a
+#      stable informal (lower stratum). "Higher strata only on stable lower strata."
+java -cp $jar tlc2.TLC -deadlock -config SigmaLifeCycle_Shell.cfg SigmaLifeCycle.tla
+#   -> No error (25 states): ReinventionNeedsShell HOLDS -- reinvention only within
+#      a surviving formal shell (informal-collapse death), never after formal
+#      dissolution (IBM-under-Gerstner).
+java -cp $jar tlc2.TLC -deadlock -config SigmaLifeCycle_Reach.cfg SigmaLifeCycle.tla
+#   -> NeverReinvents VIOLATED: TLC emits the full trajectory Formation -> Maturity
+#      -> Crossover -> Death (informal collapse; formal shell persists) ->
+#      Reinvention. The co-inscription gate (formal rises only after informal>=Theta)
+#      is visible in the trace -- stratification in action.
+```
+
+What these pin down: the **stratification constraint** ([[SO-NS-Stratification]]) —
+model-checked as a global invariant of the Σ-actor closure — and the two
+mechanisms that carry it (co-inscription gating; live closure requiring both
+layers), plus the shell-dependence of reinvention that distinguishes the two
+death pathways. The A-actor model contributes the monotone phase progression and
+the phase-gating of coupling accumulation that produces the Retirement sponsor —
+the agent role that maintains the HOA attractors of the earlier pilots.

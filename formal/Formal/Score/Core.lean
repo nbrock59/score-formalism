@@ -281,7 +281,15 @@ def isExternallyDominant (v : CouplingWeightVector) : Prop :=
 -- Census ACS B01001 + B25038 give phase distribution at tract level.
 -- ════════════════════════════════════════════════════════════════
 
-/-- The four life-cycle phases. -/
+/-- The four life-cycle phases.
+
+    The phase-transition dynamics are model-checked in `formal/tla/LifeCycle.tla`
+    (TLC), where they are unavailable here (this is the enum only): monotone
+    progression (phase and local coupling never decrease; coupling accumulates
+    only in the settled Householder/Retirement phases, per
+    `localCouplingAccumulates`), and reachability of the peak-coupling Retirement
+    sponsor (`hasSponsorship`) that maintains HOA-attractor infrastructure. See
+    `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 inductive LifeCyclePhase : Type where
   /-- Childhood (<18): inscription core formation; coupling vector inherited
       from family. Most durable component; persists across later geographies. -/
