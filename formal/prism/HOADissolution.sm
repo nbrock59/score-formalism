@@ -1,0 +1,128 @@
+// ===========================================================================
+// HOADissolution.sm  --  stochastic HOA dissolution + early-warning (CTMC)
+//
+// Model (1) of the probabilistic model-checking layer scoped in
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md
+//     ("Probabilistic model checking (PRISM/Storm) -- scope").
+//
+// The PROBABILISTIC LIFT of the qualitative HOA-maintenance model
+//   formal/tla/HOA.tla  (Lean: Formal/Score/HOAMaintenance.lean, HM1-HM8).
+// TLC answered a qualitative question -- can a formed HOA leave its basin
+// (yes; HOA_Diss.cfg) and does an in-basin, feedback-engaged one stay formed
+// (yes; HOA_Maint.cfg). PRISM answers the quantitative questions POLARIS's
+// early-warning mission actually asks: with what PROBABILITY does an HOA
+// dissolve within a horizon, and what is the EXPECTED TIME to dissolution --
+// and whether the [[SpectralEarlyWarningIndicator|SEWI]] critical-slowing-down
+// premise (recovery time / fluctuations rise before the transition) holds on a
+// generative model.
+//
+// Discretization mirrors HOA.tla exactly:
+//   substrate, endowment in 0..L ;  Weight = substrate + endowment
+//   Formation / Dissolution hysteresis thresholds (Dissolution < Formation)
+//   Engagement = Formation - Dissolution        (combineAdditive.engagementThreshold, HM4)
+//   Basin      = substrate >= EffDissolution    (HM5, substrate-based)
+//   Engaged    = endowment >= Engagement        (HM6 feedbackEngaged)
+//   HOAExists  = Weight >= Formation            (HM5)
+//   dissolved  = Weight <  Formation            (!HOAExists; the absorbing event)
+//
+// The TLC nondeterministic +/-1 HOAMove (HOA.tla StepSub/StepEnd) becomes a
+// RACE of exponential transitions -- the stochastic microdynamics the Lean
+// leaves as `axiom HOAMove`:
+//   * intrinsic decay      : mass-action erosion of substrate / endowment
+//                            (rate `decay` * level). `decay` is the SLOW
+//                            CONTROL PARAMETER swept for the early-warning
+//                            experiment -- rising `decay` = rising structural
+//                            stress on the basin.
+//   * autocatalytic feedback: the HM6 loop replenishes. Engaged endowment
+//                            regrows substrate; an in-basin substrate regrows
+//                            endowment (rate `grow`). This IS the mutual
+//                            substrate<->endowment autocatalysis; it is what
+//                            makes a formed HOA persist (hysteresis) and what
+//                            fails once the structure leaves the basin.
+//   * exogenous shock      : occasional larger drop (rate `shock`) -- the
+//                            external stress event whose downstream effect the
+//                            early-warning layer is built to anticipate.
+//
+// RESIDUE (const, default 0) is the HM11 ceiling-residue extension of
+//   formal/tla/HOAExt.tla, lifted to CTMC form: accumulated Path-A residue
+//   LOWERS the effective dissolution floor (EffDissolution = max(0, Dissolution
+//   - RESIDUE)), so a residue-endowed HOA has to erode further before it
+//   dissolves. Sweeping RESIDUE quantifies payoff (b) of the scope note:
+//   ceiling residue lowers dissolution probability.  (cf. [[DynamicFailureSets]])
+//
+// GOVERNANCE (scope note, "the pre-registration lock"): the rates here are
+//   ILLUSTRATIVE STRUCTURAL parameters, NOT a redefinition of any locked
+//   pre-registered number (SEWI 1.5/1.8, beta=0.005, psi_s 0.3 in
+//   validation/pre-registration/). This model is structural validation of the
+//   early-warning SHAPE (does critical slowing down precede dissolution), not a
+//   calibrated dosing/threshold claim. Per [[SemanticSeepage]] the map from
+//   POLARIS's continuous/spectral dynamics to this discrete Markov chain is a
+//   flagged abstraction, not an identity.
+// ===========================================================================
+
+ctmc
+
+// ---- structural constants (mirror HOA.tla: L=4, Formation=3, Dissolution=2) -
+const int L          = 4;   // discretized CouplingWeight levels 0..L
+const int FORMATION  = 3;   // hysteresis upper threshold (HOAExists at/above)
+const int DISSOLUTION = 2;  // hysteresis lower threshold (basin floor)
+const int RESIDUE;          // HM11 ceiling residue: lowers the effective floor (payoff b); 0 = base
+
+// ---- rate parameters (ILLUSTRATIVE -- see governance note above) ------------
+const double grow  = 1.0;   // autocatalytic feedback replenishment rate (fixed)
+const double decay;         // intrinsic mass-action erosion -- SWEPT stress/control param
+const double shock = 0.10;  // exogenous stress-event rate (fixed perturbation source)
+
+// ---- experiment start state (set per-experiment on the CLI, like a .cfg) ----
+// Passed on every run (undefined here) so each experiment declares its start,
+// the way each formal/tla/*.cfg declares its Init. Typical values:
+//   healthy formed+engaged HOA : INIT_S=3, INIT_E=2   (Experiments A, C, D)
+//   perturbed near basin floor : INIT_S=2, INIT_E=1   (Experiment B, recovery)
+//   unformed in the window     : INIT_S=2, INIT_E=0   (Experiment E, hysteresis)
+const int INIT_S;
+const int INIT_E;
+
+// ---- switch: absorbing dissolution vs reflecting (for the CSD experiment) ---
+// ABSORB=1 : dissolved is absorbing -> first-passage (dissolution prob, time).
+// ABSORB=0 : no absorption -> the chain fluctuates around the attractor, so the
+//            recovery-time critical-slowing-down proxy (P4) stays finite.
+const int ABSORB;
+
+// ---- derived quantities (names mirror the Lean / HOA.tla) -------------------
+const int Engagement = FORMATION - DISSOLUTION;             // HM4  (=1)
+formula effdiss  = max(0, DISSOLUTION - RESIDUE);           // HOAExt EffDissolution
+formula weight   = s + e;                                   // combineAdditive
+formula engaged  = e >= Engagement;                         // HM6 feedbackEngaged
+formula inbasin  = s >= effdiss;                            // HM5 Basin (residue-extended)
+formula dissolved = weight < FORMATION;                     // !HOAExists  (absorbing event)
+formula active   = (ABSORB = 0) | !dissolved;              // transitions off once absorbed
+
+module hoa
+
+  s : [0..L] init INIT_S;   // substrate  (HOAState.substrate)
+  e : [0..L] init INIT_E;   // endowment  (HOAState.loopEndowment)
+
+  // intrinsic decay -- mass-action erosion; `decay` is the swept control param
+  [] active & s > 0 -> decay * s : (s' = s - 1);
+  [] active & e > 0 -> decay * e : (e' = e - 1);
+
+  // autocatalytic feedback (HM6 loop): engaged endowment regrows substrate;
+  // an in-basin substrate regrows endowment. The mutual autocatalysis.
+  [] active & engaged & s < L -> grow : (s' = s + 1);
+  [] active & inbasin & e < L -> grow : (e' = e + 1);
+
+  // exogenous shock -- an external stress event knocks substrate down by up to 2
+  [] active & s >= 2 -> shock : (s' = s - 2);
+  [] active & s = 1 -> shock : (s' = 0);
+
+endmodule
+
+// ---- labels used by HOADissolution.csl --------------------------------------
+label "dissolved" = weight < FORMATION;                 // HOA no longer exists
+label "recovered" = weight >= FORMATION + 3;            // clearly-healthy attractor band
+label "outofbasin" = s < effdiss;                       // left the maintenance basin
+
+// ---- reward: time (for expected-time-to-event via R{"time"}=?[ F ... ]) -----
+rewards "time"
+  !dissolved : 1;
+endrewards

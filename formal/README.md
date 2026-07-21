@@ -14,6 +14,7 @@ concept vault (`../obsidian/SCORE/`) by `../scripts/score_check.py`.
 | `Formal.lean`, `lakefile.toml`, `lean-toolchain` | Lean project scaffolding. |
 | `tla/*.tla` (+ `.cfg`) | TLA+/TLC **model-checked dynamics** (a third formalism for the dynamical layer): the Dijkstra self-stabilizing ring, the full HOA maintenance family (§HM8–HM17), and the A-/Σ-actor life-cycles. See `tla/README.md` and `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. |
 | `spin/*.pml` | SPIN/Promela model-checked dynamics — the concurrency + liveness companion to `tla/`. `RevisionLoop.pml` runs the revision loop's descriptive/impossibility spine (`Score/RevisionLoop.lean`) as interacting processes with `<>[]` liveness. See `spin/README.md`. |
+| `prism/*.{sm,csl}` | PRISM **probabilistic** model-checked dynamics — the *quantitative* rung (probability, expected time) the TLC/SPIN pilots do not reach. `HOADissolution.sm` is the CTMC lift of `tla/HOA.tla` (§HM8) that validates the SEWI critical-slowing-down premise; it carries the pre-registration-lock governance caveat. See `prism/README.md`. |
 
 The layering and the core-vs-implementation decision procedure are documented in
 `../obsidian/SCORE/methodology/RefinementArchitecture.md`.

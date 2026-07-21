@@ -1,0 +1,59 @@
+// ===========================================================================
+// HOADissolution.csl  --  CSL / reward properties for HOADissolution.sm
+//
+// Model (1), probabilistic model-checking layer. See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+//
+// The three payoffs the scope note names, made checkable:
+//   (a) hysteresis asymmetry, probabilistic  -> P1 vs P5
+//   (b) HM11 ceiling residue quantified       -> P1 swept over RESIDUE
+//   (c) SEWI critical-slowing-down premise     -> P2 (time-to-dissolution) and
+//                                                 P4 (recovery time) swept over
+//                                                 the stress control param `decay`
+// ===========================================================================
+
+const double T;   // time horizon (for bounded properties)
+
+// --- P1. Early-warning core: P[ HOA dissolves within horizon T ] ------------
+//     (run absorbing: ABSORB=1). Swept over `decay` this is the dose-response
+//     of dissolution risk to structural stress; swept over RESIDUE it quantifies
+//     payoff (b) -- ceiling residue lowers this probability.
+P=? [ F<=T "dissolved" ]
+
+// --- P2. Expected time to dissolution (ABSORB=1) ----------------------------
+//     The core SEWI quantity: as the stress control param `decay` rises toward
+//     the bifurcation, this expected first-passage time COLLAPSES. That collapse
+//     is the discontinuity the early-warning layer exists to anticipate.
+R{"time"}=? [ F "dissolved" ]
+
+// --- P3. Survival: P[ HOA still exists throughout [0,T] ] (ABSORB=1) ---------
+P=? [ G<=T !"dissolved" ]
+
+// --- P4. Critical slowing down proxy: RECOVERY PROBABILITY within T ----------
+//     Start perturbed but still alive (INIT_S=2, INIT_E=2, weight=4 >= Formation)
+//     with dissolution absorbing (ABSORB=1); ask P[ the chain climbs back to the
+//     clearly-healthy attractor band before it dissolves, within horizon T ].
+//     Critical slowing down: as the stress control param `decay` rises toward
+//     `grow`, recovery slows, so this within-horizon recovery probability FALLS.
+//     Slower recovery is the leading indicator SEWI operationalizes (rising
+//     variance / autocorrelation); here it is read directly off the generative
+//     model. (A probability, not an expected time -- finite even though the
+//     fully-collapsed corner s=e=0 is a sink.)
+P=? [ F<=T "recovered" ]
+
+// --- P5. Recover-before-dissolve competition (ABSORB=1) ----------------------
+//     Unbounded companion to P4: P[ hit the healthy attractor before dissolving ]
+//     from the perturbed-alive start. The basin's pull vs the stress; collapses
+//     with `decay`. Also the vehicle for the probabilistic hysteresis contrast:
+//     run it from an UNFORMED-in-window start in the NON-absorbing chain
+//     (ABSORB=0, INIT_S=2, INIT_E=0) and it becomes P[ spontaneous FORMATION ] --
+//     HOA.tla case-3 bistability made stochastic. Compared with P1's dissolution
+//     probability from the formed start, this is the formation != dissolution
+//     asymmetry (HM8 hysteresis gap) in probabilistic form.
+P=? [ F "recovered" ]
+
+// --- P6. Where does an eventual dissolution pass through the basin floor? ----
+//     P[ eventually out of basin ] -- sanity that dissolution goes via the
+//     HOA.tla case-2 route (substrate < EffDissolution) rather than by a pure
+//     endowment collapse. (ABSORB=1, formed start)
+P=? [ F "outofbasin" ]
