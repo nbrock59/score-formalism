@@ -1,0 +1,83 @@
+// ===========================================================================
+// NexusInnovation.sm  --  NEXUS innovation-HOA vs NS-cartel tipping (CTMC)
+//
+// The FOURTH peer model (breadth-only -- NEXUS ships no `src/` trajectory
+// generator, so there is no depth tie). See
+// obsidian/SCORE/methodology/ModelCheckedDynamics.md § "Coverage and boundaries"
+// (this closes the NEXUS cell) and
+// obsidian/SCORE/emergence/applications/NEXUS.md.
+//
+// NEXUS is the innovation-ecosystem peer. Its Lean spine (`Formal/Score/Nexus.lean`)
+// builds a `NexusInnovationHOA` on the §HM HOA-maintenance machinery
+// (`autocatalyticWeight`, `autocatalytic_closes_gap`, `stabilizesWithin`,
+// `generationalRenewal_maintains_ceiling`) and sets it OPPOSITE the pathological
+// **NS-as-cartel** attractor (`nsAsCartel_and_healthyHOA_are_opposites`:
+// `nsAsCartelPolarity = innovationHOAHealthyPolarity.opposite`, the §HM35 axis).
+// So an innovation region is BISTABLE between two opposite-polarity attractors:
+//   * the HEALTHY innovation HOA -- autocatalytic, self-maintaining, generationally
+//     renewed (holds its ceiling);
+//   * the PATHOLOGICAL NS-as-cartel attractor -- captured selection, a cartel.
+//
+// This is **model ①'s HOA dissolution, innovation-typed**: the innovation HOA's
+// vitality either self-maintains (healthy basin) or tips into the cartel basin
+// under CARTELIZATION PRESSURE, with the distinctive NEXUS twist that GENERATIONAL
+// RENEWAL adds a floor of upward pressure that maintains the ceiling (the parallel
+// of model ①'s ceiling residue, but as renewal rather than accumulated stock).
+//
+// Validates, quantitatively: that cartelization tips the innovation HOA into its
+// opposite (cartel) attractor with rising probability / collapsing timescale
+// (critical slowing down before the tip), and that generational renewal lengthens
+// the innovation HOA's lifetime -- `generationalRenewal_maintains_ceiling` made
+// numeric.
+//
+// GOVERNANCE (scope note pre-registration lock): illustrative structural rates --
+// no locked NEXUS number (NX-G KillZone weights, renewal cadence) redefined;
+// structural validation of the innovation/cartel tipping SHAPE, not the Q4-BIND
+// calibration. Per [[SemanticSeepage]] the discrete abstraction is flagged.
+// ===========================================================================
+
+ctmc
+
+// ---- innovation-HOA vitality axis + attractors ------------------------------
+const int L     = 4;         // innovation-HOA vitality 0..L; healthy innovation at L
+const int FLOOR = 1;         // NS-as-cartel basin: vitality <= FLOOR (the pathological attractor)
+
+// ---- cartelization + dynamics (illustrative) --------------------------------
+const double cartel;         // CARTELIZATION PRESSURE in [0,1] -- the control parameter (SWEPT)
+const double grow    = 1.0;  // autocatalytic self-maintenance rate (innovation HOA closes its gap)
+const double decay   = 0.20; // base erosion rate
+const double erode   = 0.60; // extra erosion induced by cartelization pressure
+const double renewal;        // generational-renewal rate -- floor of upward pressure (SWEPT for E3)
+
+// ---- experiment switches -----------------------------------------------------
+const int INIT_W;            // start vitality (healthy: L / perturbed: 2)
+const int ABSORB;            // 1 = cartel basin absorbing (first-passage); 0 = reflecting (recovery)
+
+// ---- derived ----------------------------------------------------------------
+formula cartelized = w <= FLOOR;             // in the NS-as-cartel (pathological) attractor
+formula healthy    = w >= L - 1;             // in the healthy innovation-HOA band (opposite pole)
+formula active     = (ABSORB = 0) | !cartelized;
+
+module nexus
+
+  w : [0..L] init INIT_W;   // innovation-HOA vitality / autocatalytic weight
+
+  // autocatalytic self-maintenance + generational renewal (up), the maintenance
+  // attenuated by cartelization pressure (grow·(1−cartel)); renewal is the
+  // ceiling-holding floor that persists regardless.
+  [] active & w < L -> grow * (1 - cartel) + renewal : (w' = w + 1);
+
+  // cartelization erosion toward the NS-cartel attractor (down), strengthened by
+  // cartelization pressure.
+  [] active & w > 0 -> decay + erode * cartel : (w' = w - 1);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "cartelized" = w <= FLOOR;             // tipped into the pathological cartel attractor
+label "healthy"    = w >= L - 1;             // the healthy innovation-HOA pole (recovery target)
+
+// ---- reward: time (expected time-to-cartelization = the tipping lead time) ---
+rewards "time"
+  !cartelized : 1;
+endrewards

@@ -1,0 +1,32 @@
+// ===========================================================================
+// NexusInnovation.csl  --  properties for NexusInnovation.sm
+//
+// NEXUS peer model (fourth breadth extension, breadth-only). See the .sm header
+//   and obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+// ===========================================================================
+
+const double T;   // time horizon (for bounded properties)
+
+// --- P1. Cartelization tips the innovation HOA into its opposite attractor ----
+//     P[ the innovation HOA falls into the NS-cartel basin within T ]. Swept over
+//     cartelization pressure (ABSORB=1, healthy start): rises monotonically -- the
+//     healthy innovation attractor loses to the pathological cartel one.
+P=? [ F<=T "cartelized" ]
+
+// --- P2. Tipping lead time: expected time-to-cartelization (ABSORB=1) ---------
+//     Collapses as cartelization pressure rises -- the characteristic timescale
+//     shrinking before the tip into the cartel attractor.
+R{"time"}=? [ F "cartelized" ]
+
+// --- P3. Critical slowing down (ABSORB=1, perturbed start INIT_W=2) -----------
+//     P[ the innovation HOA recovers to the healthy pole before cartelizing,
+//     within T ]. Falls monotonically as pressure rises: recovery slows as the
+//     tipping point nears.
+P=? [ F<=T "healthy" ]
+
+// --- P4. Generational renewal maintains the ceiling --------------------------
+//     Expected time-to-cartelization swept over the renewal rate at fixed
+//     cartelization pressure (ABSORB=1). Rises with renewal: generational renewal
+//     lengthens the innovation HOA's lifetime and holds its ceiling -- the
+//     probabilistic face of `generationalRenewal_maintains_ceiling`.
+R{"time"}=? [ F "cartelized" ]

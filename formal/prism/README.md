@@ -723,3 +723,56 @@ per-edge propagation `prop = max(0, 1 − θ/Δ)` (exactly 0 below Δ = θ).
 - **Reuses model ③'s percolation cliff**, peer-typed — the fifth peer-transfer of
   the core machinery, and it makes the AGORA ∩ ATLAS overlap concrete: both
   specialize `core:CollectiveManifoldUpdate` (a captured node vs a distorted percept).
+
+
+## NexusInnovation.sm — NEXUS innovation-HOA vs NS-cartel tipping (peer model)
+
+The **fourth peer model** — and the first **breadth-only** one: NEXUS ships no
+`src/` trajectory generator, so there is no depth tie (unlike ETHOS/AGORA/ATLAS).
+NEXUS is the innovation-ecosystem peer. Its Lean spine builds a `NexusInnovationHOA`
+on the HOA-maintenance machinery (`autocatalyticWeight`, `stabilizesWithin`,
+`generationalRenewal_maintains_ceiling`) and sets it **opposite** the pathological
+**NS-as-cartel** attractor (`nsAsCartel_and_healthyHOA_are_opposites`). So an
+innovation region is bistable between two opposite-polarity attractors: a healthy,
+self-renewing innovation HOA and a captured-selection cartel. This is **model ①'s
+dissolution, innovation-typed** — cartelization pressure tips the innovation HOA
+into its cartel opposite — with the distinctive twist that **generational renewal**
+adds a floor of upward pressure that holds the ceiling.
+
+```powershell
+# P1/P2 CARTELIZATION TIPPING — sweep cartelization pressure (renewal=0, healthy start):
+& $PRISM $Mn $Pn -property 1 -const cartel=0.2:0.2:0.8,renewal=0.0,INIT_W=4,ABSORB=1,T=10  # P[cartelized<=10] -> 0.17, 0.41, 0.68, 0.89
+& $PRISM $Mn $Pn -property 2 -const cartel=0.2:0.2:0.8,renewal=0.0,INIT_W=4,ABSORB=1        # time-to-cartel -> 44.5, 17.2, 8.8, 5.4
+# P3 CRITICAL SLOWING DOWN — recovery to the healthy innovation pole (perturbed start):
+& $PRISM $Mn $Pn -property 3 -const cartel=0.2:0.2:0.8,renewal=0.0,INIT_W=2,ABSORB=1,T=10  # recovery -> 0.71, 0.58, 0.42, 0.23
+# P4 GENERATIONAL RENEWAL MAINTAINS THE CEILING — sweep renewal at fixed pressure:
+& $PRISM $Mn $Pn -property 4 -const cartel=0.6,renewal=0.0:0.1:0.3,INIT_W=4,ABSORB=1        # time-to-cartel -> 8.8, 10.0, 11.2, 12.6
+```
+(`$Mn`/`$Pn` = absolute paths to `NexusInnovation.sm` / `NexusInnovation.csl`.)
+
+### What this pins down — the NEXUS claims
+
+- **Cartelization tips the innovation HOA into its opposite attractor.** Under
+  rising cartelization pressure the healthy innovation HOA loses to the
+  pathological NS-cartel basin: P[cartelized ≤ 10] rises **0.17 → 0.89** and the
+  tipping lead time collapses **44.5 → 5.4**. The `nsAsCartel_and_healthyHOA_are_opposites`
+  bistability, run as a tip between the two poles.
+- **Critical slowing down before the tip.** Recovery to the healthy innovation
+  pole from a perturbed state falls monotonically **0.71 → 0.23** as pressure rises.
+- **Generational renewal maintains the ceiling — the distinctive result.** At
+  fixed cartelization pressure, raising the generational-renewal rate lengthens the
+  innovation HOA's lifetime **8.8 → 12.6**: renewal holds the ceiling against
+  cartelization, the probabilistic face of `generationalRenewal_maintains_ceiling`
+  (the NEXUS parallel of model ①'s ceiling residue, as renewal rather than stock).
+
+### Scope boundary (NEXUS innovation)
+
+- **Shares model ①'s tipping structure with `EthosCapture.sm`** — hence P1–P3 match
+  ETHOS's numbers at `renewal = 0` (same grow-vs-decay-under-a-control-parameter
+  shape). The NEXUS-specific content is the **generational-renewal ceiling
+  maintenance** (P4) and the **opposite-polarity innovation/cartel framing**.
+- **Breadth-only.** No `src/nexus/dynamics` generator exists, so no depth tie is
+  possible — the model validates the Lean claims (`generationalRenewal_maintains_ceiling`,
+  the opposites bistability) without a companion test oracle.
+- **Illustrative, structural, bounded** — no locked NEXUS number (NX-G KillZone
+  weights, renewal cadence) redefined.
