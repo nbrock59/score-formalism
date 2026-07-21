@@ -216,5 +216,78 @@ HOA, not a transient weight blip.
   sub-communities is representable but not separately exercised here.
 - **A cost-free `wait` was deliberately omitted** — it is a zero-reward loop that
   makes `Rmin` ill-posed (a policy could stall forever at zero cost), and waiting
-  only ever lets the environment erode the objective. Model ③ (agent-learning
-  DTMC) remains the open third pilot.
+  only ever lets the environment erode the objective.
+
+## AgentLearning.sm — Path-A/B agent-learning dynamics (model ③, → Segment 1)
+
+Model ③, connecting **Segment 1** (the HistoricalSlice learning dynamics) and the
+Brock (2026) computational baseline it validates against. A DTMC over an agent's
+position on the honor(System I)↔dignity(System II) ethical axis
+([[AgentResponseMechanism]] "Path A and Path B"; Segment 1 §§3.2–3.3, 4.5):
+
+- **Path A** (organic vector `u`) — the durable, structural channel. Moves toward
+  the dignity attractor at rate `α_A·κ`, where organic plasticity `κ` **decays
+  with age**. Low-pass, monotone, and *not reachable by inscription* (the organic
+  manifold cannot be deformed by Path B).
+- **Path B** (inscribed vector `w`) — the fast, fragile channel. Chases the
+  inscription signal `SIG` at rate `α_B` with **no `κ` term** (frequency-flat,
+  no plasticity decay), but reverts to `u` absent reinforcement.
+- **Generational turnover** — `age` cycles the four [[LifeCyclePhases]]; at the
+  top it rebirths (plasticity restored, organic base `u` transmitted), the
+  **multigenerational ratchet** that carries `u` to the attractor.
+
+The honor-topology departures (Brexit/Trump/populism) live entirely in the
+inscribed `w` under an honor signal `SIG=0` — never in the organic `u`, exactly
+Segment 1 §4.5's framing.
+
+```powershell
+# (1) MULTIGENERATIONAL ATTRACTOR — Finding 25: converge to dignity from ANY start.
+& $PRISM $M3 $P3 -property 1 -const kdecay=0.3,INIT_U=0,INIT_W=0,SIG=0,ALLOW_INSCRIPTION=1  # -> 1.0
+#   (same 1.0 for INIT_U = 1, 2, 3; expected steps to converge from deep honor ≈ 21)
+
+# (2) PATH A DURABLE vs PATH B FRAGILE — steady-state honor occupancy.
+& $PRISM $M3 $P3 -property 5 -const kdecay=0.3,INIT_U=0,INIT_W=0,SIG=0,ALLOW_INSCRIPTION=1  # -> 0.0 (organic never stays honor)
+& $PRISM $M3 $P3 -property 6 -const kdecay=0.3,INIT_U=4,INIT_W=0,SIG=0,ALLOW_INSCRIPTION=1  # -> 0.64 (stated held at honor while reinforced)
+& $PRISM $M3 $P3 -property 6 -const kdecay=0.3,INIT_U=4,INIT_W=0,SIG=0,ALLOW_INSCRIPTION=0  # -> 0.0  (collapses when withdrawn)
+
+# (3) PLASTICITY-DECAY ASYMMETRY — Finding 29: Path A slows, Path B unchanged.
+& $PRISM $M3 $P3 -property 2 -const kdecay=0.1:0.1:0.4,INIT_U=0,INIT_W=0,SIG=0,ALLOW_INSCRIPTION=1  # steps -> 14.8, 17.1, 21.0, 25.9
+& $PRISM $M3 $P3 -property 4 -const kdecay=0.1:0.1:0.4,INIT_U=4,INIT_W=4,SIG=0,ALLOW_INSCRIPTION=1,T=20  # -> 0.747 (FLAT)
+```
+(`$M3`/`$P3` = absolute paths to `AgentLearning.sm` / `AgentLearning.csl`.)
+
+### What this pins down — Segment 1 / Brock (2026) learning results
+
+- **The multigenerational attractor (Finding 25) — confirmed.** Organic
+  commitment reaches the dignity attractor with **probability 1 from every
+  starting position** (deep honor to near-dignity), over an expected ~21-step
+  multigenerational timescale. "Starting from any System I majority … all
+  communities converge to dignity-topology dominance regardless of
+  within-generation dynamics", run rather than asserted.
+- **Path A durability vs Path B fragility (§§3.2–3.3) — confirmed.** The organic
+  position's steady-state honor occupancy is **0.0** (behavioral commitment,
+  once at dignity, is durable), while the inscribed position is held at honor
+  with probability **0.64 under active inscription but collapses to 0.0 the
+  moment reinforcement is withdrawn**. The inscribed channel has no steady state
+  of its own — "stated positions shift while behavioral commitments remain
+  inertial."
+- **The plasticity-decay asymmetry (Finding 29) — confirmed, and the sharpest
+  result.** As organic plasticity decays faster (`kdecay` 0.1→0.4) the expected
+  time for Path A to reach the attractor **rises 14.8 → 25.9**, while Path B
+  responsiveness stays **flat at 0.747 to 15 significant figures** — invariant to
+  `κ` because Path B carries no plasticity term. "Path A displacement halves
+  across the κ-decay range while Path B displacement is unchanged", made exact.
+
+### Scope boundary (model ③)
+
+- **Illustrative, structural, bounded** — as everywhere in this layer. The
+  discretization of Segment 1's `S¹⁵` continuous idea vectors onto a single
+  0..K axis is a flagged [[SemanticSeepage]] abstraction; the **claim is the
+  qualitative shape** (probability-1 multigenerational convergence, durable/fragile
+  split, κ-decay asymmetry), not the specific rates. **No locked pre-registered
+  parameter** (`α_A`/`α_B`, the `φ_threshold` percolation calibration) is redefined.
+- **Single-agent axis, not the full MABM.** One agent on one ethical dimension
+  with a scalar inscription signal — not Brock (2026)'s multi-agent manifold on
+  `S¹⁵`, the Φ percolation/crystallization dynamics, or the population network.
+  Convergence here is the *within-lineage* ratchet; the population-level
+  p = 0.999 result is its many-agent aggregate.

@@ -1,0 +1,48 @@
+// ===========================================================================
+// AgentLearning.csl  --  PCTL / reward properties for AgentLearning.sm
+//
+// Model (3), probabilistic model-checking layer. See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+//   Each property maps to a Segment 1 / Brock (2026) learning result.
+// ===========================================================================
+
+const int T;   // step horizon (for bounded properties)
+
+// --- P1. Multigenerational attractor -- Finding 25 (Segment 1 sec 4.5) -------
+//     Does organic (behavioral) commitment reach the dignity attractor? Run
+//     from ANY starting u (sweep INIT_U): convergence with probability 1
+//     regardless of start is the "converge to dignity regardless of
+//     within-generation dynamics" result.
+P=? [ F "converged" ]
+
+// --- P2. The multigenerational TIMESCALE (expected steps to converge) --------
+//     Swept over kdecay this is Finding 29: faster organic plasticity decay
+//     slows Path A, so more generations are needed -> expected time RISES. (Path
+//     B responsiveness, P4, is unaffected by kdecay -- the asymmetry.)
+R{"steps"}=? [ F "converged" ]
+
+// --- P3. Convergence within a horizon T --------------------------------------
+P=? [ F<=T "converged" ]
+
+// --- P4. Path B responsiveness -- the frequency-flat, kappa-free channel ------
+//     P[ inscribed position reaches the honor pole within T ] under an honor
+//     inscription signal (S=0, ALLOW_INSCRIPTION=1). Fast and, crucially,
+//     INVARIANT to kdecay -- Path B has no plasticity term (Segment 1 sec 3.3;
+//     Finding 29 "Path B displacement unchanged"). Contrast with P3's Path A.
+P=? [ F<=T "stated_honor" ]
+
+// --- P5. Path A durability vs Path B fragility (Segment 1 sec 3.2/3.3) --------
+//     Long-run probability the organic position sits at honor. With the organic
+//     attractor pulling to dignity, this ->0: the behavioral commitment is
+//     DURABLE at dignity even while the inscribed/stated position (P4) is pulled
+//     to honor by inscription. "Stated positions shift; behavioral commitments
+//     remain inertial." (steady-state; run with an interior/reachable init)
+S=? [ "organic_honor" ]
+
+// --- P6. Fragility test: Path B has NO independent steady state ---------------
+//     Steady-state probability the stated position sits at honor. With the honor
+//     signal reinforced (ALLOW_INSCRIPTION=1) it is held positive; withdraw the
+//     reinforcement (ALLOW_INSCRIPTION=0) and it collapses toward 0 as the
+//     inscribed position reverts to the organic attractor -- the inscribed
+//     channel cannot hold a position of its own (Segment 1 sec 3.3 fragility).
+S=? [ "stated_honor" ]

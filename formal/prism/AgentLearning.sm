@@ -1,0 +1,109 @@
+// ===========================================================================
+// AgentLearning.sm  --  Path-A/B agent-learning dynamics (DTMC)
+//
+// Model (3) of the probabilistic model-checking layer scoped in
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md.
+//   Connects Segment 1 (POLARIS_Segment1_Specification.md, sec 3.2/3.3/4.5) and
+//   the Brock (2026) computational validation baseline for its learning dynamics.
+//
+// The learning mechanism ([[AgentResponseMechanism]] "Path A and Path B"):
+//   * Path A (ORGANIC, durable, structural): the organic idea vector u_i, moved
+//     by the Path A update at learning rate alpha_A * kappa_i(n). kappa is the
+//     ORGANIC PLASTICITY, which DECAYS with accumulated interactions/age (the
+//     low-pass, thermodynamically expensive channel). Path A deforms the
+//     manifold only via genuine contradiction and is DURABLE -- what it learns
+//     does not decay; only the ability to relearn does.
+//   * Path B (INSCRIBED, fast, fragile): the inscribed idea vector w_i, moved by
+//     the Path B update at alpha_B with NO kappa term (frequency-flat, no
+//     plasticity decay). Cheap, updates at any age, but FRAGILE: absent
+//     reinforcement it returns to the organic attractor u (Segment 1 sec 3.3;
+//     "older voters shift stated positions while behavioral commitments remain
+//     inertial").
+//   * The organic manifold is NOT reachable by inscription (Segment 1 sec 3.2,
+//     4.4): Path B cannot deform u. So u is pulled only toward the structural
+//     attractor R; the inscription signal S moves only w.
+//
+// Here the manifold axis is the honor(System I)<->dignity(System II) ethical
+// dimension of Segment 1 sec 4.5. R = K = the DIGNITY attractor e* (Finding 25:
+// "starting from any System I majority ... all communities converge to
+// dignity-topology dominance across generations regardless of within-generation
+// dynamics", p=0.999). The honor-topology departures (Brexit/Trump/populism) are
+// TRANSIENT and live entirely in the inscribed w under an honor inscription
+// signal S=0 -- never in the organic u, exactly Segment 1's framing.
+//
+// GENERATIONAL turnover: age cycles 0..A (the four life-cycle phases of
+// [[LifeCyclePhases]]: child/student/householder/retirement); at the top it
+// rebirths to 0, restoring plasticity while the organic base u persists (Type
+// III childhood-inscription transmission). Within a life, kappa decays and the
+// organic position locks; across generations plasticity resets and Path A
+// resumes -- the MULTIGENERATIONAL RATCHET that carries u to the attractor.
+//
+// GOVERNANCE (scope note pre-registration lock): rates are ILLUSTRATIVE
+// STRUCTURAL parameters -- NOT a redefinition of alpha_A/alpha_B, the
+// phi_threshold percolation calibration, or any locked pre-registered number
+// (validation/pre-registration/). This is structural validation of the learning
+// SHAPE (Path A durable + plasticity-decaying, Path B fast + fragile,
+// multigenerational convergence), not a calibrated parameter claim. Per
+// [[SemanticSeepage]] the map from the S^15 continuous vectors (Segment 1) to
+// this discrete axis is a flagged abstraction.
+// ===========================================================================
+
+dtmc
+
+// ---- manifold axis + attractor ---------------------------------------------
+const int K = 4;              // honor(0) <-> dignity(K) ethical axis (Segment 1 sec 4.5)
+const int ATTR = K;           // structural attractor e* = dignity (Finding 25)
+const int AMAX = 3;           // max age = life-cycle phase index (0..3; LifeCyclePhases)
+
+// ---- learning parameters (illustrative -- see governance note) --------------
+const double KAPPA0 = 1.0;    // organic plasticity at age 0 (childhood)
+const double kdecay;          // plasticity decay per age step -- SWEPT (Finding 29 / kappa decay)
+const double pA    = 0.30;    // Path A base rate alpha_A (low-pass; scaled by kappa)
+const double pB    = 0.30;    // Path B rate alpha_B (frequency-flat; no kappa)
+const double pRev  = 0.20;    // Path B fragility: inscribed reverts toward organic u
+const double pAge  = 0.15;    // aging / generational clock
+
+// ---- experiment switches (passed on the CLI, like a .cfg) -------------------
+const int INIT_U;             // starting organic position (0 = deep System I / honor)
+const int INIT_W;             // starting inscribed position
+const int SIG;                // inscription signal target (0 = honor/populist pull)
+const int ALLOW_INSCRIPTION;  // 1 = Path B reinforcement active, 0 = withdrawn (fragility test)
+
+// ---- plasticity + effective probabilities -----------------------------------
+formula kappa  = max(0.0, KAPPA0 - kdecay * age);   // organic plasticity, decays with age  (age <= AMAX)
+formula pA_eff = pA * kappa;                         // Path A effective rate alpha_A*kappa
+formula pB_eff = pB * ALLOW_INSCRIPTION;             // Path B active only when reinforced
+formula pRest  = 1 - pA_eff - pB_eff - pRev - pAge;  // "nothing happens this step"
+
+module agent
+
+  u   : [0..K] init INIT_U;   // ORGANIC idea vector (Path A; durable behavioral commitment)
+  w   : [0..K] init INIT_W;   // INSCRIBED idea vector (Path B; fragile stated position)
+  age : [0..AMAX] init 0;     // accumulated interactions / life-cycle phase
+
+  [step] true ->
+      // Path A: organic moves toward the structural attractor ATTR, only while
+      // plastic and only via contradiction (u != ATTR). Durable, monotone, and
+      // NOT reachable by inscription.
+      pA_eff : (u' = min(u+1, ATTR))
+      // Path B: inscribed chases the inscription signal SIG. Fast, no plasticity.
+    + pB_eff : (w' = (w < SIG ? w+1 : (w > SIG ? w-1 : w)))
+      // Fragility: absent reinforcement the inscribed position drifts back to u.
+    + pRev   : (w' = (w < u ? w+1 : (w > u ? w-1 : w)))
+      // Aging / generational clock: advance a phase, or rebirth at the top
+      // (plasticity restored; organic base u persists across the generation).
+    + pAge   : (age' = (age < AMAX ? age+1 : 0))
+      // Nothing this step.
+    + pRest  : (age' = age);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "converged"    = u = ATTR;        // organic commitment has reached the dignity attractor
+label "stated_honor" = w <= 1;          // inscribed position sits at the honor pole (transient)
+label "organic_honor"= u <= 1;          // organic position at honor pole
+
+// ---- reward: steps (expected time to converge = multigenerational timescale) -
+rewards "steps"
+  [step] true : 1;
+endrewards
