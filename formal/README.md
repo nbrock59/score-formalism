@@ -32,6 +32,24 @@ reasoning — that is the HermiT step below.
 .venv/Scripts/python.exe scripts/score_check.py --strict   # warnings fail (CI mode)
 ```
 
+The **model-checking layer** (`tla/`, `spin/`, `prism/`) has its own two-part gate,
+since `score_check.py` covers only the Lean/OWL spine:
+
+- `scripts/modelcheck_check.py` — **documentary** (stdlib, always-on CI job
+  `modelcheck-check`): dangling `formal/{tla,spin,prism}` references in docs, models
+  undocumented in their layer README, model↔properties pairing.
+- `scripts/modelcheck_run.py` — **execution** (path-gated CI jobs
+  `tlc-/spin-/prism-check`): SANY parses each `.tla`, `spin -a` each `.pml`, PRISM
+  builds each model. Well-formedness only — a legitimate counterexample is not a
+  failure. It locates each tool via env override → PATH → known install dirs and
+  skips a layer whose tool is absent.
+
+```
+.venv/Scripts/python.exe scripts/modelcheck_check.py --strict   # documentary gate
+.venv/Scripts/python.exe scripts/modelcheck_run.py              # parse/build all models
+.venv/Scripts/python.exe scripts/modelcheck_run.py --layer prism
+```
+
 ## Full DL conformance (HermiT)
 
 This verifies the real refinement contract: that **core ⊕ polaris is logically consistent**
