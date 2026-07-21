@@ -119,8 +119,8 @@ The three payoffs the scope note names for model ①:
   stress). `HOA.tla` case 3 got bistability only by *constraining* moves to stay
   disengaged; a stochastic chain needs an explicit **nucleation barrier**
   (formation gated on a threshold, not on the linear feedback of maintenance) to
-  hold the unformed state. That barrier is **not attempted here** — it is the
-  natural refinement for a follow-up model, not a blocker for model ①.
+  hold the unformed state. **This is now closed** by the refinement
+  `HOANucleation.sm` (below).
 
 ## Scope boundary — what this does and does not add
 
@@ -131,10 +131,67 @@ The three payoffs the scope note names for model ①:
   numbers.
 - **Does not touch the locked pre-registered parameters.** No SEWI threshold,
   β dosing, or ψ_s flag is redefined, computed, or calibrated here.
-- **A stable unformed equilibrium** (full bistability) is **not** in this CTMC —
-  it needs the nucleation barrier described in the (a) boundary above. The
-  **intervention MDP** built on top of this state is model ②, `InterventionMDP.nm`
-  below.
+- **A stable unformed equilibrium** (full bistability) is not in *this* CTMC —
+  it is the refinement `HOANucleation.sm` (next section). The **intervention MDP**
+  built on top of this state is model ②, `InterventionMDP.nm` below.
+
+## HOANucleation.sm — HOA bistability with a nucleation barrier (model ① refinement)
+
+Closes model ①'s hysteresis payoff (a). Model ①'s endowment feedback grew on the
+linear `inbasin` condition, so an unformed structure climbed and **formed for
+free** (P ≈ 0.56) — no stable unformed equilibrium. The one change here: the
+autocatalytic loop reinforces itself **only once already nucleated** — both feedback
+transitions are gated on `maintained` (= in-basin *and* engaged), not on `inbasin`.
+Below the threshold, only a weak exploratory `seed` (random coupling attempts,
+`seed < decay`) pushes up against mass-action decay. The result is a genuine
+**double-well**: the unformed state is a metastable attractor, and formation is a
+rare **barrier crossing** rather than a free climb — the bistability `HOA.tla` case 3
+asserts, now run on a generative stochastic chain. (Non-absorbing: the first-passage
+times *between* the wells are the metastability signature.)
+
+```powershell
+# BARRIER CONTROL — seed (barrier height) sets the formation rate. Unformed floor start.
+& $PRISM $Mn $Pn -property 1 -const grow=1.0,seed=0.05:0.05:0.20,INIT_S=0,INIT_E=0,T=10
+#   P[form<=10] -> 0.026, 0.134, 0.299, 0.475   (vs model ①'s 0.56 with NO barrier)
+& $PRISM $Mn $Pn -property 2 -const grow=1.0,seed=0.05:0.05:0.20,INIT_S=0,INIT_E=0
+#   mean time to nucleation -> 530, 100, 43, 25   (barrier height as a timescale)
+
+# BISTABILITY (canonical seed=0.10) — both wells metastable, formation ≠ dissolution.
+& $PRISM $Mn $Pn -property 2 -const grow=1.0,seed=0.10,INIT_S=0,INIT_E=0   # nucleation time -> 100.3
+& $PRISM $Mn $Pn -property 3 -const grow=1.0,seed=0.10,INIT_S=4,INIT_E=2   # dissolution time -> 11.1
+& $PRISM $Mn $Pn -property 4 -const grow=1.0,seed=0.10,INIT_S=0,INIT_E=0   # steady-state P[formed] -> 0.107
+```
+(`$Mn`/`$Pn` = absolute paths to `HOANucleation.sm` / `HOANucleation.csl`.)
+
+### What this pins down — payoff (a), delivered
+
+- **A stable unformed equilibrium now exists.** Spontaneous formation from the
+  unformed floor collapses from model ①'s **0.56** to **0.026** at a high barrier
+  (`seed=0.05`) — a ~22× reduction — and the mean time to nucleate stretches to
+  **~530** time units. The unformed state is a genuine metastable attractor, not
+  a way-station on a free climb.
+- **The barrier height is the control.** Sweeping `seed` moves formation
+  probability monotonically (0.026 → 0.475) and the nucleation timescale across an
+  order of magnitude (530 → 25). This is exactly the knob `create_rhythm` turns in
+  the theory — priming the manifold *lowers the nucleation barrier* — connecting
+  this CTMC to model ②'s sequencing result.
+- **Genuine bistability: formation ≠ dissolution, both rare.** At `seed=0.10` the
+  mean time to nucleate (100.3) is ~9× the mean time to dissolve (11.1): both
+  wells are metastable, formation is the rarer transition, and the steady-state
+  formed-occupancy (0.107) matches the dwell-time ratio (11.1/100.3 ≈ 0.11) — the
+  internal-consistency signature of a two-well system. Model ① gave the
+  dissolution well only; this adds the second well `HOA.tla` case 3 demands.
+
+### Scope boundary (nucleation refinement)
+
+- **Illustrative, structural, bounded.** `seed`, `grow`, `decay` are ordinal
+  placeholders; the claim is the *shape* — a tunable barrier producing two stable
+  wells with formation ≠ dissolution — not the numbers. No locked pre-registered
+  parameter is touched.
+- **A minimal barrier, not a mechanism menu.** The nucleation gate is the single
+  `maintained` threshold; richer nucleation (an explicit critical-seed size,
+  heterogeneous seeds, or `create_rhythm` as an on-model barrier-lowering action)
+  is left open — the last of these is the natural bridge to model ②.
 
 ## InterventionMDP.nm — intervention-policy MDP (model ②, → Segment 7)
 

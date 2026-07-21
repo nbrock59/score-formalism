@@ -1,0 +1,41 @@
+// ===========================================================================
+// HOANucleation.csl  --  CSL / reward properties for HOANucleation.sm
+//
+// The nucleation-barrier refinement of model (1). See the .sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+//
+// The payoff (a) model (1) could not deliver: a stable unformed equilibrium and
+// a genuine formation != dissolution bistability, both transitions rare.
+// ===========================================================================
+
+const double T;   // time horizon (for bounded properties)
+
+// --- P1. The barrier holds: spontaneous formation is now RARE ----------------
+//     P[ an unformed structure forms within T ], from the unformed floor
+//     (INIT_S=0, INIT_E=0). Model (1) gave ~0.56 here (free linear climb); with
+//     the nucleation barrier this collapses -- the unformed state is stable.
+P=? [ F<=T "formed" ]
+
+// --- P2. The unformed well is metastable: mean time to NUCLEATION -------------
+//     Expected first-passage time from the unformed floor to a nucleated
+//     (maintained) HOA. Long = a real barrier the system rarely crosses on its
+//     own. (Run from INIT_S=0, INIT_E=0.)
+R{"time"}=? [ F "maintained" ]
+
+// --- P3. The formed well is metastable: mean time to DISSOLUTION --------------
+//     Expected first-passage time from a healthy formed HOA (INIT_S=4, INIT_E=2)
+//     down to dissolved. Also long -- the maintenance side model (1) already had.
+//     P2 and P3 BOTH long is the bistability signature: formation != dissolution,
+//     both rare (HOA.tla case 3 + case 2, unified on one generative chain).
+R{"time"}=? [ F "dissolved" ]
+
+// --- P4. Steady-state occupancy of the two wells -----------------------------
+//     Long-run probability the chain sits in the formed vs the unformed well.
+//     Both non-negligible under a symmetric-ish barrier confirms bistability
+//     (not a single global attractor). Run once; PRISM reports the S value.
+S=? [ "formed" ]
+
+// --- P5. Barrier crossing within a horizon from the FORMED side (survival) ----
+//     P[ a formed HOA is still formed throughout [0,T] ] -- the formed well's
+//     dwell. Companion to P1 (the unformed well's dwell): both high = deep wells.
+P=? [ G<=T "formed" ]

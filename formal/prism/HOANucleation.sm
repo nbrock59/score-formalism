@@ -1,0 +1,112 @@
+// ===========================================================================
+// HOANucleation.sm  --  HOA bistability with a NUCLEATION BARRIER (CTMC)
+//
+// Refinement of model (1) (HOADissolution.sm) that closes its hysteresis payoff
+// (a) -- see obsidian/SCORE/methodology/ModelCheckedDynamics.md model-① (a)
+// boundary, and formal/prism/README.md.
+//
+// THE PROBLEM this fixes. Model (1) captured the maintenance/dissolution side
+// faithfully but did NOT reproduce a *stable unformed equilibrium*: its
+// endowment feedback grew whenever the substrate was in-basin
+// (`inbasin & e<L -> grow`), so an unformed structure in the hysteresis window
+// climbed the linear feedback and FORMED on its own (P[form] ~ 0.56 at low
+// stress). That is not bistability -- `formal/tla/HOA.tla` case 3 got a stable
+// unformed equilibrium only by *constraining* moves to stay disengaged. A
+// stochastic chain needs an explicit **nucleation barrier**.
+//
+// THE FIX. The autocatalytic loop reinforces itself only once it is ALREADY
+// running -- i.e. the feedback (BOTH substrate- and endowment-growth) is gated
+// on `maintained` (= in-basin AND engaged = nucleated), not on the linear
+// in-basin condition. Below the nucleation threshold there is no feedback; only
+// a weak exploratory `seed` (random coupling attempts) pushes up, against
+// mass-action `decay`. So:
+//   * below threshold  -> seed (weak up) vs decay (down): the UNFORMED state is a
+//     genuine metastable attractor; formation requires a rare fluctuation that
+//     stacks enough seed to cross into `maintained` (a barrier crossing), not a
+//     free linear climb.
+//   * above threshold  -> the strong `grow` feedback dominates: the FORMED state
+//     is the other stable attractor (self-maintaining, as in model (1)).
+// The result is a true double-well with a nucleation barrier between the wells --
+// formation != dissolution with BOTH transitions rare, the hysteresis HOA.tla
+// case 3 asserts, now run on a generative stochastic model.
+//
+// Discretization mirrors model (1) / HOA.tla exactly: L=4, Formation=3,
+// Dissolution=2, Engagement=1; Weight = substrate + endowment;
+// maintained = (substrate >= Dissolution) & (endowment >= Engagement).
+//
+// This is a NON-ABSORBING chain (both wells must stay visible): first-passage
+// times between the wells are the metastability signature.
+//
+// GOVERNANCE (scope note pre-registration lock): rates are ILLUSTRATIVE
+// STRUCTURAL parameters -- structural validation of the bistable *shape* (two
+// stable wells, a nucleation barrier, formation != dissolution), not a
+// redefinition of any locked pre-registered number. Per [[SemanticSeepage]] the
+// discretization is a flagged abstraction.
+// ===========================================================================
+
+ctmc
+
+// ---- structural constants (mirror model (1) / HOA.tla) ----------------------
+const int L           = 4;
+const int FORMATION   = 3;
+const int DISSOLUTION = 2;
+const int Engagement  = FORMATION - DISSOLUTION;   // =1
+
+// ---- rate parameters (ILLUSTRATIVE -- see governance note) -------------------
+const double grow;          // STRONG autocatalytic feedback (only when nucleated)
+const double decay = 0.20;  // mass-action erosion (always on)
+const double seed;          // WEAK exploratory growth below threshold -- the BARRIER CONTROL (swept; < decay)
+const double shock = 0.10;  // exogenous stress event
+
+// ---- experiment start state (set per-experiment on the CLI, like a .cfg) ----
+//   unformed floor : INIT_S=0, INIT_E=0  (test the unformed well / nucleation)
+//   formed healthy : INIT_S=4, INIT_E=2  (test the formed well / dissolution)
+const int INIT_S;
+const int INIT_E;
+
+// ---- derived (names mirror model (1)) ---------------------------------------
+formula weight     = s + e;
+formula engaged    = e >= Engagement;
+formula inbasin    = s >= DISSOLUTION;
+formula maintained = inbasin & engaged;              // NUCLEATED: the feedback gate
+formula formed     = weight >= FORMATION;            // HOA exists
+
+module hoa
+
+  s : [0..L] init INIT_S;   // substrate
+  e : [0..L] init INIT_E;   // endowment
+
+  // ------- mass-action decay (always on) --------------------------------------
+  [] s > 0 -> decay * s : (s' = s - 1);
+  [] e > 0 -> decay * e : (e' = e - 1);
+
+  // ------- autocatalytic feedback -- GATED ON NUCLEATION (the barrier) ---------
+  // The loop reinforces itself only once already running (maintained). This is
+  // the one change from model (1), where endowment grew on the linear `inbasin`
+  // condition and let the unformed state climb for free.
+  [] maintained & s < L -> grow : (s' = s + 1);
+  [] maintained & e < L -> grow : (e' = e + 1);
+
+  // ------- weak exploratory seed -- BELOW threshold only ----------------------
+  // Random coupling attempts: the only upward pressure when not nucleated. Small
+  // relative to decay, so the unformed state is metastable and formation is a
+  // rare barrier crossing rather than a free climb.
+  [] !maintained & s < L -> seed : (s' = s + 1);
+  [] !maintained & e < L -> seed : (e' = e + 1);
+
+  // ------- exogenous shock ----------------------------------------------------
+  [] s >= 2 -> shock : (s' = s - 2);
+  [] s = 1 -> shock : (s' = 0);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "formed"      = weight >= FORMATION;           // HOA exists
+label "maintained"  = (s >= DISSOLUTION) & (e >= Engagement);  // nucleated / self-sustaining
+label "dissolved"   = weight <  FORMATION;           // HOA absent (the unformed well)
+label "unformed_floor" = (s <= 1) & (e = 0);         // deep in the unformed well
+
+// ---- reward: time (for mean first-passage between the wells) ----------------
+rewards "time"
+  true : 1;
+endrewards
