@@ -1,0 +1,173 @@
+// ===========================================================================
+// HOASubtractive.nm  --  the subtractive intervention family (MDP)
+//
+// Extension of model (2) (InterventionMDP.nm) to the FULL subtractive family of
+//   [[InterventionClasses]] "The subtractive family" (VC-1, 2026-07-18):
+//   disrupt_rhythm, sever_edge, dissolve_node.
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md (model ② extensions).
+//
+// THE CLAIM this checks (InterventionClasses VC-1 key finding):
+//
+//   "The activation-energy ordering (rhythm < edge < node) does NOT survive
+//    negation -- and it does not invert either. A different ordering governs,
+//    over a different index set."
+//
+// The additive family is ordered by WHAT YOU BUILD (operator depth). The
+// subtractive family is ordered by WHAT THE TARGET HAS ACCUMULATED -- the three
+// persistence mechanisms of [[Hysteresis]], in window-width order:
+//     aggregate-weight autocatalytic maintenance  (cheapest to remove)
+//   < [[CeilingResidue|ceiling residue]]           (dearer; must be eroded)
+//   < [[B3SubstrateProsthetic|B3 formal prosthetic]] (dearest; floored, "paper
+//                                                     without power" -- cannot be
+//                                                     fully removed).
+// "A node held only by autocatalytic weight dies in one interaction cycle once
+//  exogenous inputs stop; a node with deep ceiling residue AND a formal
+//  prosthetic is very hard to kill."
+//
+// The three persistence mechanisms are the SAME ones model-checked additively in
+//   formal/tla/HOA.tla (autocatalytic), HOAExt.tla (§HM11 ceiling residue),
+//   HOAB3.tla (§HM14 B3 prosthetic, floored at IrreducibleMin). Here they appear
+//   as the TARGET STATE whose composition sets the dissolution cost.
+//
+// THE OPERATORS (co-present subtractive family; same three primitives as the
+// additive, negated -- GraphFoundation add/remove):
+//   * disrupt_rhythm -- removes loop endowment (the somatic/entrainment channel).
+//     RHYTHM-CLASS: bypasses the perceptual filter in BOTH polarities
+//     (only_rhythm_class_bypasses_filter, superseding the old additive-only
+//     theorem), so it lands reliably -- no defensive gate.
+//   * sever_edge     -- removes substrate connectivity. Partial.
+//   * dissolve_node  -- removes organizational structure (substrate + endowment)
+//     AND erodes accumulated ceiling residue and grinds the B3 prosthetic toward
+//     its irreducible floor. Filter-RESISTED: dissolving a node triggers
+//     defensive mobilization (System I), so it lands with lower probability.
+// Note activation_energy is `none` on this family in the Lean
+// (activationEnergy_isSome_iff_additive): there is deliberately NO rhythm<edge<node
+// cost ordering here; the operator costs below are near-flat and the DISSOLUTION
+// cost is dominated by the target's persistence, not by which operator is used.
+//
+// GOVERNANCE (scope note pre-registration lock): illustrative structural rates;
+// no locked pre-registered number redefined. Per [[SemanticSeepage]] the discrete
+// abstraction of the persistence mechanisms is flagged.
+//
+// Discretization mirrors model (2) / HOA.tla: L=4, Formation=3, Dissolution=2,
+// Engagement=1, IrreducibleMin=1.
+// ===========================================================================
+
+mdp
+
+// ---- structural constants ---------------------------------------------------
+const int L           = 4;
+const int FORMATION   = 3;
+const int DISSOLUTION = 2;
+const int Engagement  = FORMATION - DISSOLUTION;   // =1
+const int IRRMIN      = 1;    // B3 irreducible floor (HOAB3 "paper without power")
+const int RES_MAX     = 3;    // ceiling-residue capacity
+const int B3_MAX      = 3;    // B3-prosthetic capacity (floored at IRRMIN: grindable 3->2->1)
+
+// ---- environment (illustrative) ---------------------------------------------
+const double grow  = 0.4;    // autocatalytic self-healing regrowth when maintained
+const double decay = 0.2;    // erosion when not maintained
+
+// ---- operator costs -- deliberately NEAR-FLAT (no rhythm<edge<node ordering) -
+const double C_DR = 1.0;     // disrupt_rhythm
+const double C_SE = 1.0;     // sever_edge
+const double C_DN = 1.5;     // dissolve_node (touches more state per hit)
+
+// ---- operator success probabilities -----------------------------------------
+const double P_DR = 0.95;    // disrupt_rhythm bypasses the filter -> lands reliably
+const double P_SE = 0.70;    // sever_edge partial
+const double P_DN = 0.60;    // dissolve_node filter-RESISTED (defensive mobilization)
+
+// ---- experiment switches (passed on the CLI, like a .cfg) -------------------
+//   target persistence profile (all start from a formed, maintained HOA s=4,e=2):
+//     autocatalytic-only : INIT_RES=0, INIT_B3=0
+//     + ceiling residue  : INIT_RES=2, INIT_B3=0
+//     + B3 prosthetic    : INIT_RES=0, INIT_B3=2
+//     + composite        : INIT_RES=2, INIT_B3=2
+const int INIT_S;
+const int INIT_E;
+const int INIT_RES;
+const int INIT_B3;
+//   operator masks (for the "ordering does not survive negation" checks):
+const int ALLOW_DR;
+const int ALLOW_SE;
+const int ALLOW_DN;
+
+// ---- derived ----------------------------------------------------------------
+formula effweight = s + e + residue + b3;            // HOAExt/HOAB3 extended weight
+formula engaged   = e >= Engagement;                 // autocatalytic (informal) loop active
+formula prosthetic = b3 > IRRMIN;                    // B3 formal structure still LOAD-BEARING
+                                                     // (at the floor it is "paper without power")
+formula formed    = effweight >= FORMATION;          // HOA exists (any support)
+// self-healing regrowth is active if the informal loop is engaged OR the formal
+// prosthetic is load-bearing: the B3 structure sustains the HOA even when the
+// rhythm/endowment loop is disrupted. This is what makes a B3-backed node "very
+// hard to kill" -- disrupt_rhythm alone cannot stop its regrowth.
+formula maintained = formed & (engaged | prosthetic);
+// the HOA is suppressed when all ACTIVE support is gone -- substrate below the
+// hard floor, loop disengaged, residue eroded -- with only powerless B3 paper
+// possibly remaining at its irreducible floor (b3 <= IRRMIN).
+formula suppressed = (s < DISSOLUTION) & (e < Engagement) & (residue = 0) & (b3 <= IRRMIN);
+
+module hoa
+
+  s   : [0..L] init INIT_S;
+  e   : [0..L] init INIT_E;
+  residue : [0..RES_MAX] init INIT_RES;    // ceiling residue (erodible to 0)
+  b3  : [0..B3_MAX] init INIT_B3;          // B3 prosthetic (grindable only to IRRMIN)
+  turn : [0..1] init 0;                    // 0 = controller acts, 1 = environment
+
+  // ------- CONTROLLER TURN (turn=0): pick a subtractive operator --------------
+
+  // disrupt_rhythm -- somatic channel, bypasses filter -> reliable. Removes loop.
+  [disrupt_rhythm] turn=0 & ALLOW_DR=1 ->
+        P_DR : (e' = max(e-1, 0)) & (turn' = 1)
+      + (1-P_DR) : (turn' = 1);
+
+  // sever_edge -- partial. Removes substrate connectivity.
+  [sever_edge] turn=0 & ALLOW_SE=1 ->
+        P_SE : (s' = max(s-1, 0)) & (turn' = 1)
+      + (1-P_SE) : (turn' = 1);
+
+  // dissolve_node -- filter-resisted. Removes organizational structure AND erodes
+  // ceiling residue and grinds the B3 prosthetic toward its irreducible floor.
+  [dissolve_node] turn=0 & ALLOW_DN=1 ->
+        P_DN : (s' = max(s-1, 0)) & (e' = max(e-1, 0))
+               & (residue' = max(residue-1, 0)) & (b3' = max(b3-1, IRRMIN))
+               & (turn' = 1)
+      + (1-P_DN) : (turn' = 1);
+
+  // ------- ENVIRONMENT TURN (turn=1): autocatalytic self-healing --------------
+  // A maintained HOA regrows substrate (fights the subtractive work); otherwise
+  // it erodes. Residue and B3 are accumulated stock -- they do not regrow.
+  // With a LOAD-BEARING B3 prosthetic, the formal structure additionally
+  // re-staffs the informal loop (regrows endowment) -- so disrupt_rhythm is
+  // undone until B3 is ground below its floor. This is the "very hard to kill"
+  // dearness of a B3-backed node: the teardown does not stick while the paper
+  // still has power.
+  [env] turn=1 & maintained & prosthetic ->
+        grow  : (s' = min(s+1, L)) & (turn' = 0)
+      + grow  : (e' = min(e+1, L)) & (turn' = 0)   // formal structure re-engages the loop
+      + decay : (s' = max(s-1, 0)) & (turn' = 0)
+      + (1-2*grow-decay) : (turn' = 0);
+  [env] turn=1 & maintained & !prosthetic ->
+        grow  : (s' = min(s+1, L)) & (turn' = 0)
+      + decay : (s' = max(s-1, 0)) & (turn' = 0)
+      + (1-grow-decay) : (turn' = 0);
+  [env] turn=1 & !maintained ->
+        decay : (s' = max(s-1, 0)) & (turn' = 0)
+      + (1-decay) : (turn' = 0);
+
+endmodule
+
+// ---- labels -----------------------------------------------------------------
+label "suppressed" = (s < DISSOLUTION) & (e < Engagement) & (residue = 0) & (b3 <= IRRMIN);
+label "formed"     = (s + e + residue + b3) >= FORMATION;
+
+// ---- cost reward: activation energy expended (near-flat across operators) ----
+rewards "cost"
+  [disrupt_rhythm] true : C_DR;
+  [sever_edge]     true : C_SE;
+  [dissolve_node]  true : C_DN;
+  // [env] costs nothing
+endrewards

@@ -1,0 +1,30 @@
+// ===========================================================================
+// HOASubtractive.pctl  --  PCTL / reward properties for HOASubtractive.nm
+//
+// The subtractive-family extension of model (2). See the .nm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+// ===========================================================================
+
+// --- P1. THE VC-1 HEADLINE: dissolution cost indexed by target persistence ---
+//     Min expected activation energy to SUPPRESS the HOA, from a formed
+//     maintained target (INIT_S=4, INIT_E=2), all operators available. Swept
+//     across the four persistence profiles (INIT_RES / INIT_B3) it must RISE:
+//        autocatalytic-only  <  +ceiling residue  <  +B3 prosthetic  <  +both.
+//     Ordered by what the TARGET accumulated, not by which operator is used --
+//     the additive rhythm<edge<node ordering does not survive negation.
+R{"cost"}min=? [ F "suppressed" ]
+
+// --- P2. Feasibility: can this target be suppressed at all? -------------------
+//     Pmax over policies. 1.0 confirms Rmin is finite; a B3-only-armed policy
+//     that cannot finish would show < 1 (see the operator-mask experiments).
+Pmax=? [ F "suppressed" ]
+
+// --- P3. Ordering does not survive negation: single-operator masks -----------
+//     Rmin{cost} with only ONE operator enabled (ALLOW_DR/SE/DN). The cheapest
+//     SUFFICIENT operator depends on what the target is made of -- e.g.
+//     disrupt_rhythm (the additively-cheapest, rhythm-class) is NOT in general
+//     the cheapest or even a sufficient subtractive operator: against a
+//     residue/B3 target only dissolve_node erodes the persistence stock, so a
+//     disrupt-only or sever-only policy has Pmax < 1 (cannot suppress). Read
+//     P2 (Pmax) under each single-operator mask together with this P3.
+R{"cost"}min=? [ F "suppressed" ]

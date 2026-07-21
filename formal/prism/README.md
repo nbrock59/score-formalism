@@ -267,13 +267,87 @@ HOA, not a transient weight blip.
   prevention<dissolution), not the specific numbers. **No locked pre-registered
   parameter** (the `create_rhythm` β=0.005 dosing, SEWI thresholds, ψ_s flag) is
   redefined or calibrated.
-- **Additive + one subtractive operator only.** The full subtractive family and
-  the B₃-mediated channel (the unworked cells of [[InterventionClasses]]'s 2×2)
-  are not modelled. `create_edge`-before-`create_node` in infrastructure-severed
-  sub-communities is representable but not separately exercised here.
+- **Additive family + one subtractive operator.** Model ② has only
+  `dissolve_node` on the subtractive side; the **full subtractive family** is the
+  extension `HOASubtractive.nm` (next section). The B₃-mediated channel (the other
+  unworked cell of [[InterventionClasses]]'s 2×2) is still not modelled.
+  `create_edge`-before-`create_node` in infrastructure-severed sub-communities is
+  representable but not separately exercised here.
 - **A cost-free `wait` was deliberately omitted** — it is a zero-reward loop that
   makes `Rmin` ill-posed (a policy could stall forever at zero cost), and waiting
   only ever lets the environment erode the objective.
+
+## HOASubtractive.nm — the subtractive intervention family (model ② extension)
+
+Extends model ② to the **full subtractive family** of [[InterventionClasses]]
+"The subtractive family" (VC-1): `disrupt_rhythm`, `sever_edge`, `dissolve_node`.
+It checks that family's key finding — **the additive activation-energy ordering
+(rhythm < edge < node) does not survive negation**. The additive family is ordered
+by *what you build*; the subtractive family by *what the target has accumulated* —
+the three [[Hysteresis]] persistence mechanisms in window-width order:
+autocatalytic weight < ceiling residue ([[CeilingResidue]], §HM11) < B₃ formal
+prosthetic ([[B3SubstrateProsthetic]], §HM14, floored, "paper without power").
+
+The target carries all three as state (`s`+`e` autocatalytic, `residue`, `b3`);
+the operators act on the same three primitives, negated. `disrupt_rhythm` is
+**rhythm-class**: it bypasses the perceptual filter in *both* polarities
+(`only_rhythm_class_bypasses_filter`), so it lands reliably (P=0.95); `dissolve_node`
+is filter-**resisted** (defensive mobilization, P=0.60). A **load-bearing B₃
+prosthetic re-staffs the informal loop** on the environment turn — the formal
+structure regenerates the endowment — so `disrupt_rhythm` is undone until B₃ is
+ground below its floor. That is why a B₃-backed node is "very hard to kill."
+Operator costs are deliberately **near-flat** (there is no rhythm<edge<node cost
+order to encode — `activationEnergy` is `none` on this family).
+
+```powershell
+# HEADLINE (VC-1): Rmin{cost} to SUPPRESS, indexed by the TARGET's persistence.
+& $PRISM $Ms $Ps -property 1 -const INIT_S=4,INIT_E=2,INIT_RES=0,INIT_B3=0,ALLOW_DR=1,ALLOW_SE=1,ALLOW_DN=1  # autocatalytic-only -> 5.15
+& $PRISM $Ms $Ps -property 1 -const INIT_S=4,INIT_E=2,INIT_RES=2,INIT_B3=0,ALLOW_DR=1,ALLOW_SE=1,ALLOW_DN=1  # + ceiling residue  -> 6.25
+& $PRISM $Ms $Ps -property 1 -const INIT_S=4,INIT_E=2,INIT_RES=0,INIT_B3=3,ALLOW_DR=1,ALLOW_SE=1,ALLOW_DN=1  # + B3 prosthetic    -> 7.43
+
+# ORDERING DOES NOT SURVIVE NEGATION: which single operator SUFFICES (Pmax) depends on the target.
+& $PRISM $Ms $Ps -property 2 -const INIT_S=4,INIT_E=2,INIT_RES=0,INIT_B3=0,ALLOW_DR=1,ALLOW_SE=0,ALLOW_DN=0  # disrupt only -> 1.0 (suffices)
+& $PRISM $Ms $Ps -property 2 -const INIT_S=4,INIT_E=2,INIT_RES=0,INIT_B3=0,ALLOW_DR=0,ALLOW_SE=1,ALLOW_DN=0  # sever only   -> 0.0 (fails!)
+& $PRISM $Ms $Ps -property 2 -const INIT_S=4,INIT_E=2,INIT_RES=2,INIT_B3=0,ALLOW_DR=1,ALLOW_SE=1,ALLOW_DN=0  # no node, residue target -> 0.0
+```
+(`$Ms`/`$Ps` = absolute paths to `HOASubtractive.nm` / `HOASubtractive.pctl`.)
+
+### What this pins down — VC-1, made quantitative
+
+- **Dissolution cost is indexed by accumulated persistence, not operator depth.**
+  Min expected activation energy to suppress the *same* formed HOA rises
+  **5.15 (autocatalytic-only) → 6.25 (+ceiling residue) → 7.43 (+B₃ prosthetic)** —
+  the Hysteresis window-width order. The operator costs are near-flat, so the
+  ordering comes entirely from the target's composition. A composite (residue +
+  B₃) target also costs 7.43: `dissolve_node` clears residue as *collateral* while
+  grinding the prosthetic, so the prosthetic is the binding constraint — the
+  residue adds nothing once you are already dismantling the formal structure.
+- **The additive ordering does not survive negation.** Which single operator
+  *suffices* depends on the target, not on rhythm<edge<node: against an
+  autocatalytic-only target `disrupt_rhythm` alone suppresses (Pmax=1 — kill the
+  loop, decay finishes) while `sever_edge` alone **fails** (Pmax=0 — it cannot
+  disengage the loop, so the substrate regrows). The additive-*middle* operator is
+  useless where the additive-*cheapest* works. Against a residue target
+  `dissolve_node` is **required** (only it erodes the residue stock); disrupt+sever
+  can never finish (Pmax=0).
+- **`disrupt_rhythm` bypasses the filter in both polarities.** It lands reliably
+  (P=0.95, no defensive gate) where `dissolve_node` is resisted (P=0.60), and it
+  is the *efficient* subtractive tool for a loose autocatalytic target — the
+  all-operator optimum (5.15) beats `dissolve_node`-only (7.11) by leaning on the
+  cheap rhythm-class disruptor. This is `only_rhythm_class_bypasses_filter` (the
+  polarity-independent successor to the additive-only theorem) shown on-model.
+
+### Scope boundary (subtractive extension)
+
+- **Illustrative, structural, bounded.** Costs/probabilities are ordinal; the
+  claim is the *ordering by target persistence* and the *sufficiency pattern*, not
+  the numbers. No locked pre-registered parameter is touched.
+- **Co-present channel only.** Still the additive/subtractive × co-present cell;
+  the **B₃-mediated channel** (the other axis of [[InterventionClasses]]'s 2×2)
+  remains unworked — the last open extension in this family.
+- **`composite ≥ B₃` is a tie here**, an artifact of `dissolve_node` doing double
+  duty (grinding B₃ and eroding residue in one hit); a model that separated those
+  teardowns would make the composite strictly dearest.
 
 ## AgentLearning.sm — Path-A/B agent-learning dynamics (model ③, → Segment 1)
 
