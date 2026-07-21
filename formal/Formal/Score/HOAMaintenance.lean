@@ -285,7 +285,12 @@ def HOAMaintainedWithin {r : Region} (c : AutocatalyticCombine)
     dropping out of the basin dissolves the HOA (case 2, counterexample); and
     an unformed structure at the same substrate never forms (case 3) — the
     formation ≠ dissolution bistability of `Hysteresis.md`. Lean keeps the
-    operator-parametric ∀-theorem; TLC discharges the additive instance. See
+    operator-parametric ∀-theorem; TLC discharges the additive instance.
+    Probabilistically lifted to CTMC form in `formal/prism/HOADissolution.sm`
+    (PRISM) — the early-warning timescales (expected time-to-dissolution collapse,
+    critical slowing down) — and `formal/prism/HOANucleation.sm`, which reproduces
+    the case-3 stable unformed equilibrium as a *generative* bistability via an
+    explicit nucleation barrier (rather than TLC's move-constrained Next). See
     `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 theorem hoaMaintainedWithin {r : Region} (c : AutocatalyticCombine) :
     HOAMaintainedWithin c (@HOAMove r) := by
@@ -1017,7 +1022,11 @@ theorem hoaMaintainedExtendedDerived
     (case 1); the extension is strict — a formed HOA is maintained at
     `substrate = 0`, below the formal dissolution floor, on ceiling residue
     alone (case 2); and it is conditional — eroding the residue dissolves the
-    HOA (case 3). See `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
+    HOA (case 3). Quantified in PRISM: `formal/prism/HOADissolution.sm` shows
+    residue lengthens expected time-to-dissolution and lowers dissolution
+    probability, and `formal/prism/HOASubtractive.nm` shows it raises the
+    subtractive dissolution *cost*. See
+    `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 noncomputable def additiveLinearResidueAugmented :
     ResidueAugmentedCombine combineAdditive linearCeilingResidue where
   extendedCombine _ s e res := s.val + e.val + res.val  -- region-independent
@@ -1324,7 +1333,10 @@ theorem hoaMaintainedFormalExtendedDerived
     it *floors* at the irreducible minimum — `HOAExistsExt ⇒ substrate ≥
     IrreducibleMin` is a *held* invariant (case 3), where the ceiling-residue
     analog is violated at `substrate = 0`. The "not infinite"
-    (`bounded_below_by_irreducible`) claim, model-checked. See
+    (`bounded_below_by_irreducible`) claim, model-checked. Quantified in PRISM
+    (`formal/prism/HOASubtractive.nm`): the B₃ prosthetic is the *dearest*
+    persistence mechanism to dissolve — the load-bearing formal structure
+    re-staffs the informal loop, so a B₃-backed node is "very hard to kill". See
     `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 noncomputable def additiveLinearFlooredB3Augmented
     (irrMin : Region → ℝ)

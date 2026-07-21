@@ -227,6 +227,11 @@ axiom vc_di_3 :
 
 -- ── Theorem DI-A: sub-threshold ⇒ non-contestable ────────────────
 -- The core derived result of the inversion (proved, not assumed).
+-- Model-checked as a DTMC in `formal/prism/MediatedChannel.sm` (PRISM): while the
+-- steering amplitude stays below the perceptibility threshold it reaches the
+-- manifold with probability 1 and is never contested (DI-A); lowering the
+-- threshold below the amplitude — the DI-B disclosure remedy — flips
+-- contestability. See `obsidian/SCORE/methodology/ModelCheckedDynamics.md`.
 
 theorem di_subthreshold_noncontestable :
     ∀ (a : Agent) (m : Modification),
