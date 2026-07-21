@@ -1303,7 +1303,18 @@ theorem hoaMaintainedFormalExtendedDerived
     B₃ substrate adds directly to aggregate weight, mirroring the § 3.2
     additive × linear discharge). Both `boundary_at_zero` and
     `closes_extended_gap_b3` are provable arithmetic. Parametric on the
-    peer-supplied `irrMin` axioms of `linearFlooredB3Substrate`. -/
+    peer-supplied `irrMin` axioms of `linearFlooredB3Substrate`.
+
+    Model-checked in `formal/tla/HOAB3.tla` (TLC), the sibling of the § 3.2
+    `formal/tla/HOAExt.tla`: same additive `substrate + endowment + b3` weight,
+    but `EffDissolution = max(IrreducibleMin, Dissolution − b3)`. Formal-extended
+    maintenance holds (case 1); the extension is strict — maintained below the
+    formal dissolution floor (case 2); and, the § 3.3 distinguishing feature,
+    it *floors* at the irreducible minimum — `HOAExistsExt ⇒ substrate ≥
+    IrreducibleMin` is a *held* invariant (case 3), where the ceiling-residue
+    analog is violated at `substrate = 0`. The "not infinite"
+    (`bounded_below_by_irreducible`) claim, model-checked. See
+    `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 noncomputable def additiveLinearFlooredB3Augmented
     (irrMin : Region → ℝ)
     (irrMin_pos : ∀ r, 0 < irrMin r)

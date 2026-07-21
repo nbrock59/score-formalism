@@ -131,5 +131,40 @@ far below the formal `Dissolution = 2`, sustained by accumulated Path-A residue
 (Hysteresis.md § 3.2). The extension is exhaustively maintenance-preserving
 (case 1), reaches below the formal floor (case 2), and is conditional on
 keeping the residue (case 3). This discharges `hoaMaintainedExtendedDerived`
-for the additive × linear pair. The §HM14 B₃-substrate and §HM17 composite
-extensions remain axiomatized.
+for the additive × linear pair. The §HM17 composite extension remains
+axiomatized; the §HM14 B₃-substrate extension is `HOAB3.tla` below.
+
+## HOAB3.tla — B₃-substrate prosthetic extension (§ 3.3)
+
+`HOAMaintenance.lean` §HM12–HM14 + the canonical **additive × linear-floored**
+discharge (§HM20–HM21: `additiveLinearFlooredB3Augmented` +
+`hoaMaintainedFormalExtendedDerived`). The sibling of `HOAExt.tla`: formal B₃
+substrate (constitution, bylaws, roles) also lowers the substrate a formed HOA
+needs (`ExtWeight = substrate + endowment + b3`), **but its effective
+dissolution is floored** — `EffDissolution = max(IrreducibleMin, Dissolution −
+b3)` — so it can never reach zero. That floor is the § 3.3 distinguishing
+feature ceiling residue lacks. Same `L=4, Formation=3, Dissolution=2`, with
+`IrreducibleMin=1`; three cases:
+
+```powershell
+# (1) Formal-extended maintenance (§HM14/§HM21 discharge) HOLDS
+java -cp $jar tlc2.TLC -deadlock -config HOAB3_Maint.cfg  HOAB3.tla
+#   -> No error has been found. (93 states)
+
+# (2) Strict extension: maintained below the formal dissolution floor
+java -cp $jar tlc2.TLC          -config HOAB3_Strict.cfg HOAB3.tla
+#   -> Invariant NeedsFullBasin is violated: substrate=1, endowment=0, b3=2
+
+# (3) The irreducible floor (§ 3.3 "not infinite") HOLDS
+java -cp $jar tlc2.TLC -deadlock -config HOAB3_Floor.cfg  HOAB3.tla
+#   -> No error has been found. (every maintained HOA has substrate >= IrreducibleMin)
+```
+
+What this pins down, and the contrast with `HOAExt.tla`: the B₃ layer strictly
+extends the basin below the formal dissolution floor (case 2, `substrate=1`),
+**but floors at `IrreducibleMin = 1`** (case 3 holds) — where ceiling residue's
+analogous `NeedsFullBasin` was violated at `substrate = 0`. "A formal structure
+rejected by all informal networks is paper without power" (`bounded_below_by_irreducible`,
+§HM12), model-checked. This discharges `hoaMaintainedFormalExtendedDerived` for
+the additive × linear-floored pair. The §HM17 composite extension
+(§ 3.2 ⊕ § 3.3) remains axiomatized.
