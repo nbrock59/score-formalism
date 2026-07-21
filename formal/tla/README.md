@@ -95,5 +95,41 @@ forms (case 3) — the history-dependent bistable region of `Hysteresis.md`
 dropping below the dissolution threshold dissolves it (case 2). This discharges
 `hoaMaintainedWithin` (§HM8) for the discretized additive combine, and turns
 the formation ≠ dissolution asymmetry into three exhaustively-checked cases.
-The §HM11/HM14/HM17 basin-extension mechanisms (ceiling residue, B₃-substrate,
-composite) are not modelled here.
+The §HM14/HM17 basin-extension mechanisms (B₃-substrate, composite) are not
+modelled here; the §HM11 ceiling-residue extension is `HOAExt.tla` below.
+
+## HOAExt.tla — ceiling-residue basin extension (§ 3.2)
+
+`HOAMaintenance.lean` §HM9–HM11 + the canonical **additive × linear** discharge
+(§HM18–HM19: `additiveLinearResidueAugmented` + `hoaMaintainedExtendedDerived`).
+Ceiling residue (Path-A structural manifold-overlap deepening) adds a third
+state dimension that **lowers the substrate a formed HOA needs**, extending the
+maintenance basin *below* the formal dissolution floor. Names mirror the Lean:
+`ExtWeight = substrate + endowment + residue`,
+`EffDissolution = max(0, Dissolution − residue)`,
+`ExtendedBasin = substrate ≥ EffDissolution`. Same `L=4, Formation=3,
+Dissolution=2`; three cases:
+
+```powershell
+# (1) Extended maintenance (§HM11/§HM19 discharge) HOLDS
+java -cp $jar tlc2.TLC -deadlock -config HOAExt_Maint.cfg  HOAExt.tla
+#   -> No error has been found. (107 states)
+
+# (2) Strict extension: maintained BELOW the formal dissolution floor
+java -cp $jar tlc2.TLC          -config HOAExt_Strict.cfg HOAExt.tla
+#   -> Invariant NeedsFullBasin is violated: substrate=0, endowment=0, residue=3
+#      (HOAExists with ZERO substrate, held up entirely by ceiling residue)
+
+# (3) Bounded / conditional extension: eroding residue dissolves the HOA
+java -cp $jar tlc2.TLC          -config HOAExt_Bound.cfg  HOAExt.tla
+#   -> Invariant MaintInv is violated (e.g. residue 3->2 drops ExtWeight < Formation)
+```
+
+What this pins down: the ceiling-residue mechanism **strictly** extends the
+basin (`basin_implies_extendedBasin`) — a formed HOA persists at `substrate = 0`,
+far below the formal `Dissolution = 2`, sustained by accumulated Path-A residue
+(Hysteresis.md § 3.2). The extension is exhaustively maintenance-preserving
+(case 1), reaches below the formal floor (case 2), and is conditional on
+keeping the residue (case 3). This discharges `hoaMaintainedExtendedDerived`
+for the additive × linear pair. The §HM14 B₃-substrate and §HM17 composite
+extensions remain axiomatized.

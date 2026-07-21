@@ -998,7 +998,15 @@ theorem hoaMaintainedExtendedDerived
     the (`combineAdditive`, `linearCeilingResidue`) pair: extended weight
     is simply `substrate + endowment + residue` (residue adds directly to
     aggregate weight). Both `boundary_at_zero` and `closes_extended_gap`
-    are provable arithmetic. -/
+    are provable arithmetic.
+
+    Model-checked in `formal/tla/HOAExt.tla` (TLC): with `ExtWeight =
+    substrate + endowment + residue` and `EffDissolution = max(0,
+    Dissolution − residue)`, extended maintenance holds as a safety invariant
+    (case 1); the extension is strict — a formed HOA is maintained at
+    `substrate = 0`, below the formal dissolution floor, on ceiling residue
+    alone (case 2); and it is conditional — eroding the residue dissolves the
+    HOA (case 3). See `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 noncomputable def additiveLinearResidueAugmented :
     ResidueAugmentedCombine combineAdditive linearCeilingResidue where
   extendedCombine _ s e res := s.val + e.val + res.val  -- region-independent
