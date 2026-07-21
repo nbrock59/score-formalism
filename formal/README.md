@@ -12,6 +12,7 @@ concept vault (`../obsidian/SCORE/`) by `../scripts/score_check.py`.
 | `catalog-v001.xml` | OASIS catalog mapping the core import IRI to the local file so Protégé/HermiT resolve `owl:imports` offline. |
 | `Formal/SCORE_Lean4.lean` | Lean 4 formalization of the dynamics (domains, morphisms, stratification, HOA, intervention classes). |
 | `Formal.lean`, `lakefile.toml`, `lean-toolchain` | Lean project scaffolding. |
+| `tla/Ring.tla` (+ `.cfg`) | TLA+/TLC **model-checked dynamics** (a third formalism for the dynamical layer). Dijkstra self-stabilizing ring: discharges `Score/SelfStabilization.lean`'s `dijkstraRingSelfStabilizes` axiom for bounded (N,K) and exhibits the identical-machines fragility as a concrete counterexample. See `tla/README.md` and `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. |
 
 The layering and the core-vs-implementation decision procedure are documented in
 `../obsidian/SCORE/methodology/RefinementArchitecture.md`.

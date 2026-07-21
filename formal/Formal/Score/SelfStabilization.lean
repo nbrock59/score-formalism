@@ -147,7 +147,16 @@ axiom DijkstraMove {N K : ℕ} : DijkstraRing N K → DijkstraRing N K → Prop
     the K-state ring is *globally* self-stabilizing. Asserted as a
     reference-case axiom; the paper's proof is the canonical reference and
     is not re-derived in Lean. Serves as the existence witness that
-    `SelfStabilizingWithin` is inhabited under a well-known construction. -/
+    `SelfStabilizingWithin` is inhabited under a well-known construction.
+
+    Model-checked for bounded (N, K) in `formal/tla/Ring.tla` (TLC): the
+    heterogeneous ring self-stabilizes from every one of the K^(N+1)
+    configurations, and the homogeneous ring deadlocks at the all-equal
+    illegitimate configuration (the identical-machines finding — see
+    `Score/HOAMaintenance.lean` §HM22 and
+    `obsidian/SCORE/methodology/ModelCheckedDynamics.md`). Lean keeps the
+    unbounded ∀-statement; TLC supplies exhaustive evidence for the bounded
+    instances this axiom abstracts. -/
 axiom dijkstraRingSelfStabilizes {N K : ℕ} :
     GloballySelfStabilizing (@DijkstraLegitimate N K) (@DijkstraMove N K)
 
