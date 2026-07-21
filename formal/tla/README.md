@@ -62,3 +62,38 @@ scales as K^(N+1); the qualitative results are parameter-independent for K > N.
   dead end. This is the finite-state witness behind
   `AgentHomogeneityFragility.md`'s `homogeneous_no_feedback` axiom and its
   Falsifiability section.
+
+## HOA.tla — within-basin maintenance with hysteresis
+
+The SCORE-specific instance: `Formal/Score/HOAMaintenance.lean` §HM1–HM8,
+the within-basin HOA maintenance theorem `hoaMaintainedWithin` under the
+additive autocatalytic combine (`weight = substrate + endowment`, engagement
+`= formation − dissolution`). Model-checked at `L=4, Formation=3,
+Dissolution=2` (so `Engagement=1`), names mirroring the Lean. The distinctive
+wrinkle is the **formation ≠ dissolution** hysteresis, exhibited as three
+exhaustive cases at the same substrate level:
+
+```powershell
+# (1) Maintenance (§HM8) HOLDS: in-basin + feedback-engaged moves preserve HOAExists
+java -cp $jar tlc2.TLC -deadlock -config HOA_Maint.cfg HOA.tla
+#   -> No error has been found. (14 states)
+
+# (2) Dissolution outside the basin: MaintInv VIOLATED (counterexample)
+java -cp $jar tlc2.TLC          -config HOA_Diss.cfg  HOA.tla
+#   -> Invariant MaintInv is violated.
+#      State 1: substrate=2, endowment=1  ->  State 2: substrate=1  (Weight 2 < Formation)
+
+# (3) Bistability / no spontaneous formation HOLDS
+java -cp $jar tlc2.TLC -deadlock -config HOA_Bist.cfg HOA.tla
+#   -> No error has been found. (unformed equilibrium: substrate=2, endowment=0)
+```
+
+What this pins down: at `substrate = Dissolution = 2`, a **formed** HOA is
+maintained (case 1) while an **unformed** structure at the same substrate never
+forms (case 3) — the history-dependent bistable region of `Hysteresis.md`
+("the outcome depends on history, not on current conditions alone"), and
+dropping below the dissolution threshold dissolves it (case 2). This discharges
+`hoaMaintainedWithin` (§HM8) for the discretized additive combine, and turns
+the formation ≠ dissolution asymmetry into three exhaustively-checked cases.
+The §HM11/HM14/HM17 basin-extension mechanisms (ceiling residue, B₃-substrate,
+composite) are not modelled here.

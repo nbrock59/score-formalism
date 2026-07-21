@@ -277,7 +277,16 @@ def HOAMaintainedWithin {r : Region} (c : AutocatalyticCombine)
     maintenance rule (`hoaPreservedByBasinMove_ifFeedbackEngaged`),
     `HOAMove` maintains HOA existence within basin. Proof is a trivial
     induction on the trace index; the content lives in the theorem's
-    (now-derived) premise. -/
+    (now-derived) premise.
+
+    Model-checked for the discretized additive combine in `formal/tla/HOA.tla`
+    (TLC): with `weight = substrate + endowment` and `Dissolution < Formation`,
+    the maintenance premise makes `HOAExists` a safety invariant (case 1);
+    dropping out of the basin dissolves the HOA (case 2, counterexample); and
+    an unformed structure at the same substrate never forms (case 3) — the
+    formation ≠ dissolution bistability of `Hysteresis.md`. Lean keeps the
+    operator-parametric ∀-theorem; TLC discharges the additive instance. See
+    `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 theorem hoaMaintainedWithin {r : Region} (c : AutocatalyticCombine) :
     HOAMaintainedWithin c (@HOAMove r) := by
   intro s hoa_s basin_s trace tr_0 tr_moves tr_basin tr_feedback i
