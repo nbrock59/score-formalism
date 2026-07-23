@@ -182,7 +182,8 @@ noncomputable def combineMultiplicative : AutocatalyticCombine where
     -- s.val * e.val ≥ dissolution.val * e.val (since s ≥ dissolution and e ≥ 0)
     have hse : (dissolutionThreshold r).val * e.val ≤ s.val * e.val := by
       exact mul_le_mul_of_nonneg_right hs h_e_pos
-    -- combine: s * (1 + e) = s + s*e ≥ dissolution + dissolution*e ≥ dissolution + (formation - dissolution) = formation
+    -- combine: s * (1 + e) = s + s*e ≥ dissolution + dissolution*e
+    --   ≥ dissolution + (formation - dissolution) = formation
     have expand : s.val * (1 + e.val) = s.val + s.val * e.val := by ring
     rw [expand]
     have h_comm : (dissolutionThreshold r).val * e.val
@@ -562,7 +563,8 @@ noncomputable def multiplicativeFlooredB3Substrate
   monotone_b3 r res₁ res₂ h := by
     have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
     have : (1 : ℝ) - res₂.val ≤ 1 - res₁.val := by linarith
-    have : (dissolutionThreshold r).val * (1 - res₂.val) ≤ (dissolutionThreshold r).val * (1 - res₁.val) :=
+    have : (dissolutionThreshold r).val * (1 - res₂.val)
+             ≤ (dissolutionThreshold r).val * (1 - res₁.val) :=
       mul_le_mul_of_nonneg_left this h_d_nn
     exact max_le_max (le_refl (irrMin r)) this
   bounded_above r res := by
@@ -716,7 +718,8 @@ noncomputable def compositeAdditiveReductions : CompositeBasinExtensionPolicy wh
       le_trans (le_of_lt h_b_nn_of_irr) (p_b.bounded_below_by_irreducible r res_b)
     -- max(0, r_eff + b_eff - formal) ≤ min(r_eff, b_eff)
     -- Case (r_eff + b_eff - formal ≤ 0): max = 0 ≤ min (since both non-negative)
-    -- Case (r_eff + b_eff - formal ≥ 0): max = that, ≤ r_eff (since b_eff ≤ formal), ≤ b_eff similarly
+    -- Case (r_eff + b_eff - formal ≥ 0): max = that, ≤ r_eff
+    --   (since b_eff ≤ formal), ≤ b_eff similarly
     have h_le_r : p_r.effectiveDissolution r res_r + p_b.effectiveDissolution r res_b
                     - (dissolutionThreshold r).val ≤ p_r.effectiveDissolution r res_r := by linarith
     have h_le_b : p_r.effectiveDissolution r res_r + p_b.effectiveDissolution r res_b
@@ -777,7 +780,8 @@ noncomputable def compositeMultiplicativeFactors : CompositeBasinExtensionPolicy
     have h_le_b : p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b
                     / (dissolutionThreshold r).val ≤ p_b.effectiveDissolution r res_b := by
       have h_swap : p_r.effectiveDissolution r res_r * p_b.effectiveDissolution r res_b
-                     = p_b.effectiveDissolution r res_b * p_r.effectiveDissolution r res_r := by ring
+                     = p_b.effectiveDissolution r res_b
+                       * p_r.effectiveDissolution r res_r := by ring
       rw [h_swap, mul_div_assoc]
       calc p_b.effectiveDissolution r res_b *
               (p_r.effectiveDissolution r res_r / (dissolutionThreshold r).val)
@@ -1092,7 +1096,8 @@ noncomputable def multiplicativeMultiplicativeResidueAugmented :
     have h_step1 : (formationThreshold r).val ≤
                     (dissolutionThreshold r).val * (1 + endowment.val) := by
       have : (dissolutionThreshold r).val * (1 + endowment.val)
-             = (dissolutionThreshold r).val + endowment.val * (dissolutionThreshold r).val := by ring
+             = (dissolutionThreshold r).val
+               + endowment.val * (dissolutionThreshold r).val := by ring
       linarith
     -- Step 2: substrate * (1+e) ≥ formation * (1 - res)
     have h_step2 : (formationThreshold r).val * (1 - res.val)
@@ -1101,7 +1106,8 @@ noncomputable def multiplicativeMultiplicativeResidueAugmented :
                      ≤ substrate.val * (1 + endowment.val) :=
         mul_le_mul_of_nonneg_right h_basin h_1e_nn
       have h_reorder : (dissolutionThreshold r).val * (1 - res.val) * (1 + endowment.val)
-                       = (dissolutionThreshold r).val * (1 + endowment.val) * (1 - res.val) := by ring
+                       = (dissolutionThreshold r).val * (1 + endowment.val)
+                         * (1 - res.val) := by ring
       have h_step1_mul : (formationThreshold r).val * (1 - res.val)
                          ≤ (dissolutionThreshold r).val * (1 + endowment.val) * (1 - res.val) :=
         mul_le_mul_of_nonneg_right h_step1 h_1_sub_res_nn
@@ -1186,12 +1192,13 @@ noncomputable def multiplicativeLinearResidueAugmented :
       have h_ge : (formationThreshold r).val
                   ≤ (formationThreshold r).val * res.val / (dissolutionThreshold r).val := by
         have h_rw : (formationThreshold r).val * res.val / (dissolutionThreshold r).val
-                    = (formationThreshold r).val * (res.val / (dissolutionThreshold r).val) := by ring
+                    = (formationThreshold r).val
+                      * (res.val / (dissolutionThreshold r).val) := by ring
         rw [h_rw]; nlinarith
       have h_ext_nn : 0 ≤ substrate.val * (1 + endowment.val) := mul_nonneg h_s_nn h_1e_nn
       linarith
     · -- Case A: res < d → max = d - res, product bound closes
-      push_neg at h_case
+      push Not at h_case
       have h_dr_nn : (0 : ℝ) ≤ (dissolutionThreshold r).val - res.val := by linarith
       have h_max_eq : max 0 ((dissolutionThreshold r).val - res.val)
                       = (dissolutionThreshold r).val - res.val := max_eq_right h_dr_nn
@@ -1391,7 +1398,8 @@ noncomputable def multiplicativeMultiplicativeFlooredB3Augmented
     have h_b3_le1 : b3.val ≤ 1 := b3.le1
     have h_1_sub_b3_nn : (0 : ℝ) ≤ 1 - b3.val := by linarith
     -- Unfold instance-specific defs
-    have h_eff : (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
+    have h_eff :
+        (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
                     r b3
                  = max (irrMin r) ((dissolutionThreshold r).val * (1 - b3.val)) := rfl
     have h_eng : combineMultiplicative.engagementThreshold r =
@@ -1410,7 +1418,8 @@ noncomputable def multiplicativeMultiplicativeFlooredB3Augmented
     have h_step1 : (formationThreshold r).val ≤
                     (dissolutionThreshold r).val * (1 + endowment.val) := by
       have : (dissolutionThreshold r).val * (1 + endowment.val)
-             = (dissolutionThreshold r).val + endowment.val * (dissolutionThreshold r).val := by ring
+             = (dissolutionThreshold r).val
+               + endowment.val * (dissolutionThreshold r).val := by ring
       linarith
     -- substrate * (1+e) ≥ formation * (1 - b3)
     have h_step2 : (formationThreshold r).val * (1 - b3.val)
@@ -1419,7 +1428,8 @@ noncomputable def multiplicativeMultiplicativeFlooredB3Augmented
                      ≤ substrate.val * (1 + endowment.val) :=
         mul_le_mul_of_nonneg_right h_db_le_substrate h_1e_nn
       have h_reorder : (dissolutionThreshold r).val * (1 - b3.val) * (1 + endowment.val)
-                       = (dissolutionThreshold r).val * (1 + endowment.val) * (1 - b3.val) := by ring
+                       = (dissolutionThreshold r).val * (1 + endowment.val)
+                         * (1 - b3.val) := by ring
       have h_step1_mul : (formationThreshold r).val * (1 - b3.val)
                          ≤ (dissolutionThreshold r).val * (1 + endowment.val) * (1 - b3.val) :=
         mul_le_mul_of_nonneg_right h_step1 h_1_sub_b3_nn
@@ -1447,7 +1457,8 @@ noncomputable def additiveMultiplicativeFlooredB3Augmented
     change s.val + e.val + (0 : ℝ) = s.val + e.val
     ring
   closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
-    have h_eff : (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
+    have h_eff :
+        (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
                     r b3
                  = max (irrMin r) ((dissolutionThreshold r).val * (1 - b3.val)) := rfl
     have h_eng : combineAdditive.engagementThreshold r =
@@ -1516,12 +1527,13 @@ noncomputable def multiplicativeLinearFlooredB3Augmented
       have h_ge : (formationThreshold r).val
                   ≤ (formationThreshold r).val * b3.val / (dissolutionThreshold r).val := by
         have h_rw : (formationThreshold r).val * b3.val / (dissolutionThreshold r).val
-                    = (formationThreshold r).val * (b3.val / (dissolutionThreshold r).val) := by ring
+                    = (formationThreshold r).val
+                      * (b3.val / (dissolutionThreshold r).val) := by ring
         rw [h_rw]; nlinarith
       have h_ext_nn : 0 ≤ substrate.val * (1 + endowment.val) := mul_nonneg h_s_nn h_1e_nn
       linarith
     · -- Case A: b3 < d → max = ? (either irrMin or d - b3, whichever is larger)
-      push_neg at h_case
+      push Not at h_case
       have h_dr_nn : (0 : ℝ) ≤ (dissolutionThreshold r).val - b3.val := by linarith
       -- substrate ≥ max(irrMin, d - b3) ≥ d - b3
       have h_s_ge : (dissolutionThreshold r).val - b3.val ≤ substrate.val :=

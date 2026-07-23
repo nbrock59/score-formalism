@@ -748,7 +748,8 @@ theorem spectral_ews_monotone {n : ℕ} (w : Fin n → ℝ) (hw : ∀ i, 0 ≤ w
   Finset.sum_le_sum (fun i _ => mul_le_mul_of_nonneg_left (hss i) (hw i))
 
 /-- The elevated-alert predicate: the indicator has reached an alert threshold. `noncomputable`
-    (decidability of `≤` on ℝ is noncomputable); the point is the monotonicity law, not execution. -/
+    (decidability of `≤` on ℝ is noncomputable); the point is the monotonicity law,
+    not execution. -/
 noncomputable def sewi_elevated (value threshold : ℝ) : Bool := decide (threshold ≤ value)
 
 /-- `sewi_elevated` is monotone in the indicator: a higher SEWI cannot un-elevate an alert. -/
