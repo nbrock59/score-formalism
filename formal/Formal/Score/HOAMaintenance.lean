@@ -355,7 +355,7 @@ structure CeilingResiduePolicy where
 noncomputable def linearCeilingResidue : CeilingResiduePolicy where
   effectiveDissolution r res := max 0 ((dissolutionThreshold r).val - res.val)
   boundary_at_zero r := by
-    simp
+    simp only [sub_zero, sup_eq_right]
     exact le_of_lt (dissolutionThreshold_pos r)
   monotone_residue r res₁ res₂ h := by
     have : (dissolutionThreshold r).val - res₂.val ≤ (dissolutionThreshold r).val - res₁.val := by
@@ -531,7 +531,7 @@ noncomputable def linearFlooredB3Substrate
   irreducibleMinimum_pos := irrMin_pos
   irreducibleMinimum_below_dissolution := irrMin_below
   boundary_at_zero r := by
-    simp
+    simp only [sub_zero, sup_eq_right]
     exact irrMin_below r
   monotone_b3 r res₁ res₂ h := by
     have : (dissolutionThreshold r).val - res₂.val ≤ (dissolutionThreshold r).val - res₁.val := by
@@ -558,7 +558,7 @@ noncomputable def multiplicativeFlooredB3Substrate
   irreducibleMinimum_pos := irrMin_pos
   irreducibleMinimum_below_dissolution := irrMin_below
   boundary_at_zero r := by
-    simp
+    simp only [sub_zero, mul_one, sup_eq_right]
     exact irrMin_below r
   monotone_b3 r res₁ res₂ h := by
     have h_d_nn : 0 ≤ (dissolutionThreshold r).val := le_of_lt (dissolutionThreshold_pos r)
