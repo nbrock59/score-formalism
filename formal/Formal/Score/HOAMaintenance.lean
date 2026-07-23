@@ -1031,7 +1031,7 @@ noncomputable def additiveLinearResidueAugmented :
     ResidueAugmentedCombine combineAdditive linearCeilingResidue where
   extendedCombine _ s e res := s.val + e.val + res.val  -- region-independent
   boundary_at_zero _ s e := by
-    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    change s.val + e.val + (0 : ℝ) = s.val + e.val
     ring
   closes_extended_gap r substrate endowment residue h_basin h_feedback := by
     -- Unfold instance-specific defs
@@ -1046,7 +1046,7 @@ noncomputable def additiveLinearResidueAugmented :
       le_trans (le_max_right 0 _) h_basin
     -- endowment ≥ formation - dissolution; substrate + residue ≥ dissolution;
     -- so substrate + endowment + residue ≥ formation
-    show (formationThreshold r).val ≤ substrate.val + endowment.val + residue.val
+    change (formationThreshold r).val ≤ substrate.val + endowment.val + residue.val
     linarith
 
 /-- **The multiplicative × multiplicative residue-augmented combine.** For
@@ -1065,7 +1065,7 @@ noncomputable def multiplicativeMultiplicativeResidueAugmented :
     ResidueAugmentedCombine combineMultiplicative multiplicativeCeilingResidue where
   extendedCombine r s e res := s.val * (1 + e.val) + (formationThreshold r).val * res.val
   boundary_at_zero r s e := by
-    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) = s.val * (1 + e.val)
+    change s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) = s.val * (1 + e.val)
     ring
   closes_extended_gap r substrate endowment res h_basin h_feedback := by
     have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
@@ -1107,7 +1107,7 @@ noncomputable def multiplicativeMultiplicativeResidueAugmented :
         mul_le_mul_of_nonneg_right h_step1 h_1_sub_res_nn
       linarith [h_reorder ▸ h_s_mul, h_step1_mul]
     -- Step 3: add formation * res to both sides
-    show (formationThreshold r).val ≤
+    change (formationThreshold r).val ≤
          substrate.val * (1 + endowment.val) + (formationThreshold r).val * res.val
     have h_algebra : (formationThreshold r).val * (1 - res.val)
                      + (formationThreshold r).val * res.val = (formationThreshold r).val := by ring
@@ -1123,7 +1123,7 @@ noncomputable def additiveMultiplicativeResidueAugmented :
     ResidueAugmentedCombine combineAdditive multiplicativeCeilingResidue where
   extendedCombine _ s e res := s.val + e.val + res.val
   boundary_at_zero _ s e := by
-    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    change s.val + e.val + (0 : ℝ) = s.val + e.val
     ring
   closes_extended_gap r substrate endowment res h_basin h_feedback := by
     have h_eff : multiplicativeCeilingResidue.effectiveDissolution r res =
@@ -1135,7 +1135,7 @@ noncomputable def additiveMultiplicativeResidueAugmented :
     have h_d_le_1 : (dissolutionThreshold r).val ≤ 1 := (dissolutionThreshold r).le1
     have h_res_nn : (0 : ℝ) ≤ res.val := res.pos
     -- s + e ≥ d*(1-res) + (f-d) = f - d*res; add res: ≥ f + res*(1-d) ≥ f  (since d ≤ 1)
-    show (formationThreshold r).val ≤ substrate.val + endowment.val + res.val
+    change (formationThreshold r).val ≤ substrate.val + endowment.val + res.val
     nlinarith
 
 /-- **§ 3.2 mixed pair: multiplicative × linear.** For the
@@ -1149,7 +1149,7 @@ noncomputable def multiplicativeLinearResidueAugmented :
   extendedCombine r s e res :=
     s.val * (1 + e.val) + (formationThreshold r).val * res.val / (dissolutionThreshold r).val
   boundary_at_zero r s e := by
-    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) / (dissolutionThreshold r).val
+    change s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) / (dissolutionThreshold r).val
          = s.val * (1 + e.val)
     ring
   closes_extended_gap r substrate endowment res h_basin h_feedback := by
@@ -1176,7 +1176,7 @@ noncomputable def multiplicativeLinearResidueAugmented :
       linarith
     have h_fd_nn : 0 ≤ (formationThreshold r).val / (dissolutionThreshold r).val :=
       div_nonneg h_f_nn h_d_nn
-    show (formationThreshold r).val ≤
+    change (formationThreshold r).val ≤
          substrate.val * (1 + endowment.val)
            + (formationThreshold r).val * res.val / (dissolutionThreshold r).val
     by_cases h_case : (dissolutionThreshold r).val ≤ res.val
@@ -1346,7 +1346,7 @@ noncomputable def additiveLinearFlooredB3Augmented
       (linearFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
   extendedCombine _ s e b3 := s.val + e.val + b3.val  -- region-independent
   boundary_at_zero _ s e := by
-    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    change s.val + e.val + (0 : ℝ) = s.val + e.val
     ring
   closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
     -- Unfold instance-specific defs
@@ -1361,7 +1361,7 @@ noncomputable def additiveLinearFlooredB3Augmented
       le_trans (le_max_right _ _) h_basin
     -- endowment ≥ formation - dissolution; substrate + b3 ≥ dissolution;
     -- so substrate + endowment + b3 ≥ formation
-    show (formationThreshold r).val ≤ substrate.val + endowment.val + b3.val
+    change (formationThreshold r).val ≤ substrate.val + endowment.val + b3.val
     linarith
 
 /-- **The multiplicative × multiplicative-floored B₃-augmented combine.**
@@ -1380,7 +1380,7 @@ noncomputable def multiplicativeMultiplicativeFlooredB3Augmented
       (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
   extendedCombine r s e b3 := s.val * (1 + e.val) + (formationThreshold r).val * b3.val
   boundary_at_zero r s e := by
-    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) = s.val * (1 + e.val)
+    change s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) = s.val * (1 + e.val)
     ring
   closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
     have h_d_pos : 0 < (dissolutionThreshold r).val := dissolutionThreshold_pos r
@@ -1424,7 +1424,7 @@ noncomputable def multiplicativeMultiplicativeFlooredB3Augmented
                          ≤ (dissolutionThreshold r).val * (1 + endowment.val) * (1 - b3.val) :=
         mul_le_mul_of_nonneg_right h_step1 h_1_sub_b3_nn
       linarith [h_reorder ▸ h_s_mul, h_step1_mul]
-    show (formationThreshold r).val ≤
+    change (formationThreshold r).val ≤
          substrate.val * (1 + endowment.val) + (formationThreshold r).val * b3.val
     have h_algebra : (formationThreshold r).val * (1 - b3.val)
                      + (formationThreshold r).val * b3.val = (formationThreshold r).val := by ring
@@ -1444,7 +1444,7 @@ noncomputable def additiveMultiplicativeFlooredB3Augmented
       (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below) where
   extendedCombine _ s e b3 := s.val + e.val + b3.val
   boundary_at_zero _ s e := by
-    show s.val + e.val + (0 : ℝ) = s.val + e.val
+    change s.val + e.val + (0 : ℝ) = s.val + e.val
     ring
   closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
     have h_eff : (multiplicativeFlooredB3Substrate irrMin irrMin_pos irrMin_below).effectiveDissolution
@@ -1458,7 +1458,7 @@ noncomputable def additiveMultiplicativeFlooredB3Augmented
     have h_b3_nn : (0 : ℝ) ≤ b3.val := b3.pos
     have h_db3_le_substrate : (dissolutionThreshold r).val * (1 - b3.val) ≤ substrate.val :=
       le_trans (le_max_right _ _) h_basin
-    show (formationThreshold r).val ≤ substrate.val + endowment.val + b3.val
+    change (formationThreshold r).val ≤ substrate.val + endowment.val + b3.val
     nlinarith
 
 /-- **§ 3.3 mixed pair: multiplicative × linear-floored.** For the
@@ -1478,7 +1478,7 @@ noncomputable def multiplicativeLinearFlooredB3Augmented
   extendedCombine r s e b3 :=
     s.val * (1 + e.val) + (formationThreshold r).val * b3.val / (dissolutionThreshold r).val
   boundary_at_zero r s e := by
-    show s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) / (dissolutionThreshold r).val
+    change s.val * (1 + e.val) + (formationThreshold r).val * (0 : ℝ) / (dissolutionThreshold r).val
          = s.val * (1 + e.val)
     ring
   closes_extended_gap_b3 r substrate endowment b3 h_basin h_feedback := by
@@ -1506,7 +1506,7 @@ noncomputable def multiplicativeLinearFlooredB3Augmented
       linarith
     have h_fd_nn : 0 ≤ (formationThreshold r).val / (dissolutionThreshold r).val :=
       div_nonneg h_f_nn h_d_nn
-    show (formationThreshold r).val ≤
+    change (formationThreshold r).val ≤
          substrate.val * (1 + endowment.val)
            + (formationThreshold r).val * b3.val / (dissolutionThreshold r).val
     by_cases h_case : (dissolutionThreshold r).val ≤ b3.val
