@@ -206,6 +206,42 @@ and maintained), where B₃ alone held it (`HOAB3_Floor.cfg`). Exact multiplicat
 maintenance needs rational arithmetic, so `CompMul` is used only in the
 comparison; that is the one modelling boundary here.
 
+## HOAExtRefinement.tla — refinement mapping HOAExt ⇒ HOA (first spec ⇒ spec check)
+
+Unlike every model above, the property checked is not an invariant but another
+**spec**: TLC verifies `Spec_concrete ⇒ Spec_abstract` under a retrieve mapping
+— W&D data refinement (`obsidian/sources/Woodcock-Davies.md`) via TLA+'s native
+idiom, the *behavioral* face of `RefinementArchitecture.md`'s Q2 SPECIALIZE
+(whose HermiT check is consistency, not simulation). Retrieve mapping:
+`substrate ↦ substrate`, `endowment ↦ endowment + residue`, abstract `L ↦ 2L` —
+so abstract `Weight = ExtWeight` and every concrete micro-step maps to an
+abstract micro-step (no stuttering). Three cases:
+
+```powershell
+# (1) Conservative extension HOLDS: restricted to the FORMAL basin, HOAExt refines HOA
+java -cp $jar tlc2.TLC -deadlock -config HOAExtRefinement_Formal.cfg HOAExtRefinement.tla
+#   -> No error has been found. (74 states)
+
+# (2) Strict extension = refinement failure: the full extended-basin spec does NOT refine HOA
+java -cp $jar tlc2.TLC -deadlock -config HOAExtRefinement_Full.cfg   HOAExtRefinement.tla
+#   -> Error: Property Basin is violated by the initial state:
+#      substrate=0, endowment=0, residue=3   (the HOAExt_Strict witness, as a failed obligation)
+
+# (3) Escape: the failure is BEHAVIORAL, not just initial -- formal-basin start, extended moves
+java -cp $jar tlc2.TLC -deadlock -config HOAExtRefinement_Escape.cfg HOAExtRefinement.tla
+#   -> Error: Action property ... of module HOA is violated.
+#      (substrate=2, endowment=1, residue=1) -> (substrate=1, ...)  -- the boundary-crossing step
+```
+
+What this pins down: "HOAExt **extends** HOA" — until now an informal edge in
+the family — is a machine-checked statement with both faces. Over the formal
+basin the extension is **conservative** (`basin_implies_extendedBasin` upgraded
+from a state-set inclusion to a checked simulation), and the strict extension is
+**exactly a refinement failure**, its counterexamples the below-floor witness
+(case 2) and the boundary-crossing step (case 3). Zero new toolchain. Candidate
+next mappings: `HOAB3 ⇒ HOA`, and `HOAComp ⇒ HOAB3` (the floor-loss result
+suggests failure — the check would adjudicate).
+
 ## LifeCycle.tla — A-actor life-cycle (Core.lean `LifeCyclePhase`)
 
 The individual life-cycle Childhood → Student → Householder → Retirement (encoded
