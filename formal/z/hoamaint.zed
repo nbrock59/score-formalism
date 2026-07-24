@@ -1,0 +1,137 @@
+% hoamaint.zed -- Z rendering of SCORE HOA within-basin maintenance.
+%
+% PILOT EVIDENCE (2026-07-24), not a live verification layer. Produced by
+% the investigation into whether a CZT-checked Z layer in the vault would
+% feed the OWL/Lean spine; decision: declined for the feed role (see
+% formal/z/README.md and obsidian/sources/Woodcock-Davies.md). Mirrors,
+% name for name:
+%   - Lean : formal/Formal/Score/HOAMaintenance.lean (\S{}HM1-HM8)
+%   - TLA+ : formal/tla/HOA.tla
+%   - vault: obsidian/SCORE/emergence/mechanism/HOA.md, Hysteresis.md
+%
+% Type-check (CZT toolchain lives in protocol-formal-template/z):
+%   & ~\Dev\protocol-formal-template\z\run-czt.ps1 -File .\hoamaint.zed
+%
+% [IDIOM A] state schema, [IDIOM B] init, [IDIOM C] guarded ops,
+% [IDIOM D] safety as horizontal schema -- per protocol-formal-template/z.
+
+\section{hoamaint parents standard\_toolkit}
+
+Hysteresis constants (Lean \S{}HM4: additive combine; HysteresisGap
+assumption of HOA.tla).
+
+\begin{axdef}
+  maxlvl : \nat \\
+  formation : \nat \\
+  dissolution : \nat
+\where
+  0 < dissolution \\
+  dissolution < formation \\
+  formation - dissolution \leq maxlvl \\
+  formation \leq 2 * maxlvl
+\end{axdef}
+
+\begin{zed}
+  engagement == formation - dissolution
+\end{zed}
+
+\subsection{State [IDIOM A]}
+
+HOAState: substrate + loop endowment, discretized to levels 0..maxlvl.
+
+\begin{schema}{HOAState}
+  substrate : \nat \\
+  endowment : \nat
+\where
+  substrate \leq maxlvl \\
+  endowment \leq maxlvl
+\end{schema}
+
+Characteristic subsets of state space, as horizontal schemas
+(\S{}HM5-HM6: HOAExists, Basin, feedbackEngaged).
+
+\begin{zed}
+  HOAExists == [ HOAState | substrate + endowment \geq formation ]
+\end{zed}
+
+\begin{zed}
+  Basin == [ HOAState | substrate \geq dissolution ]
+\end{zed}
+
+\begin{zed}
+  Engaged == [ HOAState | endowment \geq engagement ]
+\end{zed}
+
+\subsection{Initial state [IDIOM B]}
+
+Premise of MaintainedWithinIfPreserved: an existing HOA, in basin.
+
+\begin{schema}{InitMaint}
+  HOAExists \\
+  Basin
+\end{schema}
+
+\subsection{Micro-moves [IDIOM C]}
+
+The abstract HOAMove (\S{}HM6) made concrete: one micro-step moves
+substrate or endowment by one level, within bounds (bounds enforced by
+the primed state invariant).
+
+\begin{schema}{SubUp}
+  \Delta HOAState
+\where
+  substrate' = substrate + 1 \\
+  endowment' = endowment
+\end{schema}
+
+\begin{schema}{SubDown}
+  \Delta HOAState
+\where
+  1 \leq substrate \\
+  substrate' = substrate - 1 \\
+  endowment' = endowment
+\end{schema}
+
+\begin{schema}{EndUp}
+  \Delta HOAState
+\where
+  endowment' = endowment + 1 \\
+  substrate' = substrate
+\end{schema}
+
+\begin{schema}{EndDown}
+  \Delta HOAState
+\where
+  1 \leq endowment \\
+  endowment' = endowment - 1 \\
+  substrate' = substrate
+\end{schema}
+
+\begin{zed}
+  Move == SubUp \lor SubDown \lor EndUp \lor EndDown
+\end{zed}
+
+Basin-preserving, feedback-engaged move (the \S{}HM8 premise), by schema
+conjunction over the generic Move:
+
+\begin{zed}
+  MaintMove == [ Move | substrate' \geq dissolution \land endowment' \geq engagement ]
+\end{zed}
+
+\subsection{Safety [IDIOM D]}
+
+Maintenance: the HOA continues to exist. The \S{}HM8 claim is that
+MaintMove preserves membership in this schema.
+
+\begin{schema}{Maintenance}
+  HOAState
+\where
+  substrate + endowment \geq formation
+\end{schema}
+
+The closes\_hysteresis\_gap proof obligation (discharged in Lean, not
+here -- CZT typechecks it; Lean proves it):
+
+\begin{zed}
+  \vdash? \forall HOAState | substrate \geq dissolution \land endowment \geq engagement \spot substrate + endowment \geq formation
+\end{zed}
