@@ -131,20 +131,29 @@ axiom InscriptionContent : Type
     Path A/B dynamics. -/
 axiom CognitiveState : Type
 
-/-- A Σ-actor: a higher-order collective actor (institution, discipline,
-    alliance, polity) with a co-inscribed formal B₃ membrane, sufficient
-    reflexive depth, a telos-bearing inscription output, and a maintaining
-    human community. Disjoint from A-actors (`Agent`) and Ω-actors. Peer
-    refinements (`ethos:EpistemicInstitution`, `agora:ConstitutionalSigmaActor`,
-    `atlas:DeterrenceCoalition`, ...) instantiate this axiom.
+/-- A Σ-actor **carrier**: the opaque Constituent-level identity of a higher-order
+    collective actor (institution, discipline, alliance, polity) with a co-inscribed
+    formal B₃ membrane, sufficient reflexive depth, a telos-bearing inscription
+    output, and a maintaining human community. Disjoint from A-actors (`Agent`) and
+    Ω-actors. Peer refinements (`ethos:EpistemicInstitution`,
+    `agora:ConstitutionalSigmaActor`, `atlas:DeterrenceCoalition`, ...) instantiate
+    this axiom, and `Constituent.SigmaAgent` / §HM's `HOAState` populations range
+    over it.
 
     Added 2026-07-14 as the M1 gap-close from the HM Specialization Audit
-    (`governance/SCORE_HM_Specialization_Matrix.md` §HM development-gaps):
-    Σ-actor existed at the OWL layer (`core:SigmaActor`, SC-G-09) and in the
-    glossary but had no Lean-level counterpart, blocking peer specializations
-    that need Σ-actor-typed constructs (AGORA/ATLAS/ETHOS Sigma-actor archetype).
-    Prerequisite for any future §HM multi-stratum extension
-    (`governance/SCORE_HM_MultiStratum_Extension_Plan.md`). -/
+    (`governance/SCORE_HM_Specialization_Matrix.md` §HM development-gaps): the §HM
+    spine needed a Σ-actor type it could use as an opaque HOA constituent.
+
+    **Correction 2026-07-24.** M1's original doc-comment here claimed "Σ-actor had
+    no Lean-level counterpart." That was false: `Score/Sigma.lean` already carried a
+    rich `structure SigmaActor` (formation event, telos, life-cycle, coupling). What
+    was actually missing was an *opaque carrier* usable by the spine as an HOA
+    constituent — this axiom. Because `Sigma.lean` is not in the build, adding this
+    axiom silently collided with that structure (both `SCORE.SigmaActor`) and left
+    `Sigma.lean` non-compiling until the 2026-07-24 rename-and-bridge: that structure
+    is now `SCORE.SigmaActorArchitecture` (the architecture-view), this axiom is the
+    carrier-view, and `SigmaActorArchitecture.carrier` bridges them — both Lean views
+    of the one OWL class `core:SigmaActor`. See the §HM MultiStratum plan §9.6. -/
 axiom SigmaActor : Type
 
 /-- An HOA constituent: either an A-actor (individual `Agent`) or a Σ-actor

@@ -1,4 +1,5 @@
 import Formal.Score.Core
+import Formal.Score.Sigma
 import Formal.Score.Bac
 import Formal.Score.Ethos
 import Formal.Score.Agora

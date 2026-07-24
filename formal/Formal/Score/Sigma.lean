@@ -8,9 +8,21 @@ set_option linter.style.whitespace false
 
 Σ-actor spine (Tier-1 parity, Session 1): the co-inscription morphism with a
 type-level depth gate on BOTH participants, the `CoInscriptionEvent` formation
-primitive, the `SigmaActor` structure, the A/Σ/Ω actor-type tag, the closure-
-derived Σ-actor life-cycle phases, the five-operator Σ-intervention taxonomy,
-and the multi-layer inter-Σ coupling relation.
+primitive, the `SigmaActorArchitecture` structure, the A/Σ/Ω actor-type tag, the
+closure-derived Σ-actor life-cycle phases, the five-operator Σ-intervention
+taxonomy, and the multi-layer inter-Σ coupling relation.
+
+**Two Lean views of a Σ-actor (reconciled 2026-07-24).** `Core.SigmaActor`
+(Core.lean §3) is the *opaque carrier* — the Constituent-level identity §HM's
+`HOAState` populations range over. This module's `SigmaActorArchitecture` is the
+*architectural refinement* — how a Σ-actor is formed, maintained, and what telos
+it bears. Both are Lean counterparts of the one OWL class `core:SigmaActor`
+(SC-G-09); `SigmaActorArchitecture.carrier` is the forgetful bridge between them.
+Before 2026-07-24 this structure was itself named `SigmaActor`, which *collided*
+with the carrier Core added at M1 (#461, 2026-07-17). Because nothing imports this
+module (it was absent from `Formal/Score.lean`), the collision left it silently
+non-compiling and unguarded by CI for a week. This module is now wired into
+`Formal/Score.lean`, so the build guards it.
 
 The depth gate is the Lean mirror of the OWL constraint
 `SigmaActor ⊑ hasReflexiveDepth some SufficientDepth` applied at the formation
@@ -126,26 +138,49 @@ abbrev HumanCommunity := List Agent
 --   ⊑ hasReflexiveDepth some SufficientDepth                (inherited via formationEvent)
 -- ════════════════════════════════════════════════════════════════
 
-/-- A Σ-actor: a higher-order collective agent formed by a `CoInscriptionEvent`,
-    maintained by a `HumanCommunity`, inscribing telos-bearing content. Reflexive
-    depth is inherited from the formation event's participants — autonomous
-    closure grounds the Σ-actor's depth in the depth of its founders. -/
-structure SigmaActor where
+/-- A Σ-actor's **architectural refinement**: a higher-order collective agent
+    formed by a `CoInscriptionEvent`, maintained by a `HumanCommunity`, inscribing
+    telos-bearing content. Reflexive depth is inherited from the formation event's
+    participants — autonomous closure grounds the Σ-actor's depth in the depth of
+    its founders.
+
+    **Naming.** This structure carries the *architecture* of a Σ-actor (how it is
+    formed, maintained, and what telos it bears). It is deliberately distinct from
+    `Core.SigmaActor` (Core.lean §3), the **opaque carrier** that `Constituent.
+    SigmaAgent` and §HM's `HOAState` populations range over. Both are Lean
+    counterparts of the single OWL class `core:SigmaActor` (SC-G-09) at two levels
+    of detail; `SigmaActorArchitecture.carrier` (below) is the seam between them.
+    Renamed from `SigmaActor` on 2026-07-24 to end the name collision that had left
+    this module silently non-compiling since M1 (#461) added the Core carrier — see
+    the module header. -/
+structure SigmaActorArchitecture where
   formationEvent       : CoInscriptionEvent
   maintainingCommunity : HumanCommunity
   foundingTelos        : InscriptionContent
   telosBearing         : IsTelosBearing foundingTelos
 
-namespace SigmaActor
+namespace SigmaActorArchitecture
   /-- Inherited reflexive depth on participant A of the formation event. -/
-  def inheritedDepthA (σ : SigmaActor) :
+  def inheritedDepthA (σ : SigmaActorArchitecture) :
       SufficientDepth σ.formationEvent.participantA :=
     σ.formationEvent.depthA
   /-- Inherited reflexive depth on participant B of the formation event. -/
-  def inheritedDepthB (σ : SigmaActor) :
+  def inheritedDepthB (σ : SigmaActorArchitecture) :
       SufficientDepth σ.formationEvent.participantB :=
     σ.formationEvent.depthB
-end SigmaActor
+end SigmaActorArchitecture
+
+/-- **Bridge to the Constituent-level carrier.** Every architecturally-described
+    Σ-actor has an opaque identity as an HOA constituent — the `Core.SigmaActor`
+    carrier that `Constituent.SigmaAgent` and §HM's `HOAState` populations consume.
+    This forgetful map is the seam between the two Lean views of a Σ-actor:
+    `SigmaActorArchitecture` (this module — the architecture) and `SigmaActor`
+    (Core.lean §3 — the opaque carrier the maintenance spine ranges over). Both are
+    Lean counterparts of the single OWL class `core:SigmaActor` (SC-G-09); this
+    axiom records that the architectural description determines a carrier identity.
+    Axiomatic because the carrier is an opaque `axiom SigmaActor : Type` with no
+    constructors, so the map cannot be given a computational body. -/
+axiom SigmaActorArchitecture.carrier : SigmaActorArchitecture → SigmaActor
 
 -- ════════════════════════════════════════════════════════════════
 -- §28. ACTOR-TYPE TRICHOTOMY TAG (A / Σ / Ω)
@@ -153,8 +188,8 @@ end SigmaActor
 -- partition the actor stratum. Constructors are pairwise-distinct by Lean
 -- construction; the corresponding disjointness lemma discharging the OWL
 -- AllDisjoint axiom is Session 2. Constructors named `AAgent`/`Sigma`/`Omega`
--- (not `SigmaActor`/`OmegaActor`) to avoid shadowing the top-level `SigmaActor`
--- structure name.
+-- (not `SigmaActor`/`OmegaActor`) to avoid shadowing the top-level
+-- `SigmaActorArchitecture` structure name.
 -- ════════════════════════════════════════════════════════════════
 
 /-- The three actor-type tags: A-actor (individual, B₂-grounded, biological),
@@ -227,11 +262,11 @@ inductive SigmaIntervention : Type where
       commissions, distributed-authority centrality reduction). Changes the
       attractor structure of the collective manifold rather than individual
       coupling. -/
-  | institutionalDesign        (target : SigmaActor) : SigmaIntervention
+  | institutionalDesign        (target : SigmaActorArchitecture) : SigmaIntervention
   /-- `InterSigmaCoupling`: creates or dissolves formal coupling between
       Σ-actors — treaty formation, alliance, sanctions, diplomatic recognition.
       The Σ-level analog of A-actor `create_edge`. -/
-  | interSigmaCoupling         (σ₁ σ₂ : SigmaActor) : SigmaIntervention
+  | interSigmaCoupling         (σ₁ σ₂ : SigmaActorArchitecture) : SigmaIntervention
   /-- `FoundingConditionIntervention`: influences the founding B₃ of a nascent
       Σ-actor at the `CoInscriptionEvent` moment. Highest-leverage, longest-
       lasting; the Σ-analog of childhood inscription influence. -/
@@ -241,7 +276,7 @@ inductive SigmaIntervention : Type where
       (information operations, leadership-succession engineering); restoration
       pole (automatic correction triggers acting on the maintaining community
       without the captured comparator). -/
-  | collectiveManifoldShift    (target : SigmaActor) : SigmaIntervention
+  | collectiveManifoldShift    (target : SigmaActorArchitecture) : SigmaIntervention
   /-- `AdjacentPossibleConstraint`: acts on structural possibility space
       directly — infrastructure, supply-chain, technology control — opening or
       closing behavioral paths regardless of the target's manifold. Least
@@ -261,22 +296,22 @@ inductive SigmaIntervention : Type where
 
 /-- Treaty-based coupling: formal B₃ commitments (alliance, security guarantee,
     trade agreement). Slow, legible — the formal membrane. -/
-axiom coupledByTreaty : SigmaActor → SigmaActor → Prop
+axiom coupledByTreaty : SigmaActorArchitecture → SigmaActorArchitecture → Prop
 
 /-- Behavioral coupling: repeated interaction (trade flows, diplomatic contact,
     military coordination). Medium-timescale — the metabolic layer over the
     formal membrane. -/
-axiom coupledByBehavior : SigmaActor → SigmaActor → Prop
+axiom coupledByBehavior : SigmaActorArchitecture → SigmaActorArchitecture → Prop
 
 /-- Manifold-proximity coupling: similarity of effective collective manifolds.
     Direct analog of the A-actor |φᵢ − φⱼ|⁻¹ criterion lifted one stratum up. -/
-axiom coupledByManifoldProximity : SigmaActor → SigmaActor → Prop
+axiom coupledByManifoldProximity : SigmaActorArchitecture → SigmaActorArchitecture → Prop
 
 /-- The total inter-Σ coupling relation: any of the three sub-layers holding
     counts as coupling (layer-superposition; disjunctive union). Executive-to-
     executive A-actor relationships modulate all three — the informal channel
     that runs the formal membrane's metabolism. -/
-def coupledTo (σ₁ σ₂ : SigmaActor) : Prop :=
+def coupledTo (σ₁ σ₂ : SigmaActorArchitecture) : Prop :=
   coupledByTreaty σ₁ σ₂ ∨ coupledByBehavior σ₁ σ₂ ∨ coupledByManifoldProximity σ₁ σ₂
 
 end SCORE
