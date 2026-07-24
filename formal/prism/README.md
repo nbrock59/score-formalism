@@ -493,6 +493,48 @@ With this, the [[InterventionClasses]] 2×2 is worked in all four cells (additiv
 and subtractive × co-present and mediated).
 
 
+## MediatedChannelCatIII.sm — the Cat-III (Inscription Leverage) intervention on the mediated channel
+
+The Layer-3 investigation (`validation/pre-registration/POLARIS_PreRegistration_S7_CatIII_*`).
+POLARIS's engine gives Cat III **zero** effect on Φ, because Φ is built from the *organic*
+interaction graph (`u`) and Path-B (`w`) never feeds it — inscription is a dead-end for the
+crystallization measure. This model (a Cat-III-framed lift of `MediatedChannel.sm`) poses the
+question at the theory level: does a Cat-III intervention move the capture **outcome**? Two remedies
+from the category's own spec — **dampening** (reduce `amp`) and **disclosure** (reduce `δᵢ`=`delta`).
+
+Run (`$Mc3`/`$Pc3` = absolute paths to `MediatedChannelCatIII.sm`/`.csl`; PRISM from its `bin` dir,
+`java` on PATH):
+
+```
+prism $Mc3 $Pc3 -prop 1 -const T=50,delta=0.5,PLASTIC=1,amp=0.02:0.03:0.20   # P1 dampening
+prism $Mc3 $Pc3 -prop 2 -const delta=0.5,PLASTIC=1,amp=0.02:0.03:0.20        # P2 timescale
+prism $Mc3 $Pc3 -prop 3 -const T=50,amp=0.10,PLASTIC=1,delta=0.02:0.03:0.20  # P3 disclosure
+prism $Mc3 $Pc3 -prop 4 -const amp=0.08,delta=0.5,PLASTIC=0   (and PLASTIC=1) # P4 cohort
+```
+
+### What this pins down — inscription IS causal to the outcome
+
+- **P1 dampening dose-response:** P[captured ≤ 50] rises **0.018 → 0.994** as `amp` goes 0.02 → 0.20.
+  Dampening inscription leverage collapses the capture outcome — a large, monotone causal effect.
+- **P2 timescale:** expected steps-to-capture **200 → 20** across the same sweep — dampening stretches
+  the accumulation timescale ~10× (the low-frequency signature).
+- **P3 disclosure flip:** at `amp = 0.10`, capture is **0.75** while `δᵢ > amp` (sub-threshold,
+  uncontested) and drops to **0.062** once `δᵢ ≤ amp` (perceptible → contestable) — a distinct, sharp
+  Cat-III lever (DI-B remedy).
+- **P4 cohort gating:** steady-state P[captured] = **1.0 young** vs **0.004 settled** — durable
+  capture is life-cycle-phase-gated.
+
+### The consequence for POLARIS (the Layer-3 resolution)
+
+The theory says inscription leverage is **strongly causal** to a crystallization outcome. POLARIS's
+zero-Cat-III-Φ-effect is therefore a **POLARIS implementation gap**, not a theory truth: the engine
+is missing the **incorporation channel** (`w` → effective manifold position → edge formation) that
+this model + `InscriptionMarket.lean §22` formalize. The well-founded fix is to give the POLARIS
+engine that channel — its *shape specified here* (accumulated low-frequency nudge; durability gated
+on life-cycle phase) — **not** to swap Cat III's observable to ψ_s. That engine change is a separate,
+dynamics-changing, §7-gated item. Illustrative rates; no locked parameter redefined.
+
+
 ## MabmPercolation.sm — multi-agent Φ crystallization / percolation (model ③ → MABM)
 
 Model ③ toward the full multi-agent MABM (Brock 2026, Part III). Model ③

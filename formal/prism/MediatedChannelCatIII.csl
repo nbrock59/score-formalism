@@ -1,0 +1,36 @@
+// ===========================================================================
+// MediatedChannelCatIII.csl  --  Cat-III intervention properties on the
+// B3-mediated channel. See MediatedChannelCatIII.sm header and
+//   obsidian/SCORE/methodology/ModelCheckedDynamics.md for scope + governance.
+//
+// P1/P2: the DAMPENING remedy (sweep amp DOWN). P3: the DISCLOSURE remedy
+// (sweep delta). P4: the cohort/plasticity gating.
+// ===========================================================================
+
+const int T;   // step window
+
+// --- P1. DAMPENING dose-response -- does reducing inscription leverage lower the
+//     OUTCOME? P[ inscription captures the manifold within T ], swept over `amp`
+//     at PLASTIC=1 and delta > amp (sub-threshold: uncontested, so this isolates
+//     the leverage effect from the disclosure remedy). If this falls as amp is
+//     dampened, inscription leverage causally drives the capture outcome -- i.e.
+//     the effect POLARIS's Phi cannot see is real in the theory.
+P=? [ F<=T "captured" ]
+
+// --- P2. DAMPENING effect on TIMESCALE -- expected steps to capture, swept over
+//     `amp`. Rises (capture slows) as leverage is dampened: the low-frequency
+//     accumulation face of the same causal channel (the Segment-6 spectral read).
+R{"steps"}=? [ F "captured" ]
+
+// --- P3. DISCLOSURE remedy (DI-B) -- P[ captured within T ] swept over `delta`
+//     at fixed amp. Lowering delta below amp makes the steering perceptible ->
+//     contestable -> capture drops. The "increase direct community voice" reading
+//     of Cat III; a distinct causal lever from dampening.
+P=? [ F<=T "captured" ]
+
+// --- P4. COHORT gating -- steady-state P[ captured ] by PLASTIC. Young (1) locks
+//     -> ~1; settled (0) is Path-B fragile and reverts -> < 1. A Cat-III
+//     intervention's efficacy is life-cycle-phase-dependent -- the shape a
+//     faithful POLARIS incorporation channel (w -> effective position -> edges)
+//     would have to carry.
+S=? [ "captured" ]

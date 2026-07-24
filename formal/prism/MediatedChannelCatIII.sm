@@ -1,0 +1,72 @@
+// ===========================================================================
+// MediatedChannelCatIII.sm  --  the Cat-III (Inscription Leverage) intervention
+// posed on the B3-mediated channel (DTMC).
+//
+// A Cat-III-framed lift of MediatedChannel.sm (parent): the SAME inscription ->
+// manifold -> capture channel, but posing the two Cat-III remedies as
+// INTERVENTIONS and measuring their effect on the capture OUTCOME (label
+// "captured" = manifold reached), not on a proximal signature.
+//
+// It exists to resolve the Layer-3 conundrum
+// (validation/pre-registration/POLARIS_PreRegistration_S7_*): the POLARIS engine
+// gives Cat III zero effect on Phi because Path-B (w) is a dead-end for the
+// organic interaction graph Phi is built from. This model asks the causal
+// question at the theory level: does inscription leverage reach a crystallization
+// outcome at all? The parent already answers YES (inscription captures the
+// manifold, durably for the young). Here we pose the Cat-III intervention and
+// quantify its effect on that outcome.
+//
+// Cat-III intervention levers (both from the category's own Segment-7 spec):
+//   (A) DAMPENING  -- reduce `amp` (per-step steering leverage): the literal
+//       "reduce inscription-to-organic ratio". Sweep amp DOWN from baseline.
+//   (B) DISCLOSURE -- reduce `delta` (perceptibility floor) so steering becomes
+//       perceptible => contestable (DI-B remedy 1, InscriptionMarket.lean §22):
+//       "media-environment restructuring increasing direct community voice".
+//
+// GOVERNANCE: illustrative structural rates; no locked pre-registered number
+// redefined (model-checking-layer policy). Parent: MediatedChannel.sm; theory:
+// InscriptionMarket.lean §22 (DI-A/DI-B); see
+// obsidian/SCORE/methodology/ModelCheckedDynamics.md.
+// ===========================================================================
+
+dtmc
+
+const int K = 4;             // manifold position 0..K; inscription steers toward K
+
+// ---- Cat-III intervention levers (illustrative) -----------------------------
+const double amp;            // inscription-leverage amplitude; Cat-III DAMPENING lowers this
+const double delta;          // perceptibility floor delta_i; Cat-III DISCLOSURE lowers this
+const double p_detect = 0.10;// per-step detect-&-counter prob -- WHEN perceptible
+const double p_revert = 0.30;// Path-B fragility: settled-agent reversion rate
+
+const int PLASTIC;           // 1 = young (capture LOCKS, Path A); 0 = settled (REVERTS)
+
+formula perceptible = amp >= delta;
+formula p_det = (perceptible ? p_detect : 0.0);
+formula p_rev = (PLASTIC = 1 ? 0.0 : p_revert);
+
+module agent
+
+  m : [0..K] init 0;             // manifold position being steered
+  contested : [0..1] init 0;     // 1 = steering detected and countered (halted)
+
+  [step] contested=0 & m<K ->
+        p_det : (contested' = 1)
+      + amp   : (m' = m+1)
+      + p_rev : (m' = max(m-1, 0))
+      + (1 - p_det - amp - p_rev) : (m' = m);
+
+  [step] contested=0 & m=K ->
+        p_rev : (m' = m-1)
+      + (1 - p_rev) : (m' = m);
+
+  [step] contested=1 -> (m' = m);
+
+endmodule
+
+label "captured"  = m = K;
+label "contested" = contested = 1;
+
+rewards "steps"
+  [step] true : 1;
+endrewards
