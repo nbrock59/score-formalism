@@ -1,0 +1,145 @@
+% hoarefine.zed -- W&D data refinement: HOAExt (restricted) refines HOA,
+% stated with an explicit retrieve relation and simulation obligations.
+%
+% THE FIRST LIVE ARTIFACT of the Z track (2026-07-24): Z enters SCORE via
+% the refinement calculus (obsidian/SCORE/methodology/RefinementCalculus.md,
+% obsidian/sources/Woodcock-Davies.md). Division of labour:
+%   - Z (this file)  : STATES the retrieve relation and the W&D forward-
+%                      simulation obligations, CZT-typechecked.
+%   - TLA+ (TLC)     : formal/tla/HOAExtRefinement.tla checked the bounded
+%                      CORRECTNESS face (trace inclusion) at L=4.
+%   - Lean           : the discharge target for the unbounded obligations.
+%
+% The calculus already pays rent here: W&D refinement has TWO operation
+% obligations. CORRECTNESS mirrors what TLC checked. APPLICABILITY (pre
+% AMove and Retrieve imply pre CMoveF) is NOT covered by trace inclusion
+% and is a genuinely new obligation -- see the comment at the conjecture.
+%
+% Names: abstract components asub/aend (HOA \S{}HM8, with the abstract
+% endowment bound 2*maxlvl mirroring the TLC instantiation L <- 2L);
+% concrete components csub/cend/cres (HOAExt \S{}HM11). The concrete
+% extended-basin constraint max(0, dissolution - cres) <= csub is written
+% equivalently as csub + cres >= dissolution (csub >= 0 always).
+%
+% Type-check: & ~\Dev\protocol-formal-template\z\run-czt.ps1 -File .\hoarefine.zed
+
+\section{hoarefine parents standard\_toolkit}
+
+\begin{axdef}
+  maxlvl : \nat \\
+  formation : \nat \\
+  dissolution : \nat
+\where
+  0 < dissolution \\
+  dissolution < formation \\
+  formation - dissolution \leq maxlvl \\
+  formation \leq 2 * maxlvl
+\end{axdef}
+
+\begin{zed}
+  engagement == formation - dissolution
+\end{zed}
+
+\subsection{Abstract system -- HOA base maintenance (\S{}HM8)}
+
+\begin{schema}{AHOA}
+  asub : \nat \\
+  aend : \nat
+\where
+  asub \leq maxlvl \\
+  aend \leq 2 * maxlvl
+\end{schema}
+
+\begin{zed}
+  AInit == [ AHOA | asub + aend \geq formation \land asub \geq dissolution ]
+\end{zed}
+
+One micro-step changes one abstract observable by one level; maintenance
+discipline: stay in the formal basin, keep feedback engaged.
+
+\begin{schema}{AMove}
+  \Delta AHOA
+\where
+  ( aend' = aend \land ( asub' = asub + 1 \lor asub' = asub - 1 ) ) \lor ( asub' = asub \land ( aend' = aend + 1 \lor aend' = aend - 1 ) ) \\
+  asub' \geq dissolution \\
+  aend' \geq engagement
+\end{schema}
+
+\subsection{Concrete system -- HOAExt ceiling-residue extension (\S{}HM11)}
+
+\begin{schema}{CHOA}
+  csub : \nat \\
+  cend : \nat \\
+  cres : \nat
+\where
+  csub \leq maxlvl \\
+  cend \leq maxlvl \\
+  cres \leq maxlvl
+\end{schema}
+
+\begin{zed}
+  CInit == [ CHOA | csub + cend + cres \geq formation \land csub + cres \geq dissolution ]
+\end{zed}
+
+\begin{schema}{CMove}
+  \Delta CHOA
+\where
+  ( cend' = cend \land cres' = cres \land ( csub' = csub + 1 \lor csub' = csub - 1 ) ) \lor ( csub' = csub \land cres' = cres \land ( cend' = cend + 1 \lor cend' = cend - 1 ) ) \lor ( csub' = csub \land cend' = cend \land ( cres' = cres + 1 \lor cres' = cres - 1 ) ) \\
+  csub' + cres' \geq dissolution \\
+  cend' \geq engagement
+\end{schema}
+
+The restricted (conservative-core) concrete operation: the base's own
+basin discipline, under which the TLC check found refinement HOLDS.
+
+\begin{zed}
+  CMoveF == [ CMove | csub' \geq dissolution ]
+\end{zed}
+
+\subsection{The retrieve relation}
+
+Functional from concrete to abstract: ceiling residue is folded into the
+abstract endowment. This is the W\&{}D retrieve schema for the mapping the
+TLC module wrote as INSTANCE HOA WITH endowment <- endowment + residue.
+
+\begin{schema}{Retrieve}
+  AHOA \\
+  CHOA
+\where
+  asub = csub \\
+  aend = cend + cres
+\end{schema}
+
+\subsection{Forward-simulation obligations (W\&{}D)}
+
+Initialisation: every concrete initial state retrieves to some abstract
+initial state. (Discharge target: Lean. Arithmetic content: csub + cres
+>= dissolution does NOT give asub >= dissolution -- initialisation holds
+only for concrete inits in the formal basin, csub >= dissolution; this is
+the init face of the strict extension.)
+
+\begin{zed}
+  \vdash? \forall CHOA | csub + cend + cres \geq formation \land csub \geq dissolution \spot \exists AHOA \spot ( asub = csub \land aend = cend + cres ) \land asub + aend \geq formation \land asub \geq dissolution
+\end{zed}
+
+Correctness: from retrieve-related states, every restricted concrete step
+is matched by an abstract step re-establishing the retrieve relation.
+(Bounded evidence: HOAExtRefinement\_Formal.cfg, 74 states, HOLDS.
+Discharge target: Lean.)
+
+\begin{zed}
+  \vdash? \forall AHOA; CMoveF | asub = csub \land aend = cend + cres \spot \exists AHOA' \spot asub' = csub' \land aend' = cend' + cres' \land ( ( aend' = aend \land ( asub' = asub + 1 \lor asub' = asub - 1 ) ) \lor ( asub' = asub \land ( aend' = aend + 1 \lor aend' = aend - 1 ) ) ) \land asub' \geq dissolution \land aend' \geq engagement
+\end{zed}
+
+Applicability: wherever the abstract move is enabled, the restricted
+concrete move is enabled too. NOT covered by the TLC trace-inclusion
+check -- this obligation is NEW with the W\&{}D calculus, and it is OPEN:
+retrieve-related states with cend < engagement - 1 (abstract feedback
+covered by residue, concrete feedback deficient) appear to falsify it,
+suggesting the retrieve relation must be strengthened with cend >=
+engagement (feedback-engaged concrete states) for full W\&{}D refinement.
+Adjudication: Lean (or a TLC enabledness check).
+
+\begin{zed}
+  \vdash? \forall AHOA; CHOA | asub = csub \land aend = cend + cres \land ( \exists AHOA' \spot ( ( aend' = aend \land ( asub' = asub + 1 \lor asub' = asub - 1 ) ) \lor ( asub' = asub \land ( aend' = aend + 1 \lor aend' = aend - 1 ) ) ) \land asub' \geq dissolution \land aend' \geq engagement ) \spot \exists CHOA' \spot ( ( cend' = cend \land cres' = cres \land ( csub' = csub + 1 \lor csub' = csub - 1 ) ) \lor ( csub' = csub \land cres' = cres \land ( cend' = cend + 1 \lor cend' = cend - 1 ) ) \lor ( csub' = csub \land cend' = cend \land ( cres' = cres + 1 \lor cres' = cres - 1 ) ) ) \land csub' + cres' \geq dissolution \land cend' \geq engagement \land csub' \geq dissolution
+\end{zed}

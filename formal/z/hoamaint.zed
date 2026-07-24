@@ -1,10 +1,11 @@
 % hoamaint.zed -- Z rendering of SCORE HOA within-basin maintenance.
 %
-% PILOT EVIDENCE (2026-07-24), not a live verification layer. Produced by
-% the investigation into whether a CZT-checked Z layer in the vault would
-% feed the OWL/Lean spine; decision: declined for the feed role (see
-% formal/z/README.md and obsidian/sources/Woodcock-Davies.md). Mirrors,
-% name for name:
+% PILOT EVIDENCE (2026-07-24) for the vault-formality question, which was
+% declined: Z as a broad vault formality does not enter SCORE. Kept as that
+% pilot's evidence artifact. NOTE: the Z track itself went LIVE the same
+% day via a different door -- the refinement calculus (hoarefine.zed,
+% formal/z/README.md, obsidian/SCORE/methodology/RefinementCalculus.md).
+% Mirrors, name for name:
 %   - Lean : formal/Formal/Score/HOAMaintenance.lean (\S{}HM1-HM8)
 %   - TLA+ : formal/tla/HOA.tla
 %   - vault: obsidian/SCORE/emergence/mechanism/HOA.md, Hysteresis.md
