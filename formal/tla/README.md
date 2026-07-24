@@ -238,9 +238,49 @@ the family — is a machine-checked statement with both faces. Over the formal
 basin the extension is **conservative** (`basin_implies_extendedBasin` upgraded
 from a state-set inclusion to a checked simulation), and the strict extension is
 **exactly a refinement failure**, its counterexamples the below-floor witness
-(case 2) and the boundary-crossing step (case 3). Zero new toolchain. Candidate
-next mappings: `HOAB3 ⇒ HOA`, and `HOAComp ⇒ HOAB3` (the floor-loss result
-suggests failure — the check would adjudicate).
+(case 2) and the boundary-crossing step (case 3). Zero new toolchain. The two
+sibling mappings complete the family below.
+
+## HOAB3Refinement.tla & HOACompRefinement.tla — the intra-family refinement lattice, completed
+
+Same method, two more edges. `HOAB3Refinement` maps `HOAB3 ⇒ HOA`
+(`endowment ↦ endowment + b3`, `L ↦ 2L`); `HOACompRefinement` maps
+`HOAComp ⇒ HOAB3` (`endowment ↦ endowment + residue`, `b3 ↦ b3`, `L ↦ 2L`) —
+the **floor-loss adjudication**: is the composite a valid implementation of the
+B₃ mechanism's contract, with ceiling residue folded into the abstract
+endowment?
+
+```powershell
+# HOAB3 => HOA -- same three faces as HOAExtRefinement:
+java -cp $jar tlc2.TLC -deadlock -config HOAB3Refinement_Formal.cfg HOAB3Refinement.tla
+#   -> No error has been found. (74 states)          conservative over the formal basin
+java -cp $jar tlc2.TLC -deadlock -config HOAB3Refinement_Full.cfg   HOAB3Refinement.tla
+#   -> Error: Property Basin is violated by the initial state:
+#      substrate=1, endowment=0, b3=2                (the HOAB3_Strict witness)
+java -cp $jar tlc2.TLC -deadlock -config HOAB3Refinement_Escape.cfg HOAB3Refinement.tla
+#   -> Error: Action property ... of module HOA is violated.
+#      (substrate=2, endowment=1, b3=1) -> (substrate=1, ...)
+
+# HOAComp => HOAB3 -- the adjudication:
+java -cp $jar tlc2.TLC -deadlock -config HOACompRefinement_B3.cfg     HOACompRefinement.tla
+#   -> No error has been found. (473 states)         holds under B3's OWN discipline (substrate >= EffB)
+java -cp $jar tlc2.TLC -deadlock -config HOACompRefinement_Full.cfg   HOACompRefinement.tla
+#   -> Error: Property FormalExtendedBasin is violated by the initial state:
+#      substrate=0, endowment=0, residue=1, b3=2     (EXACTLY the HOAComp_Floor witness)
+java -cp $jar tlc2.TLC -deadlock -config HOACompRefinement_Escape.cfg HOACompRefinement.tla
+#   -> Error: Action property ... of module HOAB3 is violated.
+#      (substrate=1, endowment=1, residue=1, b3=1) -> (substrate=0, ...)
+```
+
+What this pins down: the whole intra-family lattice is now machine-checked, and
+the pattern is uniform — each extension refines its base **only under the
+base's own basin discipline** and fails beyond it, with TLC returning the
+identical witnesses the earlier `_Strict`/`_Floor` invariant runs found. The
+composite verdict is the sharp one: `CompAdd < EffB` wherever `residue > 0`, so
+the composite does **not** implement the B₃ contract — floor loss *is*
+refinement failure, adjudicated (Hysteresis.md open question #2 input). The
+peer "lift" edges (PRISM models) remain authorial; probabilistic refinement has
+no comparable executable check.
 
 ## LifeCycle.tla — A-actor life-cycle (Core.lean `LifeCyclePhase`)
 
