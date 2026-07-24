@@ -50,6 +50,27 @@ java -cp $jar tlc2.TLC -config RingHom.cfg Ring.tla
 27-configuration state space checked in well under a second. Raising N, K
 scales as K^(N+1); the qualitative results are parameter-independent for K > N.
 
+## The expected-outcome gate
+
+Every documented HOLDS / VIOLATED-by-design result in this README is **executed,
+not just written down**: each `.cfg` carries an annotation in its comment header —
+
+    \* expect: ok           (TLC completes: "No error has been found")
+    \* expect: violation    (the run's point IS the counterexample)
+    \* tlc-args: -deadlock  (optional extra TLC flags for this run)
+
+and `scripts/modelcheck_run.py --layer tla --execute-tla` runs every config,
+asserting the actual TLC outcome against its annotation (CI job `tlc-check`).
+A `.cfg` without an `expect:` annotation fails the execute pass, and
+`modelcheck_check.py` warns on it. This closes the cross-module drift risk the
+refinement mappings sharpened: an edit to a base module (`HOA.tla`) can no
+longer silently flip a documented result in a module that INSTANCEs it. When a
+change *legitimately* flips an outcome, update the annotation and the
+documentation in the same change — and if the flipped run is a refinement
+mapping, mind its `intent:` declaration (behavioral edge register,
+`RefinementArchitecture.md`): an unexpected flip on an `intent: refines` edge
+is a defect/divergence triage, not an annotation edit.
+
 ## What this pins down
 
 - **Self-stabilization is now machine-checked, not axiomatized**, for the
