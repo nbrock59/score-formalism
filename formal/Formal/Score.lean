@@ -1,5 +1,5 @@
-import Formal.Score.Core
 import Formal.Score.CouplingKernel
+import Formal.Score.Core
 import Formal.Score.Sigma
 import Formal.Score.Bac
 import Formal.Score.Ethos

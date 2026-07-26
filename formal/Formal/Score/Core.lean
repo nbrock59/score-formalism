@@ -1,4 +1,4 @@
-import Mathlib
+import Formal.Score.CouplingKernel
 
 set_option linter.unusedVariables false
 set_option linter.style.whitespace false
@@ -338,29 +338,70 @@ def hasSponsorship : LifeCyclePhase → Prop
 /-- A geographic region. -/
 axiom Region : Type
 
-/-- The aggregate local coupling weight of a set of agents in a region.
-    This is the effective inscription community size — not census headcount. -/
+/-- The aggregate local coupling weight of a set of agents in a region: the
+    effective inscription community size, as against census headcount.
+
+    **Descriptive only.** This is *not* the HOA existence criterion — see the
+    spectral condition on `HOA` below. A scalar cannot express criticality,
+    because criticality is a property of the coupling kernel's *spectrum*: two
+    regions with equal aggregate weight can lie on opposite sides of the phase
+    transition. Retained because effective-vs-census community size is a live
+    POLARIS measurement concern in its own right. -/
 axiom aggregateLocalWeight : List Agent → Region → CouplingWeight
 
-/-- An HOA exists iff aggregate local coupling weight exceeds a threshold.
-    The threshold is not fixed — it is a property of the manifold geometry. -/
-structure HOA where
-  region    : Region
-  agents    : List Agent
-  threshold : CouplingWeight
-  /-- HOA existence condition. -/
-  exists_   : threshold.val ≤ (aggregateLocalWeight agents region).val
+/-- **An HOA over a finite agent population.** Existence is *supercriticality of
+    the population's coupling kernel* — `‖T_κ‖ > 1` — per Bollobás–Janson–Riordan
+    applied to the inhomogeneous coupling graph.
 
-/-- High-throughput communities (many student-phase agents) have shallow attractors:
-    their aggregate local coupling weight may be substantially less than census count
-    would suggest. -/
-axiom highthroughput_shallow_attractor :
-    ∀ (region : Region) (agents : List Agent) (threshold : CouplingWeight),
-      -- if most agents are in Student phase, aggregate local weight is low
-      (∀ a ∈ agents, True) →  -- placeholder: most agents in Student phase
-      (aggregateLocalWeight agents region).val < threshold.val →
-      -- then no HOA exists in this region
-      ¬ ∃ (h : HOA), h.region = region
+    This replaces a scalar aggregate-weight threshold (superseded 2026-07-26).
+    The scalar form was not merely under-specified but wrongly *typed*: it
+    encoded the Erdős–Rényi criticality statistic (mean degree) for a graph
+    whose edge rule — `overlap(B₂ᵢ,B₂ⱼ) ≥ link_threshold` — depends on node
+    attributes and is therefore a kernel, not a constant edge probability. See
+    `obsidian/SCORE/emergence/mechanism/CouplingKernel.md`. -/
+structure HOA (Pop : Type) [Fintype Pop] [DecidableEq Pop] where
+  region     : Region
+  /-- Which agent each population index denotes. -/
+  member     : Pop → Agent
+  /-- The population's coupling kernel: `kernel i j` is the coupling propensity
+      between `i` and `j`, a decreasing function of their B₂ manifold distance. -/
+  kernel     : CouplingKernel Pop
+  wellFormed : IsCouplingKernel kernel
+  /-- HOA existence condition — spectral, not scalar. -/
+  supercrit  : Supercritical kernel
+
+/-- No HOA rests on a subcritical kernel. Formerly the conclusion of the
+    `highthroughput_shallow_attractor` **axiom**; now a one-line consequence of
+    the existence condition, because `Subcritical` and `Supercritical` are
+    negations of one another. -/
+theorem no_hoa_of_subcritical {Pop : Type} [Fintype Pop] [DecidableEq Pop]
+    {κ : CouplingKernel Pop} (h : Subcritical κ) :
+    ¬ ∃ hoa : HOA Pop, hoa.kernel = κ := by
+  rintro ⟨hoa, rfl⟩
+  exact absurd hoa.supercrit (not_lt.mpr h)
+
+/-- **Empirical axiom.** A population dominated by Student-phase agents has a
+    subcritical coupling kernel: high turnover prevents accumulation of the
+    manifold overlap that supercriticality requires.
+
+    Note the scoping. The superseded `highthroughput_shallow_attractor` axiom
+    quantified `agents` and `threshold` *independently of the HOA it denied*, so
+    instantiating `threshold := 1` proved that a single HOA anywhere in a region
+    forces **every** agent list in that region to sit at maximal aggregate
+    weight — an absurdity that was machine-checkable from the axiom as written.
+    This replacement constrains only the population's own kernel. -/
+axiom studentDominated_subcritical {Pop : Type} [Fintype Pop] [DecidableEq Pop]
+    (κ : CouplingKernel Pop) (phase : Pop → LifeCyclePhase) :
+    (∀ p, phase p = LifeCyclePhase.Student) → Subcritical κ
+
+/-- High-throughput communities have shallow attractors: a Student-dominated
+    population supports no HOA, whatever its census headcount. Now a *theorem*,
+    resting on the narrowly-scoped empirical axiom above. -/
+theorem highthroughput_shallow_attractor {Pop : Type} [Fintype Pop] [DecidableEq Pop]
+    (κ : CouplingKernel Pop) (phase : Pop → LifeCyclePhase)
+    (h : ∀ p, phase p = LifeCyclePhase.Student) :
+    ¬ ∃ hoa : HOA Pop, hoa.kernel = κ :=
+  no_hoa_of_subcritical (studentDominated_subcritical κ phase h)
 
 -- ════════════════════════════════════════════════════════════════
 -- §8. PERCEPT AS MANIFOLD-FILTERED
@@ -380,22 +421,44 @@ axiom Percept : Type
 /-- The perceptual filter: maps (event, coupling vector) → percept. -/
 axiom perceptualFilter : Event → CouplingWeightVector → Percept
 
+/-- A distance on percept space, so that "similar percepts" is a claim about the
+    percepts rather than an unconstrained existential. -/
+axiom perceptDist : Percept → Percept → ℝ
+
+axiom perceptDist_nonneg : ∀ p q, 0 ≤ perceptDist p q
+axiom perceptDist_self   : ∀ p, perceptDist p p = 0
+axiom perceptDist_comm   : ∀ p q, perceptDist p q = perceptDist q p
+
 /-- Sub-community perceptual similarity: agents with similar coupling vectors
     perceive events similarly. This is the formal basis for sub-community
-    coherence — it is perceptual, not merely geographic. -/
+    coherence — it is perceptual, not merely geographic.
+
+    **Repaired 2026-07-26.** The former definition read
+    `∀ e, ∃ dist : ℝ, dist < ε` — `dist` was unconstrained and neither `v₁` nor
+    `v₂` occurred in the body, so it was provable for *every* pair at *every*
+    `ε`, which in turn made `polarizationAsBifurcation`'s hypothesis refutable
+    and that axiom unusable. -/
 def perceptuallySimilar (v₁ v₂ : CouplingWeightVector) (ε : ℝ) : Prop :=
-  ∀ (e : Event),
-    ∃ (dist : ℝ),  -- distance metric on Percept space
-      dist < ε     -- percepts are within ε of each other
+  ∀ e : Event, perceptDist (perceptualFilter e v₁) (perceptualFilter e v₂) < ε
 
 /-- Polarization as perceptual bifurcation: when an event produces strongly
     divergent percepts across the manifold, sub-communities move in opposite
-    directions. This is not mere disagreement — it is prior to deliberation. -/
-axiom polarizationAsBifurcation :
-    ∀ (e : Event) (v₁ v₂ : CouplingWeightVector) (ε : ℝ),
-      ¬ perceptuallySimilar v₁ v₂ ε →
-      -- the two agents experience divergent percepts
-      perceptualFilter e v₁ ≠ perceptualFilter e v₂
+    directions. This is not mere disagreement — it is prior to deliberation.
+
+    Now a *theorem*. Note also that the superseded axiom concluded divergence at
+    **every** event, which was too strong: dissimilarity somewhere does not make
+    two agents perceive every event differently. The existential is the correct
+    statement, and it is what the metric definition actually yields. -/
+theorem polarizationAsBifurcation
+    (v₁ v₂ : CouplingWeightVector) (ε : ℝ) (hε : 0 < ε)
+    (h : ¬ perceptuallySimilar v₁ v₂ ε) :
+    ∃ e : Event, perceptualFilter e v₁ ≠ perceptualFilter e v₂ := by
+  unfold perceptuallySimilar at h
+  rw [not_forall] at h
+  obtain ⟨e, he⟩ := h
+  refine ⟨e, fun heq => ?_⟩
+  rw [heq, perceptDist_self] at he
+  exact he hε
 
 -- ════════════════════════════════════════════════════════════════
 -- §9. THE INTERVENTION CLASSES -- ADDITIVE AND SUBTRACTIVE
