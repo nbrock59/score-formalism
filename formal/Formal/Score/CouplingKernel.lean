@@ -221,40 +221,143 @@ theorem exists_dimensionwise_subcritical_jointly_supercritical
     norm_num
 
 -- ════════════════════════════════════════════════════════════════
--- §CK5. THE IMPORTED PERCOLATION RESULT
--- Declared, not proved. Mathlib has no giant-component theory. Keeping
--- this as an explicit axiom means `#print axioms` on any downstream
--- theorem shows the dependence on an imported classical result.
+-- §CK5. THE IMPORTED PERCOLATION RESULT -- OVER A SEQUENCE
+-- Declared, not proved. Mathlib has no giant-component theory.
+--
+-- Retyped 2026-07-26. The first version declared
+--   HasGiantComponent : CouplingKernel V -> Prop
+-- over a *fixed finite* V. That was mistyped: BJR is asymptotic ("All our
+-- results are asymptotic" -- BJR S3), and on a fixed V every component is
+-- trivially Theta(1) of the population, so the predicate had no faithful
+-- reading and the axiom asserted nothing. It is now a statement about a
+-- sequence, and `HasGiantComponent` is *defined* rather than opaque.
 -- ════════════════════════════════════════════════════════════════
 
-/-- Opaque: the coupling graph sampled from `κ` has a giant component (a
-    connected component containing a positive fraction of `V`). Not defined
-    here — defining it requires the percolation apparatus this module
-    deliberately does not build. -/
-axiom HasGiantComponent {V : Type*} [Fintype V] [DecidableEq V] :
-    CouplingKernel V → Prop
+open Filter Topology
+
+/-- A family of finite populations indexed by scale, with population growing
+    without bound.
+
+    This is the part of BJR's **vertex space** that SCORE's statement needs.
+    BJR's is richer: a ground space `(𝒮, μ)` with `μ` a Borel probability
+    measure, plus a sequence of random point sets `𝐱_n` subject to
+    empirical-measure convergence `ν_n(A) →ᵖ μ(A)` on every `μ`-continuity
+    set. Recording that in full would require the measure-theoretic apparatus
+    this module deliberately does not build; what is kept is the indexing by
+    scale, which is the feature whose absence made the old axiom vacuous. -/
+structure PopulationSequence where
+  Pop        : ℕ → Type
+  fin        : ∀ n, Fintype (Pop n)
+  dec        : ∀ n, DecidableEq (Pop n)
+  /-- The population grows without bound — the `n → ∞` of BJR's statement. -/
+  card_atTop : Tendsto (fun n => Fintype.card (Pop n)) atTop atTop
+
+attribute [instance] PopulationSequence.fin PopulationSequence.dec
+
+/-- A **kernel sequence** over a population family: a kernel at each scale,
+    together with the limit of its criticality statistic.
+
+    BJR states the condition on the *limit* kernel `κ` of a graphical sequence
+    `(κ_n)`; since SCORE only ever consumes `‖T_κ‖`, the limit is recorded at
+    the level of the statistic. `norm_tendsto` is what a graphical sequence
+    buys you, assumed rather than derived. -/
+structure KernelSequence (P : PopulationSequence) where
+  kernel       : ∀ n, CouplingKernel (P.Pop n)
+  /-- `lim_n ‖T_{κ_n}‖` — BJR's `‖T_κ‖` for the limit kernel. -/
+  limitNorm    : ℝ
+  norm_tendsto : Tendsto (fun n => spectralNorm (kernel n)) atTop (𝓝 limitNorm)
+
+namespace KernelSequence
+
+variable {P : PopulationSequence}
+
+/-- Above the transition, in the limit. -/
+def Supercritical (K : KernelSequence P) : Prop := 1 < K.limitNorm
+
+/-- At or below the transition, in the limit. -/
+def Subcritical (K : KernelSequence P) : Prop := K.limitNorm ≤ 1
+
+/-- Opaque: the order of the largest component of the graph sampled from
+    `K.kernel n`. SCORE does not model the sampling, so this is the one place
+    the probabilistic layer is abstracted away — BJR's conclusions hold *whp*,
+    and that quantifier is not represented here. -/
+axiom largestComponentOrder : KernelSequence P → ℕ → ℕ
+
+/-- **Giant component**, asymptotically: the largest component eventually
+    contains at least a fixed positive fraction of the population.
+
+    This is BJR's `C₁ = Θ(n)`. Unlike the superseded opaque predicate this has
+    content — it is a genuine `Θ(n)` lower bound along the sequence, and is not
+    satisfied by every kernel. -/
+def HasGiantComponent (K : KernelSequence P) : Prop :=
+  ∃ c : ℝ, 0 < c ∧ ∀ᶠ n in atTop,
+    c * (Fintype.card (P.Pop n) : ℝ) ≤ (largestComponentOrder K n : ℝ)
+
+/-- Sanity check that the retype bought something. The superseded
+    `HasGiantComponent` was an opaque `Prop` pinned only by the axiom, so it had
+    no consequences of its own. This one does: a giant component forces the
+    largest component to be eventually non-empty, derived from the definition
+    without appeal to `bjr_phase_transition`. -/
+theorem HasGiantComponent.eventually_pos (K : KernelSequence P)
+    (h : K.HasGiantComponent) : ∀ᶠ n in atTop, 0 < largestComponentOrder K n := by
+  obtain ⟨c, hc, hev⟩ := h
+  have hcard : ∀ᶠ n in atTop, 0 < Fintype.card (P.Pop n) :=
+    P.card_atTop.eventually_gt_atTop 0
+  filter_upwards [hev, hcard] with n hn hcn
+  have : (0 : ℝ) < c * (Fintype.card (P.Pop n) : ℝ) :=
+    mul_pos hc (by exact_mod_cast hcn)
+  exact_mod_cast this.trans_le hn
+
+end KernelSequence
 
 /-- **Bollobás–Janson–Riordan (2007), *The phase transition in inhomogeneous
-    random graphs*. Imported, not proved.**
+    random graphs*, RSA 31(1):3–122, Theorem 3.1. Imported, not proved.**
 
-    A giant component emerges exactly when the kernel's operator norm exceeds
+    A giant component emerges exactly when the limiting operator norm exceeds
     1. Erdős–Rényi is the special case `κ ≡ c`, where `‖T_κ‖ = c` and the
     condition collapses to the familiar `c = 1`.
 
-    Consistency is immediate: interpret `HasGiantComponent` as `Supercritical`. -/
-axiom bjr_phase_transition {V : Type*} [Fintype V] [DecidableEq V]
-    (κ : CouplingKernel V) : HasGiantComponent κ ↔ Supercritical κ
+    **What this statement abstracts, and should not be mistaken for.** BJR's
+    Theorem 3.1 requires a graphical *sequence* `(κ_n)` on a vertex space, and
+    concludes `C₁ = Θ(n)` **whp**, with the sharper `C₁/n →ᵖ ρ(κ)` under
+    quasi-irreducibility, where `ρ(κ)` is the survival probability of a
+    multi-type Poisson Galton–Watson process. Neither the probability space nor
+    `ρ(κ)` is represented here. So this axiom is *weaker and coarser* than
+    Theorem 3.1 — it is the corollary SCORE consumes, not the theorem.
 
-/-- **The safety certificate.** If the per-dimension criticality statistics sum
-    to at most 1, the basin has no giant component.
+    Note also that `‖T_κ‖` is an **operator norm**, not in general an attained
+    eigenvalue; the two coincide when `T_κ` is compact (`∬κ² < ∞`, BJR
+    Prop. 17.3) or under BJR (3.11). See `BJRDischarge.md` § 2.
+
+    Consistency: interpret `largestComponentOrder K n := Fintype.card (P.Pop n)`
+    when `K.Supercritical` and `0` otherwise. -/
+axiom bjr_phase_transition {P : PopulationSequence} (K : KernelSequence P) :
+    K.HasGiantComponent ↔ K.Supercritical
+
+/-- **The safety certificate, over a sequence.** If the per-dimension limiting
+    criticality statistics sum to at most 1, the basin has no giant component.
+
+    `J` is *given* as the dimension-wise sum rather than constructed: the sum of
+    kernel sequences is not canonically a kernel sequence, because `‖T_{Σκ_d}‖`
+    need not converge just because each `‖T_{κ_d}‖` does. Taking convergence of
+    the sum as a hypothesis is the honest form.
 
     Checkable from per-dimension measurements alone, and this *is* the sound
     direction — unlike the per-dimension maximum, which is not
     (`exists_dimensionwise_subcritical_jointly_supercritical`). -/
-theorem no_giant_of_dimensionwise_budget (s : Finset D) (κ : D → CouplingKernel V)
-    (h : ∑ d ∈ s, spectralNorm (κ d) ≤ 1) :
-    ¬ HasGiantComponent (∑ d ∈ s, κ d) := by
+theorem no_giant_of_dimensionwise_budget {P : PopulationSequence} {D : Type*}
+    (s : Finset D) (K : D → KernelSequence P) (J : KernelSequence P)
+    (hJ : ∀ n, J.kernel n = ∑ d ∈ s, (K d).kernel n)
+    (hbudget : ∑ d ∈ s, (K d).limitNorm ≤ 1) :
+    ¬ J.HasGiantComponent := by
   rw [bjr_phase_transition]
-  exact not_lt.mpr (le_trans (spectralNorm_sum_le s κ) h)
+  have hsum : Tendsto (fun n => ∑ d ∈ s, spectralNorm ((K d).kernel n)) atTop
+      (𝓝 (∑ d ∈ s, (K d).limitNorm)) :=
+    tendsto_finset_sum _ fun d _ => (K d).norm_tendsto
+  have hle : J.limitNorm ≤ ∑ d ∈ s, (K d).limitNorm := by
+    refine le_of_tendsto_of_tendsto' J.norm_tendsto hsum fun n => ?_
+    rw [hJ n]
+    exact spectralNorm_sum_le s (fun d => (K d).kernel n)
+  exact not_lt.mpr (hle.trans hbudget)
 
 end SCORE
