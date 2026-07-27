@@ -80,9 +80,11 @@ is a defect/divergence triage, not an annotation edit.
   evidence for the concrete instance the Lean axiom stands in for.
 - **The identical-machines result is a concrete counterexample**, not a bet:
   the homogeneous ring's all-equal configuration is a reachable illegitimate
-  dead end. This is the finite-state witness behind
-  `AgentHomogeneityFragility.md`'s `homogeneous_no_feedback` axiom and its
-  Falsifiability section.
+  dead end. This settles the claim *for Dijkstra's ring*, and so illustrates
+  the analogy `AgentHomogeneityFragility.md` argues from — it does not test
+  that note's SCORE claim (`IsSymmetryBreaking.no_feedback`) or execute its
+  Falsifiability section, which asks for a run of an implementation's own
+  coupling dynamics.
 
 ## HOA.tla — within-basin maintenance with hysteresis
 

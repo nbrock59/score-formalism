@@ -1550,8 +1550,7 @@ noncomputable def multiplicativeLinearFlooredB3Augmented
       linarith [h_prod, h_simp]
 
 -- ════════════════════════════════════════════════════════════════
--- §HM22. HOOK 3 NEGATIVE THEOREM — homogeneous populations cannot
--- support persistent HOA maintenance (`hoaFragilityHomogeneous`)
+-- §HM22. HOOK 3 — the CouplingWeightVector homogeneity axis
 --
 -- The SCORE analog of Dijkstra 1974's crucial finding that identical
 -- machines cannot self-stabilize. Agent heterogeneity along the
@@ -1560,11 +1559,19 @@ noncomputable def multiplicativeLinearFlooredB3Augmented
 -- possible; a fully coupling-homogeneous population cannot engage
 -- feedback, so no maintenance theorem's premise is satisfiable.
 --
--- Scope thin: only CouplingWeightVector homogeneity is formalized.
--- LifeCyclePhase and ManifoldShape variants are separate future work.
--- Load-bearing content is axiomatized (`homogeneous_no_feedback`) —
--- direct derivation from population-level manifold-overlap dynamics
--- is analogous scope to (B''), not attempted here.
+-- SCOPE (revised 2026-07-27, issue #620). This section supplies the
+-- axis only: the agent-attribute association and the homogeneity
+-- predicate. **The load-bearing claim is no longer asserted here.** It
+-- is the `IsSymmetryBreaking couplingAxis` obligation in §HM42, which an
+-- implementation must discharge from its own dynamics; the fragility
+-- theorem `hoaFragilityHomogeneous` is stated there, at the axis, and
+-- keeps its name. SCORE core does not register the axis.
+--
+-- WHY the claim moved. §HM22/23/24 each asserted the same two claims as
+-- standalone axioms, and §HM42's global instances then fed the schema
+-- from them --- so the typeclass that was written to make falsification
+-- a type error was populated for free, for every axis at once, by the
+-- axioms it replaced. See §HM42's DELETION note.
 -- ════════════════════════════════════════════════════════════════
 
 /-- **Agent-to-CouplingWeightVector association** (Hook 3 prerequisite).
@@ -1590,56 +1597,19 @@ def PopulationCouplingHomogeneous {r : Region} (s : HOAState r) : Prop :=
     Constituent.AAgent a₂ ∈ s.agents →
     agentCouplingWeightVector a₁ = agentCouplingWeightVector a₂
 
-/-- **Hook 3 core axiom** (the load-bearing theoretical claim from
-    Dijkstra 1974's identical-machines-cannot-stabilize finding,
-    translated to SCORE): coupling-homogeneous populations cannot have
-    engaged autocatalytic feedback. The intuition: identical coupling
-    weight vectors mean all agents have identical manifold-overlap
-    profiles, so cycle members cannot reinforce differentiated edges —
-    the autocatalytic loop cannot engage. Discharging this axiom to a
-    theorem requires formalizing population-level manifold-overlap
-    dynamics (analogous scope to (B'')); at this tier the axiom encodes
-    the theoretical claim, and peer implementations that show HOAs
-    persisting in coupling-homogeneous populations would falsify it. -/
-axiom homogeneous_no_feedback
-    {r : Region} (c : AutocatalyticCombine) (s s' : HOAState r) :
-  PopulationCouplingHomogeneous s → ¬ feedbackEngaged c s s'
-
-/-- **Hook 3 preservation axiom** (needed to lift the fragility through
-    move-sequences). HOA moves at the fast-timescale (interaction,
-    substrate/loop-endowment updates) preserve the agent population's
-    coupling structure — agents don't change their coupling weight
-    vectors on this timescale. Long-timescale life-cycle transitions or
-    member turnover would break this; those are separate future work. -/
-axiom hoaMove_preserves_homogeneity {r : Region} (s s' : HOAState r) :
-  HOAMove s s' → PopulationCouplingHomogeneous s → PopulationCouplingHomogeneous s'
-
-/-- **The Hook 3 negative theorem** (`hoaFragilityHomogeneous`). For a
-    coupling-homogeneous initial population, feedback never engages
-    anywhere in the move-sequence — so the premise of every maintenance
-    theorem (`hoaMaintainedWithin`, `hoaMaintainedExtended`,
-    `hoaMaintainedFormalExtended`, `hoaMaintainedCompositelyExtended`)
-    is unsatisfiable and no maintenance guarantee applies. Proof:
-    trivial induction using `hoaMove_preserves_homogeneity` (homogeneity
-    lifts through the trace) and `homogeneous_no_feedback` (homogeneity
-    forbids feedback at each step). -/
-theorem hoaFragilityHomogeneous {r : Region} (c : AutocatalyticCombine) :
-    ∀ (s : HOAState r), PopulationCouplingHomogeneous s →
-      ∀ trace : ℕ → HOAState r,
-        trace 0 = s →
-        (∀ i, HOAMove (trace i) (trace (i+1))) →
-        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) := by
-  intro s h_hom trace tr_0 tr_moves i
-  have h_hom_i : PopulationCouplingHomogeneous (trace i) := by
-    induction i with
-    | zero => rw [tr_0]; exact h_hom
-    | succ n ih => exact hoaMove_preserves_homogeneity _ _ (tr_moves n) ih
-  exact homogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
+-- The two load-bearing claims that stood here as `homogeneous_no_feedback`
+-- and `hoaMove_preserves_homogeneity` are now the `no_feedback` and
+-- `move_preserves` fields of `IsSymmetryBreaking couplingAxis` (§HM42),
+-- and `hoaFragilityHomogeneous` is stated there against that obligation.
+-- Deleted 2026-07-27 (issue #620): as axioms they populated the schema's
+-- instance for free, which is exactly the falsification the schema exists
+-- to permit.
 
 -- ════════════════════════════════════════════════════════════════
--- §HM23. HOOK 3 SIBLING — LifeCyclePhase homogeneity fragility
+-- §HM23. HOOK 3 SIBLING — LifeCyclePhase homogeneity axis
 -- Parallel to §HM22 with the LifeCyclePhase axis instead of
--- CouplingWeightVector. Same shape; same load-bearing-axiom pattern.
+-- CouplingWeightVector: association axiom and predicate only, with the
+-- load-bearing claims carried by §HM42's per-axis registration.
 --
 -- Distinct from §HM22: coupling-weight-vector homogeneity means all
 -- agents have identical NETWORK POSITIONS; lifecycle-phase homogeneity
@@ -1669,45 +1639,15 @@ def PopulationLifeCyclePhaseHomogeneous {r : Region} (s : HOAState r) : Prop :=
     Constituent.AAgent a₂ ∈ s.agents →
     agentLifeCyclePhase a₁ = agentLifeCyclePhase a₂
 
-/-- **Hook 3 sibling core axiom** for LifeCyclePhase. A population all at
-    the same life-cycle stage cannot engage the autocatalytic loop.
-    Intuition: healthy HOA maintenance requires agents at different
-    life-cycle phases (children being socialized by householders,
-    householders being renewed by retirees passing knowledge); a
-    one-phase population loses the cross-phase reinforcement that
-    generates edge-weight differentiation. Discharging to a theorem
-    requires formalizing cross-phase interaction dynamics. -/
-axiom lifeCyclePhaseHomogeneous_no_feedback
-    {r : Region} (c : AutocatalyticCombine) (s s' : HOAState r) :
-  PopulationLifeCyclePhaseHomogeneous s → ¬ feedbackEngaged c s s'
-
-/-- Fast-timescale HOA moves preserve population LifeCyclePhase
-    structure. Long-timescale phase transitions (Childhood → Student
-    etc.) are NOT fast-timescale moves and are separate future work. -/
-axiom hoaMove_preserves_lifeCyclePhaseHomogeneity {r : Region} (s s' : HOAState r) :
-  HOAMove s s' → PopulationLifeCyclePhaseHomogeneous s →
-    PopulationLifeCyclePhaseHomogeneous s'
-
-/-- **The Hook 3 sibling theorem for LifeCyclePhase.** Same shape as
-    `hoaFragilityHomogeneous`: LifeCyclePhase-homogeneous populations
-    cannot engage feedback anywhere in the trace, so no maintenance
-    theorem's premise is satisfiable. -/
-theorem hoaFragilityLifeCyclePhaseHomogeneous {r : Region} (c : AutocatalyticCombine) :
-    ∀ (s : HOAState r), PopulationLifeCyclePhaseHomogeneous s →
-      ∀ trace : ℕ → HOAState r,
-        trace 0 = s →
-        (∀ i, HOAMove (trace i) (trace (i+1))) →
-        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) := by
-  intro s h_hom trace tr_0 tr_moves i
-  have h_hom_i : PopulationLifeCyclePhaseHomogeneous (trace i) := by
-    induction i with
-    | zero => rw [tr_0]; exact h_hom
-    | succ n ih =>
-        exact hoaMove_preserves_lifeCyclePhaseHomogeneity _ _ (tr_moves n) ih
-  exact lifeCyclePhaseHomogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
+-- `lifeCyclePhaseHomogeneous_no_feedback` and
+-- `hoaMove_preserves_lifeCyclePhaseHomogeneity` deleted 2026-07-27
+-- (issue #620) — now the two fields of `IsSymmetryBreaking
+-- lifeCyclePhaseAxis` (§HM42), where `hoaFragilityLifeCyclePhaseHomogeneous`
+-- is stated. The cross-phase interaction dynamics that would discharge the
+-- claim are an implementation's to supply, not SCORE core's to assert.
 
 -- ════════════════════════════════════════════════════════════════
--- §HM24. HOOK 3 SIBLING — ManifoldShape homogeneity fragility
+-- §HM24. HOOK 3 SIBLING — ManifoldShape homogeneity axis
 -- Parallel to §HM22 and §HM23 with the ManifoldShape axis. Introduces
 -- `ManifoldShape : Type` as a fresh opaque type (analogous to Region
 -- and Agent in Core.lean) — the vault flags it as a heterogeneity
@@ -1736,41 +1676,11 @@ def PopulationManifoldShapeHomogeneous {r : Region} (s : HOAState r) : Prop :=
     Constituent.AAgent a₂ ∈ s.agents →
     agentManifoldShape a₁ = agentManifoldShape a₂
 
-/-- **Hook 3 sibling core axiom** for ManifoldShape. A monoshape
-    population cannot engage the autocatalytic loop. Intuition: healthy
-    HOA maintenance requires diverse manifold-shape perspectives so
-    that interactions actually reinforce differentiated overlap
-    regions; monoshape populations reinforce only the shape's own
-    eigenmodes, not novel cross-shape edges. Discharging to a theorem
-    requires formalizing shape-differentiated interaction dynamics. -/
-axiom manifoldShapeHomogeneous_no_feedback
-    {r : Region} (c : AutocatalyticCombine) (s s' : HOAState r) :
-  PopulationManifoldShapeHomogeneous s → ¬ feedbackEngaged c s s'
-
-/-- Fast-timescale HOA moves preserve population ManifoldShape
-    structure. Manifold-shape restructuring (Path-A events) is NOT a
-    fast-timescale move; the shape-persistence assumption here mirrors
-    §HM22/HM23. -/
-axiom hoaMove_preserves_manifoldShapeHomogeneity {r : Region} (s s' : HOAState r) :
-  HOAMove s s' → PopulationManifoldShapeHomogeneous s →
-    PopulationManifoldShapeHomogeneous s'
-
-/-- **The Hook 3 sibling theorem for ManifoldShape.** Same shape as
-    the other two Hook 3 theorems: monoshape populations cannot engage
-    feedback anywhere in the trace. -/
-theorem hoaFragilityManifoldShapeHomogeneous {r : Region} (c : AutocatalyticCombine) :
-    ∀ (s : HOAState r), PopulationManifoldShapeHomogeneous s →
-      ∀ trace : ℕ → HOAState r,
-        trace 0 = s →
-        (∀ i, HOAMove (trace i) (trace (i+1))) →
-        ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) := by
-  intro s h_hom trace tr_0 tr_moves i
-  have h_hom_i : PopulationManifoldShapeHomogeneous (trace i) := by
-    induction i with
-    | zero => rw [tr_0]; exact h_hom
-    | succ n ih =>
-        exact hoaMove_preserves_manifoldShapeHomogeneity _ _ (tr_moves n) ih
-  exact manifoldShapeHomogeneous_no_feedback c (trace i) (trace (i+1)) h_hom_i
+-- `manifoldShapeHomogeneous_no_feedback` and
+-- `hoaMove_preserves_manifoldShapeHomogeneity` deleted 2026-07-27
+-- (issue #620) — now the two fields of `IsSymmetryBreaking
+-- manifoldShapeAxis` (§HM42), where `hoaFragilityManifoldShapeHomogeneous`
+-- is stated.
 
 -- ════════════════════════════════════════════════════════════════
 -- §HM25. LONG-TIMESCALE DYNAMICS (L1) — MemberTurnoverMove
@@ -1792,8 +1702,8 @@ theorem hoaFragilityManifoldShapeHomogeneous {r : Region} (c : AutocatalyticComb
 /-- **Member turnover** — a slow-timescale transition where the agent
     population is replaced (in whole or part). Disjoint from `HOAMove`
     (fast-timescale interaction/decay/intervention); the fast-timescale
-    preservation axioms (`hoaMove_preserves_*Homogeneity`) do not apply
-    to `MemberTurnoverMove`. -/
+    preservation claim (`IsSymmetryBreaking.move_preserves`, §HM42) is
+    stated over `HOAMove` and so does not apply to `MemberTurnoverMove`. -/
 axiom MemberTurnoverMove {r : Region} : HOAState r → HOAState r → Prop
 
 /-- **Turnover decay factor** — abstract constant characterizing the
@@ -2300,7 +2210,7 @@ theorem ceilingResidue_nondecreasing_under_nonErodingTrace
 
 /-- **Point-level fragility from positive lower bound.** If `a` is
     positive and `b` is bounded below by `a`, then `b` cannot be zero.
-    The point-level static-fragility companion to §HM22's trace-level
+    The point-level static-fragility companion to §HM42's trace-level
     `hoaFragilityHomogeneous`: where Hook 3 says "coupling-homogeneous
     populations cannot fire feedback across a trace," this point-level
     companion says "positive-floor measures cannot reach zero at a
@@ -2748,11 +2658,12 @@ def DoctrinalNetworkL2Preserves {α : Type} {r : Region}
 -- ════════════════════════════════════════════════════════════════
 -- §HM42. HOOK 3 SCHEMA --- axis-parameterized homogeneity fragility
 --
--- ADDITIVE. §HM22 (CouplingWeightVector), §HM23 (LifeCyclePhase) and
--- §HM24 (ManifoldShape) stand unchanged. This section abstracts the
--- schema those three instantiate and re-derives their fragility
--- theorems as instances of a single generic theorem. Nothing here
--- deletes or renames; the originals remain the citable names.
+-- This section carries Hook 3. §HM22 (CouplingWeightVector), §HM23
+-- (LifeCyclePhase) and §HM24 (ManifoldShape) supply their axes ---
+-- association axiom and homogeneity predicate --- and the three fragility
+-- theorems are stated here, at those axes, under the `IsSymmetryBreaking`
+-- obligation. The original theorem names are kept; only their location
+-- and their instance argument changed.
 --
 -- WHY: §HM22/23/24 are the same schema written three times --- per
 -- axis, one association axiom + one predicate + two load-bearing
@@ -2775,29 +2686,39 @@ def DoctrinalNetworkL2Preserves {α : Type} {r : Region}
 -- it --- which is strictly better than the same commitment buried in a
 -- copy-pasted axiom.
 --
--- AXIOM LEDGER: this section adds **zero** axioms. The three instances
--- below are discharged from the existing §HM22/23/24 axioms. (Verified
--- with `#print axioms`: the schema-derived theorems have axiom sets
--- identical to the originals'.)
+-- AXIOM LEDGER: this section adds zero axioms and, since 2026-07-27,
+-- **removes six**. The `IsSymmetryBreaking` obligation is no longer
+-- discharged inside SCORE core for any axis; an implementation that
+-- wants `hoaFragilityHomogeneous` must register the axis itself.
 --
--- CORRECTION 2026-07-19. This comment previously claimed a further
--- "consolidation saving (six schema axioms collapsing to two), realized
--- if the originals are later retired". **That saving does not exist**,
--- and the error is instructive: it contradicts this section's own
--- soundness argument. `IsSymmetryBreaking` carries the two load-bearing
--- claims PER AXIS precisely because a generic axiom quantified over
--- arbitrary axes is unsound (`proj := fun _ => ()` trivializes it). So
--- the per-axis claims are IRREDUCIBLE CONTENT: n axes require n pairs of
--- claims whether they are stated as standalone axioms or as instance
--- fields. Retiring §HM22/23/24 would RELOCATE the six axioms into the
--- instance declarations, not remove them --- net axiom change zero.
+-- DELETION 2026-07-27 (issue #620), superseding the CORRECTION of
+-- 2026-07-19. That correction argued retirement was not worth doing:
+-- `IsSymmetryBreaking` carries its two claims PER AXIS precisely because
+-- a generic axiom over arbitrary axes is unsound (`proj := fun _ => ()`
+-- trivializes it), so n axes need n pairs of claims however they are
+-- stated, and retiring §HM22/23/24 would RELOCATE six axioms rather than
+-- remove them --- net axiom change zero, against a blast radius of 8-11
+-- files per identifier.
 --
--- What retirement would actually save is 3 duplicate predicate defs and
--- 3 duplicate theorem statements, against a blast radius that includes
--- peer-bridge theorem STATEMENTS (`Atlas.hook3_vacuous` is typed on
--- `PopulationCouplingHomogeneous`) and 8-11 files per identifier across
--- Lean, vault notes, the core glossary (SC-G-58) and the AGORA
--- contracts. Not worth it; the open call is closed as declined.
+-- **The axiom accounting was right and was not the point.** Relocation
+-- is not the alternative to assertion; DELETION is. What mattered was
+-- never how many axioms exist but WHO DISCHARGES THEM. With the three
+-- instances below populated inside SCORE core, `IsSymmetryBreaking` was
+-- satisfied globally, for free, for every axis at once --- so a peer
+-- exhibiting a maintained homogeneous HOA INHERITED the instance instead
+-- of failing to construct it, and the typeclass written to make
+-- falsification a type error was fed by the very axioms it replaced.
+-- Removing the axioms and the instances, without touching the predicates,
+-- restores that: registration becomes an obligation an implementation
+-- discharges from its own dynamics, a model-check, or a visible `sorry`.
+--
+-- The correction's blast radius was real but priced the wrong operation.
+-- It is incurred by deleting the NAMES; the predicates are contentless
+-- `def`s, so keeping them keeps `Atlas.hook3_vacuous` typechecking, the
+-- glossary (SC-G-58) accurate and the ATLAS/AGORA contracts intact. The
+-- 3 duplicate theorem statements it wanted to save are gone too --- the
+-- primed `hoaFragility*'` variants were the duplicates, and the originals
+-- now live here as the single statement of each claim.
 --
 -- NOT COVERED (open theory problem --- see the plan's §9 amendment):
 -- *partial* homogeneity in either sense. Weakening the antecedent, by
@@ -2896,23 +2817,23 @@ theorem populationManifoldShapeHomogeneous_iff {r : Region} (s : HOAState r) :
     PopulationManifoldShapeHomogeneous s ↔
       PopulationHomogeneousOn manifoldShapeAxis AActorScope s := Iff.rfl
 
-instance : IsSymmetryBreaking couplingAxis where
-  no_feedback c s s' h := homogeneous_no_feedback c s s' h
-  move_preserves s s' hm h := hoaMove_preserves_homogeneity s s' hm h
+-- ── NO INSTANCES ARE SUPPLIED HERE ───────────────────────────────
+-- SCORE core deliberately registers none of the three axes. Three
+-- `instance : IsSymmetryBreaking _` blocks stood here until 2026-07-27,
+-- each discharged from a §HM22/23/24 axiom; see the DELETION note above
+-- for why that made the class vacuous as a falsification gate. An
+-- implementation registers the axes it claims are symmetry-breaking, and
+-- one that observes a maintained homogeneous HOA registers nothing ---
+-- which is the falsification, expressed as an unmet obligation.
 
-instance : IsSymmetryBreaking lifeCyclePhaseAxis where
-  no_feedback c s s' h := lifeCyclePhaseHomogeneous_no_feedback c s s' h
-  move_preserves s s' hm h := hoaMove_preserves_lifeCyclePhaseHomogeneity s s' hm h
+-- ── The three Hook 3 fragility theorems, at their axes ────────────
+-- Each is `hoaFragilityOn` at the corresponding axis, under that axis's
+-- registration. Names and statements are §HM22/23/24's unchanged --- the
+-- predicates are definitionally the schema at the axis
+-- (`population*_iff` above), so downstream references still typecheck.
 
-instance : IsSymmetryBreaking manifoldShapeAxis where
-  no_feedback c s s' h := manifoldShapeHomogeneous_no_feedback c s s' h
-  move_preserves s s' hm h := hoaMove_preserves_manifoldShapeHomogeneity s s' hm h
-
--- ── The three §HM22/23/24 theorems recovered from the schema ──────
--- Each is `hoaFragilityOn` at the corresponding axis, demonstrating the
--- generic theorem subsumes all three. The originals remain in place.
-
-theorem hoaFragilityHomogeneous' {r : Region} (c : AutocatalyticCombine) :
+theorem hoaFragilityHomogeneous [IsSymmetryBreaking couplingAxis]
+    {r : Region} (c : AutocatalyticCombine) :
     ∀ (s : HOAState r), PopulationCouplingHomogeneous s →
       ∀ trace : ℕ → HOAState r,
         trace 0 = s →
@@ -2920,7 +2841,8 @@ theorem hoaFragilityHomogeneous' {r : Region} (c : AutocatalyticCombine) :
         ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) :=
   fun s h => hoaFragilityOn couplingAxis c s h
 
-theorem hoaFragilityLifeCyclePhaseHomogeneous' {r : Region} (c : AutocatalyticCombine) :
+theorem hoaFragilityLifeCyclePhaseHomogeneous [IsSymmetryBreaking lifeCyclePhaseAxis]
+    {r : Region} (c : AutocatalyticCombine) :
     ∀ (s : HOAState r), PopulationLifeCyclePhaseHomogeneous s →
       ∀ trace : ℕ → HOAState r,
         trace 0 = s →
@@ -2928,7 +2850,8 @@ theorem hoaFragilityLifeCyclePhaseHomogeneous' {r : Region} (c : AutocatalyticCo
         ∀ i, ¬ feedbackEngaged c (trace i) (trace (i+1)) :=
   fun s h => hoaFragilityOn lifeCyclePhaseAxis c s h
 
-theorem hoaFragilityManifoldShapeHomogeneous' {r : Region} (c : AutocatalyticCombine) :
+theorem hoaFragilityManifoldShapeHomogeneous [IsSymmetryBreaking manifoldShapeAxis]
+    {r : Region} (c : AutocatalyticCombine) :
     ∀ (s : HOAState r), PopulationManifoldShapeHomogeneous s →
       ∀ trace : ℕ → HOAState r,
         trace 0 = s →
