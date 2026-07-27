@@ -296,7 +296,7 @@ def isExternallyDominant (v : CouplingWeightVector) : Prop :=
     (TLC), where they are unavailable here (this is the enum only): monotone
     progression (phase and local coupling never decrease; coupling accumulates
     only in the settled Householder/Retirement phases, per
-    `localCouplingAccumulates`), and reachability of the peak-coupling Retirement
+    the life-cycle phase ordering), and reachability of the peak-coupling Retirement
     sponsor (`hasSponsorship`) that maintains HOA-attractor infrastructure. See
     `obsidian/SCORE/methodology/ModelCheckedDynamics.md`. -/
 inductive LifeCyclePhase : Type where
@@ -314,13 +314,24 @@ inductive LifeCyclePhase : Type where
   | Retirement  : LifeCyclePhase
 deriving DecidableEq, Repr
 
-/-- Local coupling weight accumulates monotonically with residence duration
-    and active participation. This is an axiom: an empirical claim grounded
-    in inscription dynamics theory. -/
-axiom localCouplingAccumulates :
-    ∀ (phase : LifeCyclePhase) (duration participation : ℕ),
-      -- longer duration → strictly higher local coupling weight
-      ∃ (weight : CouplingWeight), weight.val > 0
+-- `localCouplingAccumulates` was DELETED 2026-07-26 (audit Appendix D.3).
+--
+-- It read:
+--     ∀ (phase : LifeCyclePhase) (duration participation : ℕ),
+--       ∃ (weight : CouplingWeight), weight.val > 0
+--
+-- None of the three bound variables occurs in the conclusion, so it asserted
+-- only that *some* positive coupling weight exists -- true of any inhabited
+-- CouplingWeight, and nothing to do with duration or participation. Its
+-- docstring claimed monotonic accumulation, which the statement never said.
+-- It was referenced nowhere.
+--
+-- Same defect as the former `perceptuallySimilar` (repaired in § 8). Deleted
+-- rather than restated because restating it needs a real weight function
+-- `localWeight : LifeCyclePhase → ℕ → ℕ → CouplingWeight` and a monotonicity
+-- claim over it -- a modelling commitment, not a repair. The empirical content
+-- lives in `obsidian/SCORE/agents/LifeCyclePhases.md` and is model-checked in
+-- `formal/tla/` (see ModelCheckedDynamics.md); cite those, not this.
 
 /-- The sponsorship function activates in the Retirement phase.
     Retirement-phase agents maintain organizational infrastructure
@@ -607,21 +618,24 @@ theorem bypassesFilter_iff_rhythm_class (i : Intervention) :
     coupling state and a seed size. Abstract for now. -/
 axiom nodeSucceeds : Region → Stratum → ℕ → CouplingWeightVector → Prop
 
-/-- The sequencing principle: applying create_rhythm before create_node
-    lowers the minimum seed size required for the node to take hold.
-    Mechanism: embodied synchrony reduces System II resistance, so the
-    organizational node requires fewer initial committed participants. -/
-axiom rhythmLowersSeedSize :
-    ∀ (region : Region) (stratum : Stratum) (coupling : CouplingWeightVector)
-      (seedSize : ℕ),
-      nodeSucceeds region stratum seedSize coupling →
-      ∃ (reducedSeed : ℕ),
-        reducedSeed ≤ seedSize ∧
-        nodeSucceeds region stratum reducedSeed coupling
-
--- NOTE: as stated, this is trivially satisfiable (take reducedSeed = seedSize).
--- A stronger formulation would require reducedSeed < seedSize and would need
--- a model of how rhythm shifts coupling state before the node is applied.
+-- `rhythmLowersSeedSize` was DELETED 2026-07-26 (audit Appendix D.3).
+--
+-- It asserted that applying create_rhythm before create_node lowers the
+-- minimum seed size, as:
+--     nodeSucceeds region stratum seedSize coupling →
+--     ∃ reducedSeed, reducedSeed ≤ seedSize ∧ nodeSucceeds region stratum reducedSeed coupling
+--
+-- The file's own NOTE admitted it: "as stated, this is trivially satisfiable
+-- (take reducedSeed = seedSize)". The `≤` makes it a tautology. It was
+-- referenced nowhere, and `InterventionClasses.md` nevertheless described it
+-- as "(axiom -- empirically grounded)" -- a vacuous axiom laundering an
+-- untested intervention hypothesis through the formal layer, which is worse
+-- than no axiom.
+--
+-- A real version needs strict inequality AND a model of how rhythm shifts
+-- coupling state before the node is applied -- i.e. the ceiling-raising
+-- mechanism of CycleFormationAndClosure § "Interventional ordering". That is
+-- new modelling, not a repair, so nothing is asserted here in the meantime.
 -- Left weak here; tighten once CouplingWeightVector evolution is formalized.
 
 -- ════════════════════════════════════════════════════════════════
