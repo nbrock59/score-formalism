@@ -498,6 +498,127 @@ theorem collapse_at_comonotone (a b : ℝ) :
 
 
 -- ════════════════════════════════════════════════════════════════
+-- §RV-H. DENIAL CLOSURE --- the formal layer under issue #640's D3.
+--
+-- D3 asks for "one run per carrier pair with its anchor absent", classified fatal /
+-- demote / survivable against PR-EX-1 §6.3's fail-to-a-finding rule. The split gate
+-- (§6.3 as amended 2026-07-27) makes that request not quite expressible as stated, and
+-- the reason is combinatorial rather than empirical --- so it is settled here rather
+-- than reported out of a script.
+--
+-- **The hard identifiability clause is mechanism-level, not pair-level.** A pair is
+-- unidentified when one of its mechanisms never fires; and a dormant mechanism takes out
+-- *every* pair containing it at once. So "deny this pair" is not a realizable corpus
+-- condition --- what a corpus can actually withhold is a mechanism.
+--
+-- Two consequences, both proved below by `decide` over the F0-11 §3b frozen pair set:
+--   * every carrier pair touches V4 or V5 (the two carrier axes), so
+--   * dormancy of **both** carriers empties the carrier set --- which is exactly §6.3's
+--     void condition, "if no carrier pair clears, the RQ-1b re-specification is void".
+--
+-- The pair set is data, so it is encoded here and the counts are decided, not asserted.
+-- `src/ethos/osse/denial.py` is checked against these statements.
+-- ════════════════════════════════════════════════════════════════
+
+/-- The F0-11 §3b frozen fitted set (FROZEN 2026-07-23). -/
+inductive VMech | V2 | V4 | V6a | V6b | V5 | V8
+  deriving DecidableEq, Repr
+
+/-- The 10 permitted interaction pairs: the 9 V4/V5 carrier pairs plus the V2xV8
+    validation pair (PI-ratified 2026-07-23). -/
+def permittedPairs : List (VMech × VMech) :=
+  [(.V2, .V4), (.V4, .V5), (.V4, .V6a), (.V4, .V6b), (.V4, .V8),
+   (.V2, .V5), (.V5, .V6a), (.V5, .V6b), (.V5, .V8),
+   (.V2, .V8)]
+
+/-- The one pair with an existing external anchor seed; it checks survivor-independence
+    and is *not* a carrier pair. -/
+def seededPair : VMech × VMech := (.V2, .V8)
+
+/-- The 9 carrier pairs --- those the G-anchor gate ranges over. -/
+def carrierPairs : List (VMech × VMech) := permittedPairs.filter (· ≠ seededPair)
+
+/-- Does `m` occur in the pair? -/
+def touches (m : VMech) (p : VMech × VMech) : Bool := p.1 = m || p.2 = m
+
+/-- The pairs a dormant mechanism takes out --- **all** of them at once. -/
+def dormancyRemoves (m : VMech) : List (VMech × VMech) :=
+  permittedPairs.filter (touches m)
+
+/-- Carrier pairs still standing after a set of mechanisms goes dormant. -/
+def survivingCarriers (dormant : List VMech) : List (VMech × VMech) :=
+  carrierPairs.filter (fun p => !dormant.any (fun m => touches m p))
+
+theorem carrierPairs_length : carrierPairs.length = 9 := by decide
+
+/-- **Every carrier pair touches a carrier axis.** The F0-11 §3b restriction, as a fact
+    about the frozen set rather than a description of it. -/
+theorem carrier_touches_axis :
+    ∀ p ∈ carrierPairs, touches .V4 p = true ∨ touches .V5 p = true := by decide
+
+/-- **Dormancy is not pair-separable.** One dormant carrier removes five permitted pairs,
+    so no corpus condition denies a single carrier pair in isolation. -/
+theorem dormancy_V4_removes_five : (dormancyRemoves .V4).length = 5 := by decide
+theorem dormancy_V5_removes_five : (dormancyRemoves .V5).length = 5 := by decide
+
+theorem surviving_after_V4 : (survivingCarriers [.V4]).length = 4 := by decide
+theorem surviving_after_V5 : (survivingCarriers [.V5]).length = 4 := by decide
+
+/-- **Both carriers dormant empties the carrier set.** This is PR-EX-1 §6.3's void
+    condition reached constructively: it is not that the corpus disappoints, it is that
+    the carrier-axis restriction leaves nothing once both axes go. -/
+theorem surviving_after_both_carriers : survivingCarriers [.V4, .V5] = [] := by decide
+
+/-- A non-carrier dormancy leaves carrier pairs standing --- the seeded pair's own
+    mechanisms are not load-bearing for RQ-1b's carrier set on their own. -/
+theorem surviving_after_V6a : (survivingCarriers [.V6a]).length = 7 := by decide
+
+/-- The §6.3 fail-to-a-finding verdicts. -/
+inductive DenialVerdict | survivable | demote | void
+  deriving DecidableEq, Repr
+
+/-- The classification D3 reports, as a decision procedure over the frozen set:
+    void when no carrier pair clears, demote when some but not all do, survivable when
+    the carrier set is untouched. -/
+def classifyDormancy (dormant : List VMech) : DenialVerdict :=
+  if survivingCarriers dormant = [] then .void
+  else if (survivingCarriers dormant).length < carrierPairs.length then .demote
+  else .survivable
+
+/-- **The void verdict is reached exactly when no carrier pair clears** --- the wording of
+    §6.3, mechanized, so the classification cannot drift from the rule it implements. -/
+theorem classify_void_iff (dormant : List VMech) :
+    classifyDormancy dormant = .void ↔ survivingCarriers dormant = [] := by
+  unfold classifyDormancy
+  split
+  · simp_all
+  · split <;> simp_all
+
+theorem classify_both_carriers : classifyDormancy [.V4, .V5] = .void := by decide
+theorem classify_one_carrier : classifyDormancy [.V4] = .demote := by decide
+theorem classify_none : classifyDormancy [] = .survivable := by decide
+
+/-- **A dormant mechanism makes `Δ` degenerate, not merely small.** With `c_j = 0` the
+    joint is 0 and the independence reference is 0, so `Δ_jk = 0` identically whatever
+    `c_k` is --- the statistic returns the value it would return under independence while
+    carrying no information at all. This is why the estimator must report `unidentified`
+    rather than `0.0`: the number is indistinguishable from a measurement of independence
+    and is not one. -/
+theorem collapse_degenerate_of_dormant (ck : ℝ) :
+    redundancyCollapse 0 ck (0 + ck - 0) = 0 := by
+  unfold redundancyCollapse pairMobiusIndep pairMobius pairAssuranceIndep; ring
+
+/-- **And its Fréchet interval collapses to a point.** At a dormant marginal there is no
+    room for dependence to show at all --- the precision clause and the identifiability
+    clause agree in the degenerate case, which is the consistency check on the split. -/
+theorem frechet_width_zero_of_dormant {ck : ℝ} (h0 : 0 ≤ ck) (h1 : ck ≤ 1) :
+    frechetCollapseHi 0 ck - frechetCollapseLo 0 ck = 0 := by
+  unfold frechetCollapseHi frechetCollapseLo frechetJointHi frechetJointLo
+  rw [min_eq_left h0, max_eq_left (by linarith)]
+  ring
+
+
+-- ════════════════════════════════════════════════════════════════
 -- §PS-U2. ETHOS U2 SPECIALIZATION --- EpistemicCommunity as an A-actor-
 -- scoped HOAState AND EpistemicInstitution as a Σ-actor (Present-Domain
 -- → Present-Formal); together they formalize the dual-stratum framing.
