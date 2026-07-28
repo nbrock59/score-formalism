@@ -188,6 +188,123 @@ theorem verificationAssurance_mono {k : ℕ} (c c' : Fin k → ℝ)
 
 
 -- ════════════════════════════════════════════════════════════════
+-- §RV-D. BRANCH R DEPENDENCE --- the pairwise capacity layer.
+--
+-- §RV above formalizes the verification layer at the INDEPENDENT limit only. The
+-- Option-1 re-specification (governance/SCORE_ETHOS_RQ1b_Choquet_Respecification.md
+-- §§3, 3a) replaces the stipulated κ-interpolation with a fitted 2-additive Choquet
+-- capacity, whose operative statistic is the pairwise redundancy-collapse Δ. That
+-- statistic had no formal statement anywhere: the pre-lock audit §3.3 found κ appears
+-- in §RV solely in a prose docstring, and issue #640 recorded the same gap from the
+-- other side (Choquet absent from both Lean and OWL while implemented in Python).
+--
+-- This section closes it, and does so with **no new axioms**: every claim §3a makes
+-- about the reference, the direction of capture, and the truncation is elementary real
+-- arithmetic and is proved here. The Python plug-in estimator
+-- (`src/ethos/measurement/dependence_parameter.py`) is checked against these statements
+-- rather than against a generator written alongside it.
+--
+-- Scope: the PAIR level, which is what a 2-additive capacity fits and what Δ is
+-- defined on. Nothing here formalizes the *estimator* (§6 freezes that at lock), the
+-- confidence intervals, or the identifiability-on-interior claim -- that last is a
+-- genuine mathematical claim about capacities and is the one place an axiom or a
+-- literature discharge would be required. Not attempted here.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Independent-OR assurance on a pair: `μ_indep({j,k}) = 1 - (1-c_j)(1-c_k)`, written
+    in expanded form. The two-mechanism case of `verificationAssurance`. -/
+def pairAssuranceIndep (cj ck : ℝ) : ℝ := cj + ck - cj * ck
+
+/-- The pair's Möbius interaction index, given the pair's assurance `mu`:
+    `m({j,k}) = μ({j,k}) - μ({j}) - μ({k})`, with singletons `μ({j}) = c_j`. -/
+def pairMobius (cj ck mu : ℝ) : ℝ := mu - cj - ck
+
+/-- The §3a **independence reference** --- the Möbius index the independent-OR capacity
+    itself carries. This is the null, and it is not zero. -/
+def pairMobiusIndep (cj ck : ℝ) : ℝ := pairMobius cj ck (pairAssuranceIndep cj ck)
+
+/-- **The independence reference is `-c_j c_k`** (re-specification §3a). -/
+theorem pairMobiusIndep_eq (cj ck : ℝ) : pairMobiusIndep cj ck = -(cj * ck) := by
+  unfold pairMobiusIndep pairMobius pairAssuranceIndep; ring
+
+/-- **Zero interaction is the wrong null for a redundancy layer.** For an OR layer even
+    *independent* mechanisms interact in the capacity sense: the reference is strictly
+    negative, i.e. already sub-additive. A test against zero would therefore be testing
+    against a mis-specified null, which is the error §3a exists to prevent. -/
+theorem pairMobiusIndep_neg {cj ck : ℝ} (hj : 0 < cj) (hk : 0 < ck) :
+    pairMobiusIndep cj ck < 0 := by
+  rw [pairMobiusIndep_eq]
+  have : 0 < cj * ck := mul_pos hj hk
+  linarith
+
+/-- **The additive capacity is not a valid assurance capacity**, while the
+    independent-OR one is: `μ_indep ≤ 1` always, whereas the zero-interaction capacity
+    assigns `c_j + c_k`, which exceeds 1 whenever the marginals are large. -/
+theorem pairAssuranceIndep_le_one {cj ck : ℝ} (h1j : cj ≤ 1) (h1k : ck ≤ 1)
+    (h0j : 0 ≤ cj) (h0k : 0 ≤ ck) : pairAssuranceIndep cj ck ≤ 1 := by
+  unfold pairAssuranceIndep; nlinarith
+
+/-- **Redundancy collapse** `Δ_{jk} = m_indep({j,k}) - m_fit({j,k})` --- the departure of
+    the fitted pair interaction *below* its independence reference (§3a). -/
+def redundancyCollapse (cj ck mu : ℝ) : ℝ := pairMobiusIndep cj ck - pairMobius cj ck mu
+
+/-- **Δ is the observed catch-set overlap above what independent marginals predict.**
+    Writing the pair's assurance by inclusion–exclusion, `μ({j,k}) = c_j + c_k - joint`,
+    the Möbius form and the overlap form coincide. This identity is what licenses the
+    Python estimator to read Δ off catch-set overlaps rather than off a fitted capacity. -/
+theorem redundancyCollapse_eq_overlap_excess (cj ck joint : ℝ) :
+    redundancyCollapse cj ck (cj + ck - joint) = joint - cj * ck := by
+  unfold redundancyCollapse pairMobiusIndep pairMobius pairAssuranceIndep; ring
+
+/-- **Δ is monotone in the joint catch rate.** More co-catching, at fixed marginals, is
+    more measured dependence --- the direction the capture reading requires. -/
+theorem redundancyCollapse_mono_in_joint {cj ck j1 j2 : ℝ} (h : j1 ≤ j2) :
+    redundancyCollapse cj ck (cj + ck - j1) ≤ redundancyCollapse cj ck (cj + ck - j2) := by
+  rw [redundancyCollapse_eq_overlap_excess, redundancyCollapse_eq_overlap_excess]
+  linarith
+
+/-- **Independent mechanisms give exactly zero collapse.** The falsifier for P-1b'-i:
+    a corpus of genuinely independent `V_j` --- the state ETHOS's theory says a *healthy*
+    infosphere is in --- returns `Δ = 0`. -/
+theorem redundancyCollapse_indep (cj ck : ℝ) :
+    redundancyCollapse cj ck (pairAssuranceIndep cj ck) = 0 := by
+  unfold redundancyCollapse pairMobiusIndep pairMobius pairAssuranceIndep; ring
+
+/-- **Full capture drives the interaction strictly below independence.** When the two
+    mechanisms catch the *same* items (`c_j = c_k = c`, so the OR of identical catch-sets
+    is either one alone, `μ({j,k}) = c`), the collapse is `c - c²`, which is strictly
+    positive on `(0,1)`. This is §3a's `-c < -c²` argument, mechanized: capture is not
+    merely detectable but signed. -/
+theorem captured_pair_collapse (c : ℝ) : redundancyCollapse c c c = c - c * c := by
+  unfold redundancyCollapse pairMobiusIndep pairMobius pairAssuranceIndep; ring
+
+theorem captured_pair_collapse_pos {c : ℝ} (h0 : 0 < c) (h1 : c < 1) :
+    0 < redundancyCollapse c c c := by
+  rw [captured_pair_collapse]; nlinarith
+
+/-- Independent-OR assurance on a triple, for the truncation caveat below. -/
+def tripleAssuranceIndep (a b c : ℝ) : ℝ := 1 - (1 - a) * (1 - b) * (1 - c)
+
+/-- Third-order Möbius mass of the independent-OR capacity,
+    `m({j,k,l}) = μ(jkl) - μ(jk) - μ(jl) - μ(kl) + μ(j) + μ(k) + μ(l)`. -/
+def tripleMobiusIndep (a b c : ℝ) : ℝ :=
+  tripleAssuranceIndep a b c
+    - pairAssuranceIndep a b - pairAssuranceIndep a c - pairAssuranceIndep b c
+    + a + b + c
+
+/-- **The mass a 2-additive fit drops is `+abc`, not `-abc`.**
+    The re-specification §3a's truncation caveat states the dropped triple term as
+    `- c_j c_k c_l`. The sign is wrong: the Möbius transform of the noisy-OR capacity
+    alternates as `(-1)^{|S|+1} ∏_{j ∈ S} c_j`, so singletons are `+c`, pairs are
+    `-c_j c_k`, and triples are `+c_j c_k c_l`. The magnitude claim the caveat rests on
+    --- third order in `c`, hence small --- is unaffected, and the pair-level test is
+    unaffected because it is run against the pairwise reference. Recorded because a
+    stated sign that is wrong is the kind of thing a reader will propagate. -/
+theorem tripleMobiusIndep_eq (a b c : ℝ) : tripleMobiusIndep a b c = a * b * c := by
+  unfold tripleMobiusIndep tripleAssuranceIndep pairAssuranceIndep; ring
+
+
+-- ════════════════════════════════════════════════════════════════
 -- §PS-U2. ETHOS U2 SPECIALIZATION --- EpistemicCommunity as an A-actor-
 -- scoped HOAState AND EpistemicInstitution as a Σ-actor (Present-Domain
 -- → Present-Formal); together they formalize the dual-stratum framing.
