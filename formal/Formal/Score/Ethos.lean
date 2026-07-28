@@ -305,6 +305,199 @@ theorem tripleMobiusIndep_eq (a b c : ℝ) : tripleMobiusIndep a b c = a * b * c
 
 
 -- ════════════════════════════════════════════════════════════════
+-- §RV-F. FRÉCHET--HOEFFDING BOUNDS on the pair joint, and on Δ.
+--
+-- The split G-anchor gate (PR-EX-1 §6.3, amended 2026-07-27) rests on these: the
+-- ceiling/floor clause was demoted from a drop rule to a *precision* statement, and the
+-- precision is exactly the width of the interval Δ can occupy at given marginals. The D1
+-- nature-run generator then rejects an `anchor_density` above `min(1, c_a + c_b)` on the
+-- same grounds.
+--
+-- Both were carrying a citation to Fréchet (1935) / Hoeffding (1940) that no one in this
+-- project had checked. They do not need one: the bounds follow from monotonicity of a
+-- measure and `P(Ω) = 1`, and are proved here from mathlib. **No axiom, and no appeal to
+-- an unverified source** --- which is the point, since a load-bearing gate resting on a
+-- citation nobody read is the defect this whole layer exists to remove.
+--
+-- Two encodings. The measure-theoretic statements are the theorem; the real-valued ones
+-- mirror `dependence_parameter.frechet_bounds` so the Python has something to be checked
+-- against. `frechet_of_probability` is the bridge that stops them from drifting apart.
+-- ════════════════════════════════════════════════════════════════
+
+open MeasureTheory in
+/-- **Fréchet upper bound.** A joint cannot exceed either marginal. -/
+theorem measure_inter_le_min {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    (s t : Set Ω) : μ (s ∩ t) ≤ min (μ s) (μ t) :=
+  le_min (measure_mono Set.inter_subset_left) (measure_mono Set.inter_subset_right)
+
+open MeasureTheory in
+/-- **Fréchet lower bound**, in additive form so no truncated `ENNReal` subtraction appears:
+    `P(A) + P(B) ≤ 1 + P(A ∩ B)`, equivalently `P(A ∩ B) ≥ P(A) + P(B) - 1`. -/
+theorem measure_add_le_one_add_inter {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    [IsProbabilityMeasure μ] {s : Set Ω} (hs : MeasurableSet s) (t : Set Ω) :
+    μ s + μ t ≤ 1 + μ (s ∩ t) := by
+  have h : μ s + μ t = μ (s ∪ t) + μ (s ∩ t) := (measure_union_add_inter' hs t).symm
+  have hone : μ (s ∪ t) ≤ 1 := prob_le_one
+  rw [h]
+  exact add_le_add hone le_rfl
+
+-- --- the real-valued layer the Python mirrors ------------------------------------------
+
+/-- Lower Fréchet bound on the joint rate. -/
+def frechetJointLo (p q : ℝ) : ℝ := max 0 (p + q - 1)
+
+/-- Upper Fréchet bound on the joint rate. -/
+def frechetJointHi (p q : ℝ) : ℝ := min p q
+
+/-- Lower Fréchet bound on `Δ`, i.e. on the joint shifted by the independence reference.
+    Python: `dependence_parameter.frechet_bounds`, first component. -/
+def frechetCollapseLo (p q : ℝ) : ℝ := frechetJointLo p q - p * q
+
+/-- Upper Fréchet bound on `Δ`. Python: `frechet_bounds`, second component. -/
+def frechetCollapseHi (p q : ℝ) : ℝ := frechetJointHi p q - p * q
+
+/-- **A joint rate inside its Fréchet bounds puts `Δ` inside the collapse bounds.** This is
+    what licenses reporting the interval as the precision of the estimate. -/
+theorem collapse_mem_frechet {p q j : ℝ}
+    (hlo : frechetJointLo p q ≤ j) (hhi : j ≤ frechetJointHi p q) :
+    frechetCollapseLo p q ≤ j - p * q ∧ j - p * q ≤ frechetCollapseHi p q := by
+  unfold frechetCollapseLo frechetCollapseHi
+  constructor <;> linarith
+
+/-- **Independence is always attainable**, so the collapse interval always contains zero ---
+    the reason `Δ = 0` is a coherent null at any marginals (the P-1b'-i falsifier). -/
+theorem frechet_collapse_contains_zero {p q : ℝ}
+    (hp0 : 0 ≤ p) (hp1 : p ≤ 1) (hq0 : 0 ≤ q) (hq1 : q ≤ 1) :
+    frechetCollapseLo p q ≤ 0 ∧ 0 ≤ frechetCollapseHi p q := by
+  constructor
+  · unfold frechetCollapseLo frechetJointLo
+    rcases max_cases (0 : ℝ) (p + q - 1) with ⟨h, _⟩ | ⟨h, _⟩ <;> rw [h] <;> nlinarith
+  · unfold frechetCollapseHi frechetJointHi
+    rcases min_cases p q with ⟨h, _⟩ | ⟨h, _⟩ <;> rw [h] <;> nlinarith
+
+/-- **The width of the attainable `Δ` interval** depends only on the marginals. This is the
+    quantity the split gate reports in place of the retired ceiling/floor drop rule. -/
+theorem frechet_collapse_width (p q : ℝ) :
+    frechetCollapseHi p q - frechetCollapseLo p q = min p q - max 0 (p + q - 1) := by
+  unfold frechetCollapseHi frechetCollapseLo frechetJointHi frechetJointLo; ring
+
+/-- **At equal marginals `c` with `2c ≤ 1` the width is exactly `c`.** So a pair whose
+    mechanisms each fire on 2% of items can never show a collapse above 0.02, however
+    captured the infosphere is: identified, but with no room to be large. -/
+theorem frechet_collapse_width_equal {c : ℝ} (h0 : 0 ≤ c) (h : 2 * c ≤ 1) :
+    frechetCollapseHi c c - frechetCollapseLo c c = c := by
+  rw [frechet_collapse_width]
+  have hmax : max 0 (c + c - 1) = 0 := max_eq_left (by linarith)
+  rw [hmax, min_self]; ring
+
+open MeasureTheory in
+/-- **The bridge.** For real events under a probability measure, the joint rate does satisfy
+    the hypotheses the real-valued layer assumes --- so the arithmetic above is a statement
+    about probabilities, not a definition dressed as one. -/
+theorem frechet_of_probability {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    [IsProbabilityMeasure μ] {s : Set Ω} (hs : MeasurableSet s) (t : Set Ω) :
+    (μ (s ∩ t)).toReal ≤ frechetJointHi (μ s).toReal (μ t).toReal ∧
+    frechetJointLo (μ s).toReal (μ t).toReal ≤ (μ (s ∩ t)).toReal := by
+  have hfin : ∀ u : Set Ω, μ u ≠ ⊤ := fun u => measure_ne_top μ u
+  constructor
+  · unfold frechetJointHi
+    refine le_min ?_ ?_ <;>
+      exact ENNReal.toReal_mono (hfin _) (measure_mono (by simp [Set.inter_subset_left,
+        Set.inter_subset_right]))
+  · unfold frechetJointLo
+    refine max_le ?_ ?_
+    · exact ENNReal.toReal_nonneg
+    · have h := measure_add_le_one_add_inter μ hs t
+      have h' : (μ s).toReal + (μ t).toReal ≤ 1 + (μ (s ∩ t)).toReal := by
+        have := ENNReal.toReal_mono (by simp [hfin]) h
+        simpa [ENNReal.toReal_add, hfin] using this
+      linarith
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §RV-G. THE ONE IMPORTED RESULT --- Gaussian-copula monotonicity.
+--
+-- Everything else in §RV-D/§RV-F is proved. This is not, and it is stated as an axiom so
+-- `#print axioms` separates SCORE's own results from the imported one --- the discipline
+-- `Score/CouplingKernel.lean` uses for BJR.
+--
+-- The OSSE nature-run generator (`src/ethos/osse/nature_run.py`) parameterises dependence
+-- as a latent-Gaussian copula correlation and then *claims* that raising the correlation
+-- raises the measured co-catch. Nothing in this repo established that; it was checked by
+-- sampling the generator, which is the circularity this layer exists to remove.
+--
+-- **Attribution, corrected 2026-07-27 after the literature pass.** An earlier draft credited
+-- Slepian (1962). That is the wrong instrument for n = 2. The governing result is the
+-- bivariate identity `dPhi2(a,b;rho)/drho = phi2(a,b;rho)`, standardly **Plackett's identity**
+-- (Plackett 1954) --- monotonicity is then immediate from positivity of a density. Slepian's
+-- own n-dimensional recursion (his eq. 36) is credited by Slepian to **Schlafli**, not
+-- Plackett; and at n = 2 Slepian's machinery collapses to differentiating an arcsine. Mathlib
+-- carries none of it --- no orthant probability, no bivariate normal CDF, not even `erf`.
+--
+-- Discharge, with criticisms and the limits of the statement:
+-- `obsidian/SCORE/methodology/CopulaMonotonicityDischarge.md`.
+--
+-- **The first draft of this section committed BJRDischarge's error, and the literature pass
+-- caught it.** It declared `Monotone` over *all* of `ℝ`, including `|rho| > 1` where the
+-- intended object does not exist, and it tied `bivariateOrthant` to nothing --- so a constant
+-- function satisfied both axioms and the pair asserted almost nothing. Exactly the failure the
+-- comment above it was citing. Repaired: monotonicity is now `MonotoneOn` the closed
+-- correlation interval, and two characterizing axioms pin the interpretation at the two
+-- points where it is known in closed form. `collapse_at_comonotone` then *derives* the §RV-F
+-- Fréchet upper bound from them, which is the check that they describe the right object.
+--
+-- Still deliberately NOT asserted: any claim that the Gaussian copula is the right dependence
+-- family. It is not implied by anything about verification mechanisms, and the family silently
+-- fixes the higher-order structure that §RV-D's 2-additive truncation drops.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Opaque: the standard normal CDF. Mathlib has no `erf` and no Gaussian CDF, so this
+    cannot currently be defined here (checked against the pinned mathlib and master). -/
+axiom stdNormalCDF : ℝ → ℝ
+
+/-- Opaque: the standard bivariate normal orthant probability `P(Z₁ ≤ a, Z₂ ≤ b)` at
+    correlation `ρ`, as the generator's copula induces it. -/
+axiom bivariateOrthant : ℝ → ℝ → ℝ → ℝ
+
+/-- **Characterizing axiom 1 --- independence at `ρ = 0`.** Without this the symbol is
+    unconstrained and the monotonicity axiom below says nothing about a joint distribution. -/
+axiom bivariateOrthant_indep (a b : ℝ) :
+    bivariateOrthant a b 0 = stdNormalCDF a * stdNormalCDF b
+
+/-- **Characterizing axiom 2 --- the comonotone endpoint.** At `ρ = 1` the orthant probability
+    attains the Fréchet upper bound `min` of the marginals. -/
+axiom bivariateOrthant_comonotone (a b : ℝ) :
+    bivariateOrthant a b 1 = min (stdNormalCDF a) (stdNormalCDF b)
+
+/-- **Monotonicity in the correlation (imported, not proved).** On the closed correlation
+    interval --- and only there; outside it the object is undefined. This is the assumption that
+    makes the generator's `latent_correlation` a *dependence knob* rather than an arbitrary
+    parameter. Route: Plackett's identity gives `∂Φ₂/∂ρ = φ₂ > 0` on `|ρ| < 1`, with the
+    endpoints by continuity. -/
+axiom bivariateOrthant_monotoneOn (a b : ℝ) :
+    MonotoneOn (fun ρ : ℝ => bivariateOrthant a b ρ) (Set.Icc (-1 : ℝ) 1)
+
+/-- **The generator's declared knob moves the measured statistic the right way.** Composing
+    the import with §RV-D's arithmetic: at fixed marginals, raising the copula correlation
+    across the admissible interval cannot lower the redundancy-collapse `Δ`. This is the
+    property D1 relies on and previously only sampled. -/
+theorem collapse_mono_in_corr (zj zk cj ck : ℝ) :
+    MonotoneOn (fun ρ : ℝ => bivariateOrthant zj zk ρ - cj * ck) (Set.Icc (-1 : ℝ) 1) :=
+  fun _ ha _ hb h => sub_le_sub_right (bivariateOrthant_monotoneOn zj zk ha hb h) _
+
+/-- **Consistency check: the comonotone limit is exactly §RV-F's Fréchet upper bound on `Δ`.**
+    Derived from the characterizing axioms plus the proved `frechetCollapseHi`, so the imported
+    symbol is pinned to an object the rest of the layer already describes. An axiom that could
+    not do this would be describing something else. -/
+theorem collapse_at_comonotone (a b : ℝ) :
+    bivariateOrthant a b 1 - stdNormalCDF a * stdNormalCDF b
+      = frechetCollapseHi (stdNormalCDF a) (stdNormalCDF b) := by
+  rw [bivariateOrthant_comonotone]
+  unfold frechetCollapseHi frechetJointHi
+  ring
+
+
+-- ════════════════════════════════════════════════════════════════
 -- §PS-U2. ETHOS U2 SPECIALIZATION --- EpistemicCommunity as an A-actor-
 -- scoped HOAState AND EpistemicInstitution as a Σ-actor (Present-Domain
 -- → Present-Formal); together they formalize the dual-stratum framing.
