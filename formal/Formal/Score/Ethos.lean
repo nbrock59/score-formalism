@@ -619,6 +619,102 @@ theorem frechet_width_zero_of_dormant {ck : ℝ} (h0 : 0 ≤ ck) (h1 : ck ≤ 1)
 
 
 -- ════════════════════════════════════════════════════════════════
+-- §RV-I. IDENTIFIABILITY --- can P-1b'-i and P-1b'-iii dissociate?
+--
+-- Issue #640's D4 asks where the two RQ-1b predictions are indistinguishable. Per the
+-- crosswalk (PI-ratified 2026-07-28) they are **P-1b'-i** (some pairwise redundancy
+-- collapse is significantly positive) and **P-1b'-iii** (the fitted-capacity assurance
+-- `T_fit` is distinguishable from the flat-product prediction).
+--
+-- D4 was scoped as a sweep. It does not need one: the relation is an identity, and the
+-- identity settles the question for every parameter value at once. Written at n = 3, the
+-- smallest arity where the 2-additive truncation bites.
+--
+-- `T_fit` is the 2-additive capacity's assurance at the full set: singletons plus pairwise
+-- Möbius mass. With `m_fit = m_indep - Δ` (§RV-D) that gives
+--
+--     ΔT  =  T_fit - T_flat  =  (2-additive truncation error)  -  Σ Δ
+--
+-- and the truncation error is `-abc`, a function of the **marginals alone**. Two
+-- consequences, both proved below, and both bearing on whether RQ-1b's re-specified
+-- predictions are separately falsifiable.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Independent-OR assurance at n = 3 --- the flat-product prediction P-1b'-iii compares to. -/
+def assuranceIndep3 (a b c : ℝ) : ℝ := 1 - (1 - a) * (1 - b) * (1 - c)
+
+/-- The 2-additive capacity's assurance at the full set: singletons plus pairwise Möbius,
+    with every pair at its independence reference. -/
+def assurance2Additive3 (a b c : ℝ) : ℝ := a + b + c - (a * b + a * c + b * c)
+
+/-- The fitted assurance: the same, with each pair's collapse subtracted (`m_fit = m_indep - Δ`). -/
+def assuranceFitted3 (a b c dab dac dbc : ℝ) : ℝ :=
+  assurance2Additive3 a b c - (dab + dac + dbc)
+
+/-- **The truncation error is `-abc`** --- the third-order Möbius mass a 2-additive fit omits,
+    signed. Consistent with `tripleMobiusIndep_eq`, which gives that mass as `+abc`. -/
+theorem truncation_error_eq (a b c : ℝ) :
+    assurance2Additive3 a b c - assuranceIndep3 a b c = -(a * b * c) := by
+  unfold assurance2Additive3 assuranceIndep3; ring
+
+/-- **`ΔT` is affine in the sum of the collapses**, with an offset fixed by the marginals. -/
+theorem deltaT_eq (a b c dab dac dbc : ℝ) :
+    assuranceFitted3 a b c dab dac dbc - assuranceIndep3 a b c
+      = -(a * b * c) - (dab + dac + dbc) := by
+  unfold assuranceFitted3 assurance2Additive3 assuranceIndep3; ring
+
+/-- **P-1b'-iii fires on a perfectly independent corpus.** With every collapse zero --- the
+    state ETHOS's theory calls a *healthy* infosphere --- `ΔT = -abc`, strictly negative
+    whenever the three marginals are positive. So a nonzero `ΔT` is not evidence of captured
+    structure: the 2-additive truncation alone produces one. -/
+theorem deltaT_nonzero_at_independence {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+    assuranceFitted3 a b c 0 0 0 - assuranceIndep3 a b c < 0 := by
+  rw [deltaT_eq]
+  have : 0 < a * b * c := by positivity
+  linarith
+
+/-- **The two predictions cannot dissociate.** At fixed marginals, `T_fit` determines the
+    *total* collapse and nothing else: two collapse profiles give the same fitted assurance
+    exactly when their sums agree. So P-1b'-iii carries no information about the interaction
+    structure that P-1b'-i does not already carry --- it is a coarsening of it, not an
+    independent test. -/
+theorem deltaT_determines_collapse_sum (a b c d1 d2 d3 e1 e2 e3 : ℝ) :
+    assuranceFitted3 a b c d1 d2 d3 = assuranceFitted3 a b c e1 e2 e3
+      ↔ d1 + d2 + d3 = e1 + e2 + e3 := by
+  unfold assuranceFitted3 assurance2Additive3
+  constructor <;> intro h <;> linarith
+
+/-- **P-1b'-iii's falsifier is unreachable under capture.** Its falsifier is `T_fit`
+    statistically indistinguishable from the flat product, i.e. `ΔT = 0`. But with every
+    collapse nonnegative --- which is what capture means (§3a: `Δ ≥ 0` under capture) --- `ΔT`
+    is bounded strictly away from zero by the truncation error alone:
+
+        ΔT = -abc - Σ Δ  ≤  -abc  <  0.
+
+    So no captured corpus can trigger the falsifier. It can be triggered only by an
+    *anti-captured* corpus whose total collapse is negative and of the right magnitude, or by
+    a sample too noisy to resolve `abc`. The first is not the alternative RQ-1b is testing
+    against and the second is a failure of power, not of structure --- which is the entailment
+    pattern the pre-lock audit found in the *original* P-1b-i/ii/iii, recurring here in the
+    re-specified P-1b'-iii. -/
+theorem deltaT_neg_of_nonneg_collapses {a b c dab dac dbc : ℝ}
+    (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
+    (h1 : 0 ≤ dab) (h2 : 0 ≤ dac) (h3 : 0 ≤ dbc) :
+    assuranceFitted3 a b c dab dac dbc - assuranceIndep3 a b c < 0 := by
+  rw [deltaT_eq]
+  have : 0 < a * b * c := by positivity
+  linarith
+
+/-- **And the coarsening is lossy in the direction that matters.** P-1b'-i is a claim about
+    *which* pairs collapse --- section 4 requires the collapse "concentrated on the pairs F0-11
+    section 5 flags as capture-carriers". `T_fit` sees only the total, so it cannot distinguish
+    a carrier-concentrated profile from a diffuse one of equal sum. -/
+theorem fitted_assurance_blind_to_concentration (a b c d : ℝ) :
+    assuranceFitted3 a b c d d d = assuranceFitted3 a b c (3 * d) 0 0 := by
+  unfold assuranceFitted3 assurance2Additive3; ring
+
+
+-- ════════════════════════════════════════════════════════════════
 -- §PS-U2. ETHOS U2 SPECIALIZATION --- EpistemicCommunity as an A-actor-
 -- scoped HOAState AND EpistemicInstitution as a Σ-actor (Present-Domain
 -- → Present-Formal); together they formalize the dual-stratum framing.
