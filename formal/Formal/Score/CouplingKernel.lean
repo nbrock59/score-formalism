@@ -360,4 +360,214 @@ theorem no_giant_of_dimensionwise_budget {P : PopulationSequence} {D : Type*}
     exact spectralNorm_sum_le s (fun d => (K d).kernel n)
   exact not_lt.mpr (hle.trans hbudget)
 
+-- ════════════════════════════════════════════════════════════════
+-- §CK6. THE FINITE-TYPE CONTRACT -- PLANTED PARTITION
+-- The closed forms `src/score/coupling.py` returns as theory constants,
+-- proved against `spectralNorm` (BJR Mechanism Amendment Proposal §6,
+-- "hoist" row, 2026-07-31): the Python generator/estimator and these
+-- theorems are the two faces of the same finite-type kernel. `B` blocks
+-- of equal measure 1/B with within-intensity `w` and between-intensity
+-- `b` induce the type-level operator matrix with diagonal `w/B` and
+-- off-diagonal `b/B`; its operator norm is the Perron value
+-- `(w + (B-1)·b)/B`. The `b = w` slice is Erdős–Rényi, where the value
+-- collapses to the mean-coupling scalar -- the validity domain of
+-- rung-1 summaries like `Core.lean`'s `aggregateLocalWeight`.
+-- ════════════════════════════════════════════════════════════════
+
+/-- Coordinates of the operator: `T_κ` acts by row-times-vector. -/
+theorem kernelOp_apply_coord (κ : CouplingKernel V) (x : EuclideanSpace ℝ V)
+    (i : V) : kernelOp κ x i = ∑ j, κ i j * x j := rfl
+
+/-- The kernel-to-operator map is additive (binary form of `kernelOp_sum`). -/
+theorem kernelOp_add (κ₁ κ₂ : CouplingKernel V) :
+    kernelOp (κ₁ + κ₂) = kernelOp κ₁ + kernelOp κ₂ :=
+  map_add (Matrix.toEuclideanCLM (𝕜 := ℝ)) κ₁ κ₂
+
+/-- The all-ones kernel: unit coupling propensity between every pair. -/
+def onesKernel (V : Type*) [Fintype V] : CouplingKernel V :=
+  Matrix.of fun _ _ => (1 : ℝ)
+
+omit [DecidableEq V] in
+theorem onesKernel_isCouplingKernel : IsCouplingKernel (onesKernel V) :=
+  ⟨by ext i j; simp [onesKernel], fun _ _ => zero_le_one⟩
+
+/-- The criticality statistic of the all-ones kernel is the population size:
+    attained on the constant vector, bounded above by Cauchy–Schwarz. -/
+theorem spectralNorm_onesKernel [Nonempty V] :
+    spectralNorm (onesKernel V) = (Fintype.card V : ℝ) := by
+  classical
+  have hB0 : (0 : ℝ) < (Fintype.card V : ℝ) := by exact_mod_cast Fintype.card_pos
+  have happly : ∀ (x : EuclideanSpace ℝ V) (i : V),
+      kernelOp (onesKernel V) x i = ∑ j, x j := by
+    intro x i
+    rw [kernelOp_apply_coord]
+    simp [onesKernel]
+  refine le_antisymm ?_ ?_
+  · refine ContinuousLinearMap.opNorm_le_bound _ hB0.le fun x => ?_
+    have hsq : ‖kernelOp (onesKernel V) x‖ ^ 2
+        ≤ ((Fintype.card V : ℝ) * ‖x‖) ^ 2 := by
+      rw [EuclideanSpace.real_norm_sq_eq]
+      have hcs : (∑ j, x j) ^ 2 ≤ (Fintype.card V : ℝ) * ∑ j, (x j) ^ 2 := by
+        simpa using
+          sq_sum_le_card_mul_sum_sq (s := Finset.univ) (f := fun j : V => x j)
+      calc ∑ i, (kernelOp (onesKernel V) x i) ^ 2
+          = (Fintype.card V : ℝ) * (∑ j, x j) ^ 2 := by
+            simp [happly x, Finset.sum_const, nsmul_eq_mul]
+        _ ≤ (Fintype.card V : ℝ) * ((Fintype.card V : ℝ) * ∑ j, (x j) ^ 2) :=
+            mul_le_mul_of_nonneg_left hcs hB0.le
+        _ = ((Fintype.card V : ℝ) * ‖x‖) ^ 2 := by
+            rw [mul_pow, EuclideanSpace.real_norm_sq_eq]; ring
+    exact (sq_le_sq₀ (norm_nonneg _) (by positivity)).mp hsq
+  · -- attained on the constant vector
+    set u : EuclideanSpace ℝ V := (WithLp.toLp 2) (fun _ : V => (1 : ℝ)) with hu
+    have hui : ∀ i : V, u i = 1 := fun _ => rfl
+    have hunorm : ‖u‖ = Real.sqrt (Fintype.card V : ℝ) := by
+      rw [EuclideanSpace.norm_eq]
+      simp [hui]
+    have hupos : 0 < ‖u‖ := by
+      rw [hunorm]
+      exact Real.sqrt_pos.mpr hB0
+    have hTu : kernelOp (onesKernel V) u = (Fintype.card V : ℝ) • u := by
+      ext i
+      rw [happly u i]
+      simp [hui]
+    have h := (kernelOp (onesKernel V)).le_opNorm u
+    rw [hTu, norm_smul, Real.norm_eq_abs, abs_of_nonneg hB0.le] at h
+    exact le_of_mul_le_mul_right h hupos
+
+/-- The finite-type planted-partition kernel over a `B = |V|`-type ground
+    space of equal block measures: within-intensity `w`, between-intensity
+    `b`, so the type-level operator entry is `w/B` on the diagonal and `b/B`
+    off it. `src/score/coupling.py::planted_partition_intensities` samples
+    graphs from exactly this kernel. -/
+noncomputable def plantedPartitionKernel (V : Type*) [Fintype V] [DecidableEq V]
+    (w b : ℝ) : CouplingKernel V :=
+  Matrix.of fun i j =>
+    if i = j then w / (Fintype.card V : ℝ) else b / (Fintype.card V : ℝ)
+
+theorem plantedPartitionKernel_isCouplingKernel {w b : ℝ}
+    (hw : 0 ≤ w) (hb : 0 ≤ b) :
+    IsCouplingKernel (plantedPartitionKernel V w b) := by
+  constructor
+  · ext i j
+    by_cases h : i = j <;> simp [plantedPartitionKernel, h, eq_comm]
+  · intro i j
+    dsimp [plantedPartitionKernel]
+    split <;> positivity
+
+/-- Decomposition into the two kernels whose norms are already known. -/
+theorem plantedPartitionKernel_eq (w b : ℝ) :
+    plantedPartitionKernel V w b
+      = ((w - b) / (Fintype.card V : ℝ)) • (1 : CouplingKernel V)
+        + (b / (Fintype.card V : ℝ)) • onesKernel V := by
+  ext i j
+  rcases eq_or_ne i j with h | h
+  · subst h
+    simp only [plantedPartitionKernel, onesKernel, Matrix.of_apply, if_true,
+      Matrix.add_apply, Matrix.smul_apply, Matrix.one_apply_eq, smul_eq_mul]
+    ring
+  · simp only [plantedPartitionKernel, onesKernel, Matrix.of_apply, if_neg h,
+      Matrix.add_apply, Matrix.smul_apply, Matrix.one_apply_ne h, smul_eq_mul]
+    ring
+
+/-- **The finite-type contract.** For `0 ≤ b ≤ w` the criticality statistic
+    of the planted-partition kernel is its Perron value `(w + (B-1)·b)/B`:
+    bounded above by subadditivity over the decomposition, attained on the
+    constant vector. This is the closed form
+    `src/score/coupling.py::planted_partition_spectral_norm` returns; the
+    generator and the estimator meet in this equation. -/
+theorem spectralNorm_plantedPartition [Nonempty V] {w b : ℝ}
+    (hb : 0 ≤ b) (hbw : b ≤ w) :
+    spectralNorm (plantedPartitionKernel V w b)
+      = (w + ((Fintype.card V : ℝ) - 1) * b) / (Fintype.card V : ℝ) := by
+  classical
+  have hB0 : (0 : ℝ) < (Fintype.card V : ℝ) := by exact_mod_cast Fintype.card_pos
+  have hBne : (Fintype.card V : ℝ) ≠ 0 := hB0.ne'
+  have hwb : (0 : ℝ) ≤ w - b := sub_nonneg.mpr hbw
+  -- the row sum every coordinate of the constant vector sees
+  have hrow : ∀ i : V, ∑ j, plantedPartitionKernel V w b i j
+      = (w + ((Fintype.card V : ℝ) - 1) * b) / (Fintype.card V : ℝ) := by
+    intro i
+    have hsplit : ∑ j, plantedPartitionKernel V w b i j
+        = w / (Fintype.card V : ℝ)
+          + ((Fintype.card V : ℝ) - 1) * (b / (Fintype.card V : ℝ)) := by
+      rw [← Finset.add_sum_erase Finset.univ _ (Finset.mem_univ i)]
+      have h1 : plantedPartitionKernel V w b i i = w / (Fintype.card V : ℝ) := by
+        simp [plantedPartitionKernel]
+      have h2 : ∑ j ∈ Finset.univ.erase i, plantedPartitionKernel V w b i j
+          = ((Fintype.card V : ℝ) - 1) * (b / (Fintype.card V : ℝ)) := by
+        have hval : ∀ j ∈ Finset.univ.erase i, plantedPartitionKernel V w b i j
+            = b / (Fintype.card V : ℝ) := by
+          intro j hj
+          have hij : i ≠ j := (Finset.ne_of_mem_erase hj).symm
+          simp [plantedPartitionKernel, hij]
+        rw [Finset.sum_congr rfl hval, Finset.sum_const, nsmul_eq_mul,
+            Finset.card_erase_of_mem (Finset.mem_univ i), Finset.card_univ,
+            Nat.cast_sub Fintype.card_pos, Nat.cast_one]
+      rw [h1, h2]
+    rw [hsplit, add_div, mul_div_assoc]
+  refine le_antisymm ?_ ?_
+  · -- subadditive upper bound over the decomposition
+    rw [plantedPartitionKernel_eq]
+    have hadd : spectralNorm
+        (((w - b) / (Fintype.card V : ℝ)) • (1 : CouplingKernel V)
+          + (b / (Fintype.card V : ℝ)) • onesKernel V)
+        ≤ spectralNorm (((w - b) / (Fintype.card V : ℝ)) • (1 : CouplingKernel V))
+          + spectralNorm ((b / (Fintype.card V : ℝ)) • onesKernel V) := by
+      unfold spectralNorm
+      rw [kernelOp_add]
+      exact norm_add_le _ _
+    refine hadd.trans ?_
+    rw [spectralNorm_smul, spectralNorm_smul, spectralNorm_one,
+        spectralNorm_onesKernel,
+        abs_of_nonneg (div_nonneg hwb hB0.le),
+        abs_of_nonneg (div_nonneg hb hB0.le)]
+    have hR : w + ((Fintype.card V : ℝ) - 1) * b
+        = (w - b) + (Fintype.card V : ℝ) * b := by ring
+    rw [mul_one, div_mul_cancel₀ _ hBne, hR, add_div,
+        mul_div_cancel_left₀ _ hBne]
+  · -- attained on the constant vector
+    set lam : ℝ := (w + ((Fintype.card V : ℝ) - 1) * b) / (Fintype.card V : ℝ)
+      with hlam
+    have hlam0 : 0 ≤ lam := by
+      have h1 : (1 : ℝ) ≤ (Fintype.card V : ℝ) := by
+        exact_mod_cast Fintype.card_pos
+      have hnum : (0 : ℝ) ≤ w + ((Fintype.card V : ℝ) - 1) * b := by nlinarith
+      exact div_nonneg hnum hB0.le
+    set u : EuclideanSpace ℝ V := (WithLp.toLp 2) (fun _ : V => (1 : ℝ)) with hu
+    have hui : ∀ i : V, u i = 1 := fun _ => rfl
+    have hunorm : ‖u‖ = Real.sqrt (Fintype.card V : ℝ) := by
+      rw [EuclideanSpace.norm_eq]
+      simp [hui]
+    have hupos : 0 < ‖u‖ := by
+      rw [hunorm]
+      exact Real.sqrt_pos.mpr hB0
+    have hTu : kernelOp (plantedPartitionKernel V w b) u = lam • u := by
+      ext i
+      rw [kernelOp_apply_coord]
+      have hcoord : ∑ j, plantedPartitionKernel V w b i j * u j
+          = ∑ j, plantedPartitionKernel V w b i j := by
+        refine Finset.sum_congr rfl fun j _ => ?_
+        rw [hui j, mul_one]
+      rw [hcoord, hrow i]
+      simp [hui]
+    have h := (kernelOp (plantedPartitionKernel V w b)).le_opNorm u
+    rw [hTu, norm_smul, Real.norm_eq_abs, abs_of_nonneg hlam0] at h
+    exact le_of_mul_le_mul_right h hupos
+
+/-- **Rung-1 collapse -- the validity domain of scalar summaries.** On the
+    homogeneous slice `b = w = c` (the Erdős–Rényi slice: every intensity
+    equal), the spectral statistic *is* the mean-coupling scalar `c`. This is
+    exactly where density summaries like `Core.lean`'s `aggregateLocalWeight`
+    read criticality correctly; off this slice the general value
+    `(w + (B-1)·b)/B` decouples from mean density
+    (`exists_dimensionwise_subcritical_jointly_supercritical` is the
+    multi-dimension face of the same decoupling). -/
+theorem spectralNorm_plantedPartition_er_slice [Nonempty V] {c : ℝ}
+    (hc : 0 ≤ c) :
+    spectralNorm (plantedPartitionKernel V c c) = c := by
+  have hB0 : (0 : ℝ) < (Fintype.card V : ℝ) := by exact_mod_cast Fintype.card_pos
+  rw [spectralNorm_plantedPartition hc le_rfl, div_eq_iff hB0.ne']
+  ring
+
 end SCORE

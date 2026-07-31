@@ -357,7 +357,16 @@ axiom Region : Type
     because criticality is a property of the coupling kernel's *spectrum*: two
     regions with equal aggregate weight can lie on opposite sides of the phase
     transition. Retained because effective-vs-census community size is a live
-    POLARIS measurement concern in its own right. -/
+    POLARIS measurement concern in its own right.
+
+    **Validity domain, now formal (BJR proposal M4, 2026-07-31).** The scalar
+    reads criticality correctly exactly on the homogeneous (rung-1 /
+    Erdős–Rényi) slice, where `spectralNorm_plantedPartition_er_slice`
+    (`CouplingKernel.lean` §CK6) proves the spectral statistic collapses to
+    the mean-coupling scalar; off that slice the finite-type value is
+    `spectralNorm_plantedPartition`'s Perron form, which mean density does not
+    determine. The spectral successor is already wired in: `HOA.supercrit`
+    below is the `Supercritical` predicate on the population's kernel. -/
 axiom aggregateLocalWeight : List Agent → Region → CouplingWeight
 
 /-- **An HOA over a finite agent population.** Existence is *supercriticality of
