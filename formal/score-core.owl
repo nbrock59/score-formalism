@@ -345,7 +345,9 @@
 
     <!-- http://score-theory.org/core#CoInscriptionEvent -->
 
-    <owl:Class rdf:about="http://score-theory.org/core#CoInscriptionEvent"/>
+    <owl:Class rdf:about="http://score-theory.org/core#CoInscriptionEvent">
+        <rdfs:comment>The formation event of a Sigma-actor: punctual co-inscription of a founding formal B3 by a nascent collective. An EVENT, not a rate — the distinction is load-bearing, since continuous write-back of an existing inscription toward its readership supplies cohesion and zero separation, while the gated event is constructive. Established dev-layer 2026-08-01 (SO-NS-Stratification, "Stability is not closure"): the event supplies the ORIGIN of the plural B3 fields that pin plural structure (gated crystallization yields mutually obtuse fields without being constructed so); its gate threshold selects whether plurality is captured or consensus ratified; and its founding content must substantially represent the aggregate, giving B2 (x) B2 -> B3 a dynamical warrant. Gated form encoded and TLC-checked in formal/tla/SigmaLifeCycle.tla (FormCoInscribe). See SC-G-27.</rdfs:comment>
+    </owl:Class>
     
 
 
