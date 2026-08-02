@@ -499,9 +499,29 @@
     <owl:Class rdf:about="http://score-theory.org/core#LossFunctionContent">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#B3_Inscription"/>
         <owl:disjointWith rdf:resource="http://score-theory.org/core#TelosBearingContent"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/core#TransducedContent"/>
         <rdfs:comment>B3 content produced via Omega-actor optimization (B1→B3 path). No telos; not subject to Transformation morphism; systematic bias not correctable by social contestation.</rdfs:comment>
     </owl:Class>
-    
+
+
+
+    <!-- http://score-theory.org/core#TransducedContent -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#TransducedContent">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#B3_Inscription"/>
+        <owl:disjointWith rdf:resource="http://score-theory.org/core#TelosBearingContent"/>
+        <rdfs:comment>B3 content produced by a MECHANISM, not an actor: a fixed authored protocol executed without optimization (instrument transduction, sensor telemetry, transactional logging). Not TelosBearing — no B2-grounded Sigma-actor inscribed it, so there is no contestable telos. Not LossFunction — the producer has no loss function and is not S3, so it fails the three-property Omega-actor differentia (SoftwareOntology, "a mechanism more than an actor"). Its distinguishing property is its CORRECTION MODE: error is metrological and correctable by recalibrating the protocol against the B1 referent, where LossFunctionContent has no referent and no party to contest. This is the only provenance class whose error is settled by appeal to B1, which is what makes it the RevisionLoop's verification channel.</rdfs:comment>
+    </owl:Class>
+
+
+
+    <!-- http://score-theory.org/core#SyntheticContent -->
+
+    <owl:Class rdf:about="http://score-theory.org/core#SyntheticContent">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#TransducedContent"/>
+        <rdfs:comment>TransducedContent whose referent is DECLARED rather than found: content emitted by a generative mechanism from a stipulated B1/B2 state (an OSSE nature run). Same producer type as instrument transduction and differing only in referent status, which is precisely why the two are easy to conflate and important to separate — synthetic content is correct by construction, so it cannot be wrong and therefore cannot be caught. A corpus mixing declared-referent and found-referent items has no well-defined correction mode: no procedure decides which items are checkable against the world. Provenance must therefore be recorded at ingest; it cannot be reconstructed afterwards.</rdfs:comment>
+    </owl:Class>
+
 
 
     <!-- http://score-theory.org/core#Morphism -->
@@ -603,7 +623,7 @@
 
     <owl:Class rdf:about="http://score-theory.org/core#TelosBearingContent">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#B3_Inscription"/>
-        <rdfs:comment>B3 content produced via B2→B3 Inscription morphism. Bears a telos — subject to social contestation and the Transformation morphism.</rdfs:comment>
+        <rdfs:comment>B3 content produced via B2→B3 Inscription morphism. Bears a telos — subject to social contestation and the Transformation morphism. Disjoint from LossFunctionContent and TransducedContent; the three provenance classes are pairwise disjoint but NOT declared jointly exhaustive over B3_Inscription.</rdfs:comment>
     </owl:Class>
     
 
