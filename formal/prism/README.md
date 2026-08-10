@@ -353,7 +353,7 @@ order to encode — `activationEnergy` is `none` on this family).
 
 Model ③, connecting **Segment 1** (the HistoricalSlice learning dynamics) and the
 Brock (2026) computational baseline it validates against. A DTMC over an agent's
-position on the honor(System I)↔dignity(System II) ethical axis
+position on the honor(Ethical System I)↔dignity(Ethical System II) ethical axis
 ([[AgentResponseMechanism]] "Path A and Path B"; Segment 1 §§3.2–3.3, 4.5):
 
 - **Path A** (organic vector `u`) — the durable, structural channel. Moves toward
@@ -392,7 +392,7 @@ Segment 1 §4.5's framing.
 - **The multigenerational attractor (Finding 25) — confirmed.** Organic
   commitment reaches the dignity attractor with **probability 1 from every
   starting position** (deep honor to near-dignity), over an expected ~21-step
-  multigenerational timescale. "Starting from any System I majority … all
+  multigenerational timescale. "Starting from any Ethical System I majority … all
   communities converge to dignity-topology dominance regardless of
   within-generation dynamics", run rather than asserted.
 - **Path A durability vs Path B fragility (§§3.2–3.3) — confirmed.** The organic
