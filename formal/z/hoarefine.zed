@@ -22,6 +22,23 @@
 % equivalently as csub + cres >= dissolution (csub >= 0 always).
 %
 % Type-check: & ~\Dev\protocol-formal-template\z\run-czt.ps1 -File .\hoarefine.zed
+%
+% PRIMED-STATE IDIOM (2026-08-11) -- do not "simplify" this back.
+% The three conjectures below bind their after-states with EXPLICIT declarations
+%   \exists asub', aend' : \nat | asub' \leq maxlvl \land aend' \leq 2 * maxlvl \spot ...
+% rather than the shorter decorated schema reference `\exists AHOA' \spot ...`.
+% The two are equivalent in ISO Z -- the explicit form just inlines what AHOA'
+% would contribute (its components and its state invariant) -- but this CZT build
+% does not bind decorated schema REFERENCES: it reports `Undeclared name: AHOA'`
+% and every primed component under it. Decorated names introduced by \Delta bind
+% correctly, which is why AMove/CMove were always clean.
+%
+% This file carried 37 such errors from 2026-07-24 until 2026-08-11 and was
+% reported clean by every run in between, because CztConvert never invoked the
+% typechecker (it printed a hardcoded "OK" string; fixed in
+% protocol-formal-template @ 97eefcb). The obligations below were never
+% type-checked before today. Their MATHEMATICAL content is unchanged by this
+% edit -- only the binding form.
 
 \section{hoarefine parents standard\_toolkit}
 
@@ -128,7 +145,7 @@ is matched by an abstract step re-establishing the retrieve relation.
 Discharge target: Lean.)
 
 \begin{zed}
-  \vdash? \forall AHOA; CMoveF | asub = csub \land aend = cend + cres \spot \exists AHOA' \spot asub' = csub' \land aend' = cend' + cres' \land ( ( aend' = aend \land ( asub' = asub + 1 \lor asub' = asub - 1 ) ) \lor ( asub' = asub \land ( aend' = aend + 1 \lor aend' = aend - 1 ) ) ) \land asub' \geq dissolution \land aend' \geq engagement
+  \vdash? \forall AHOA; CMoveF | asub = csub \land aend = cend + cres \spot \exists asub', aend' : \nat | asub' \leq maxlvl \land aend' \leq 2 * maxlvl \spot asub' = csub' \land aend' = cend' + cres' \land ( ( aend' = aend \land ( asub' = asub + 1 \lor asub' = asub - 1 ) ) \lor ( asub' = asub \land ( aend' = aend + 1 \lor aend' = aend - 1 ) ) ) \land asub' \geq dissolution \land aend' \geq engagement
 \end{zed}
 
 Applicability: wherever the abstract move is enabled, the restricted
@@ -141,5 +158,5 @@ engagement (feedback-engaged concrete states) for full W\&{}D refinement.
 Adjudication: Lean (or a TLC enabledness check).
 
 \begin{zed}
-  \vdash? \forall AHOA; CHOA | asub = csub \land aend = cend + cres \land ( \exists AHOA' \spot ( ( aend' = aend \land ( asub' = asub + 1 \lor asub' = asub - 1 ) ) \lor ( asub' = asub \land ( aend' = aend + 1 \lor aend' = aend - 1 ) ) ) \land asub' \geq dissolution \land aend' \geq engagement ) \spot \exists CHOA' \spot ( ( cend' = cend \land cres' = cres \land ( csub' = csub + 1 \lor csub' = csub - 1 ) ) \lor ( csub' = csub \land cres' = cres \land ( cend' = cend + 1 \lor cend' = cend - 1 ) ) \lor ( csub' = csub \land cend' = cend \land ( cres' = cres + 1 \lor cres' = cres - 1 ) ) ) \land csub' + cres' \geq dissolution \land cend' \geq engagement \land csub' \geq dissolution
+  \vdash? \forall AHOA; CHOA | asub = csub \land aend = cend + cres \land ( \exists asub', aend' : \nat | asub' \leq maxlvl \land aend' \leq 2 * maxlvl \spot ( ( aend' = aend \land ( asub' = asub + 1 \lor asub' = asub - 1 ) ) \lor ( asub' = asub \land ( aend' = aend + 1 \lor aend' = aend - 1 ) ) ) \land asub' \geq dissolution \land aend' \geq engagement ) \spot \exists csub', cend', cres' : \nat | csub' \leq maxlvl \land cend' \leq maxlvl \land cres' \leq maxlvl \spot ( ( cend' = cend \land cres' = cres \land ( csub' = csub + 1 \lor csub' = csub - 1 ) ) \lor ( csub' = csub \land cres' = cres \land ( cend' = cend + 1 \lor cend' = cend - 1 ) ) \lor ( csub' = csub \land cend' = cend \land ( cres' = cres + 1 \lor cres' = cres - 1 ) ) ) \land csub' + cres' \geq dissolution \land cend' \geq engagement \land csub' \geq dissolution
 \end{zed}

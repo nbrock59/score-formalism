@@ -1,4 +1,49 @@
-# formal/z — the Z track: refinement-calculus statements (CZT-typechecked)
+# formal/z — the Z track: refinement-calculus statements (CZT-typechecked, since 2026-08-11)
+
+> **The "CZT-typechecked" label was hollow until 2026-08-11, and is now real.** Building the
+> `make z` gate required measuring what the pipeline actually rejects. It rejected syntax
+> errors and nothing else: an undeclared type (`q : NOSUCHTYPE`) and a type mismatch
+> (`x : \nat` constrained by `x = \{1\}`) each reported *"OK: parsed and type-checked"* and
+> exited 0.
+>
+> **Cause.** `CztConvert.java` obtained the AST with `sm.get(Key<Spec>)`, which dispatches
+> CZT's **parse** command — the typechecker was never invoked — and then printed an
+> unconditional `"OK: parsed and type-checked."` string literal on the strength of a comment
+> reading *"getting the Spec at all implies a pass."* A hardcoded success message for a step
+> that did not run. **Fixed** in the sibling repo (`protocol-formal-template` @ `97eefcb`,
+> branch `fix/czt-actually-typecheck`): it now calls `TypeCheckUtils.typecheck(spec, sm)`,
+> prints each `ErrorAnn` with file/line/column, and exits 1 on a non-empty list. All three
+> constructed cases now fail.
+>
+> **What that immediately exposed, and this is the part that matters:**
+>
+> | file | first verdict under a working typechecker | now |
+> |---|---|---|
+> | `hoamaint.zed` | passes | passes |
+> | `morphisms.zed` | **4 errors** — `InitScore` used bare decorated inclusion `Score'` | fixed, passes |
+> | `hoarefine.zed` | **37 errors** — `Undeclared name: AHOA'`, `CHOA'`, `asub'`, `aend'`, `csub'`, `cend'`, `cres'` | fixed, passes |
+>
+> **All three now type-check** (`make z`, exit 0). One root cause behind every error: **this
+> CZT build does not bind decorated schema *references*.** `\exists AHOA' \spot …` reports
+> `Undeclared name: AHOA'` and then every primed component under it. Decorated names
+> introduced by `\Delta` bind correctly — which is why `AMove`, `CMove` and all five
+> morphism operation schemas were always clean, and why only the initialisation schema and
+> the two conjectures were affected.
+>
+> The repair is an equivalence, not a weakening: `\exists AHOA' \spot P` becomes
+> `\exists asub', aend' : \nat | asub' \leq maxlvl \land aend' \leq 2 * maxlvl \spot P`,
+> inlining exactly what the decorated reference would have contributed — the components and
+> the state invariant. `hoarefine.zed` still reports `conjectures=3`; **no obligation was
+> dropped, and no mathematical content changed.** The idiom is recorded in that file's
+> header so it is not "simplified" back.
+>
+> **What this cost.** `hoarefine.zed` is this track's **"FIRST LIVE ARTIFACT"**, carrying
+> the retrieve relation and the three Woodcock–Davies obligations. It carried 37 type errors
+> from 2026-07-24 to 2026-08-11 and was reported clean by every run in that window. The
+> `init` / `correctness` / `applicability` statuses below were stated against a
+> specification that had never been type-checked. They are now stated against one that has —
+> which validates the statuses' *form*, not their *content*: the TLC and Lean discharge
+> targets are unaffected and still owed.
 
 **Live as of 2026-07-24** — the revisit conditions of the original pilot README fired
 the same day they were written: the refinement thread adopted Z as the statement

@@ -104,12 +104,20 @@ vacuously, which is the check that they are not accidentally
 unsatisfiable.
 
 \begin{schema}{InitScore}
-  Score'
+  Score
 \where
-  b3' = \{\} \\
-  carrier' = \{\} \\
-  b1' = \{\}
+  b3 = \{\} \\
+  carrier = \{\} \\
+  b1 = \{\}
 \end{schema}
+
+Stated unprimed, as an initial-state predicate on Score rather than as a
+state change from nowhere -- matching InitMaint in hoamaint.zed. The
+primed form (Score' with b3' etc.) is what this schema said until
+2026-08-11 and it does NOT typecheck here: CZT binds primed components
+introduced by \Delta, but reports a bare decorated schema inclusion as
+`Undeclared name: Score'`. That was invisible while the typechecker was
+not being invoked at all.
 
 \subsection{Incorporation [IDIOM C]}
 
