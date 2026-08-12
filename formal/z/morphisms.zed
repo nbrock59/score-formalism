@@ -1,0 +1,312 @@
+% morphisms.zed -- Z rendering of the SCORE state and the Incorporation morphism.
+%
+% TIER A pilot (2026-08-11), first two schemas. Scope and stopping condition in the
+% session plan: Z is a DRAFTING INSTRUMENT here, not a vault formality. The schemas live
+% in this file; what enters the vault is (a) a `z:` frontmatter pointer and (b) prose
+% rewritten under the discipline the schema imposed. That division is what keeps this
+% clear of the 2026-07-24 decline recorded in hoamaint.zed ("Z as a broad vault formality
+% does not enter SCORE") -- which was NOT re-read before starting. The PI's stated reason
+% for proceeding without it: the question keeps returning, which is itself evidence the
+% decline did not settle it. Recorded as the actual reason rather than a tidier one.
+%
+% Why the morphisms and not something else. OWL is a classification language (subsumption
+% and disjointness; no state, no operations, no preconditions) and the Lean tier here is
+% largely axiom declarations. Neither has an OPERATION semantics -- and the morphisms are
+% operations. The worked case this file exists to settle: whether "sub-threshold
+% incorporation" is a subclass of Incorporation (OWL's only available shape, and
+% incoherent -- see obsidian/SCORE/agents/PerceptibilityThreshold.md) or a precondition
+% violation. Z has a mandatory precondition slot, so the question cannot be deferred.
+%
+% Mirrors, name for name:
+%   - vault : obsidian/SCORE/morphisms/Morphisms.md, .../agents/PerceptibilityThreshold.md
+%   - OWL   : formal/score-core.owl (core:Incorporation, SC-G-16)
+%   - Lean  : formal/Formal/Score/InscriptionMarket.lean (perceptibilityThreshold, canPerceive)
+%
+% Type-check (CZT toolchain lives in protocol-formal-template/z):
+%   & ~\Dev\protocol-formal-template\z\run-czt.ps1 -File .\morphisms.zed
+%
+% [IDIOM A] state schema, [IDIOM B] init, [IDIOM C] guarded ops,
+% [IDIOM D] characteristic subsets as horizontal schemas -- per protocol-formal-template/z.
+
+\section{morphisms parents standard\_toolkit}
+
+Agents, the items that can occupy a manifold or be inscribed, and the
+physical marks that carry inscriptions.
+
+\begin{zed}
+  [AGENT, ITEM, MARK]
+\end{zed}
+
+The reflexive-transitive doctrinal order of B3RegionGeometry:
+(x \mapsto y) \in dsub reads "x is a doctrinal substrate that y composes
+from" (x \leq_d y). Already Lean-proved in Core.lean (IsRegion,
+region\_substrate\_closed\_and\_graded).
+
+\begin{axdef}
+  dsub : ITEM \rel ITEM
+\where
+  \forall x : ITEM @ (x \mapsto x) \in dsub \\
+  \forall x, y, z : ITEM @
+    (x \mapsto y) \in dsub \land (y \mapsto z) \in dsub \implies (x \mapsto z) \in dsub
+\end{axdef}
+
+The reflexive-depth bar that gates B2-referential inscription
+(DomainTrichotomy: inscribeB1Ref has NO depth precondition -- animals
+inscribe it; only inscribeB2Ref is gated).
+
+\begin{axdef}
+  dbar : \nat
+\end{axdef}
+
+\subsection{State [IDIOM A]}
+
+The SCORE state. Cardinality follows DomainTrichotomy \S{} Cardinality:
+b1 and b3 are shared singletons (one each, internally rich); b2 is an
+agent-indexed family, so it is a TOTAL function on AGENT.
+
+delta is the per-agent perceptibility threshold (FA3); salience is the
+magnitude at which an item would register FOR A GIVEN AGENT -- the pair
+is agent-indexed because delta is per-agent and the filter is
+manifold-determined.
+
+\begin{schema}{Score}
+  b1 : \power MARK \\
+  b2 : AGENT \fun \power ITEM \\
+  b3 : \power ITEM \\
+  carrier : ITEM \pfun MARK \\
+  delta : AGENT \fun \nat \\
+  salience : AGENT \cross ITEM \fun \nat \\
+  presents : MARK \pfun ITEM \\
+  depth : AGENT \fun \nat \\
+  b2ref : \power ITEM
+\where
+  \dom carrier = b3 \\
+  \ran carrier \subseteq b1
+\end{schema}
+
+presents is what a B1 mark presents AS, when taken up by perception --
+the B1-side analogue of an item. It is partial: not every mark presents
+anything. b2ref is the referent typing (Morphisms \S{} Inscription):
+items whose content is about the agent's own manifold, with no B1
+referent. Its complement is the B1-referential floor.
+
+The two invariants are the anti-Platonic commitment (category error 2)
+stated as state, not as prose: every inscription HAS a carrier
+(dom carrier = b3), and every carrier is a mark actually present in b1
+(ran carrier \subseteq b1). B3 is therefore neither free-floating nor
+identified with its carrier -- the map is total onto b3 and into b1, and
+it is not required to be injective, which is multiple realizability.
+
+\subsection{Initial state [IDIOM B]}
+
+Nothing inscribed, no marks, empty manifolds. The invariants hold
+vacuously, which is the check that they are not accidentally
+unsatisfiable.
+
+\begin{schema}{InitScore}
+  Score'
+\where
+  b3' = \{\} \\
+  carrier' = \{\} \\
+  b1' = \{\}
+\end{schema}
+
+\subsection{Incorporation [IDIOM C]}
+
+B3 -> B2. The precondition is the whole point of this file.
+
+Three conjuncts guard it: the item must actually be inscribed (i? \in b3),
+the agent must not already carry it (this is an uptake, not a no-op), and
+the registered magnitude must CLEAR that agent's threshold. The third is
+the one OWL cannot state.
+
+The frame says what incorporation leaves alone: b1, b3 and carrier are
+untouched. Incorporation is a B2-side operation only -- it reads the
+shared substrate without modifying it.
+
+\begin{schema}{Incorporate}
+  \Delta Score \\
+  a? : AGENT \\
+  i? : ITEM
+\where
+  i? \in b3 \\
+  i? \notin b2~a? \\
+  salience(a? \mapsto i?) > delta~a? \\
+  b2' = b2 \oplus \{ a? \mapsto (b2~a?) \cup \{i?\} \} \\
+  b1' = b1 \\
+  b3' = b3 \\
+  carrier' = carrier
+\end{schema}
+
+NOTE -- delta' and salience' are deliberately LEFT UNCONSTRAINED, and
+that is a finding rather than an omission. delta is manifold-determined
+("given current manifold grain"), and this operation changes the
+manifold. So an incorporation may change the incorporating agent's own
+threshold, and may change what any item would subsequently register at.
+The vault states neither. Writing `delta' = delta` here would assert a
+no-feedback claim nobody has made; leaving it loose says only that this
+schema does not determine it. See the open question raised in
+Morphisms.md.
+
+\subsection{The sub-threshold case [IDIOM D]}
+
+The characteristic subset where a delivered item does not clear the
+agent's floor.
+
+\begin{zed}
+  SubThreshold == [ Score; a? : AGENT; i? : ITEM |
+                    i? \in b3 \land salience(a? \mapsto i?) \leq delta~a? ]
+\end{zed}
+
+This is the resolution the file was written for. SubThreshold and
+pre Incorporate are DISJOINT by construction: the third precondition
+conjunct is the negation of SubThreshold's second. So a sub-threshold
+delivery is not an Incorporation that happened weakly -- it is a state in
+which the Incorporation operation is NOT APPLICABLE. There is nothing to
+subclass, which is why the OWL formulation had nowhere to go.
+
+Delivery that fails its precondition still leaves b3 and carrier standing:
+the inscription exists, was carried, and did not land. That is the
+distinction between "no signal, not a weak signal" (Percept) and "the
+mark was never made" -- and it is visible here as the difference between
+a precondition violation and an unsatisfied dom carrier.
+
+\subsection{Perception [IDIOM C]}
+
+B1 -> B2. Structurally the twin of Incorporate: same guard, different
+source. That the two schemas differ ONLY in where the item comes from
+(b1 via presents, vs b3 directly) is DomainTrichotomy \S{} Cardinality's
+"one mechanism on the two shared sources" -- derived here rather than
+asserted.
+
+\begin{schema}{Perceive}
+  \Delta Score \\
+  a? : AGENT \\
+  m? : MARK
+\where
+  m? \in b1 \\
+  m? \in \dom presents \\
+  presents~m? \notin b2~a? \\
+  salience(a? \mapsto presents~m?) > delta~a? \\
+  b2' = b2 \oplus \{ a? \mapsto (b2~a?) \cup \{presents~m?\} \} \\
+  b1' = b1 \\
+  b3' = b3 \\
+  carrier' = carrier \\
+  presents' = presents \\
+  b2ref' = b2ref
+\end{schema}
+
+\subsection{Action [IDIOM C]}
+
+B2 -> B1. Makes a mark and establishes NO carrier -- which is exactly
+what distinguishes it from Inscribe below. Both write to b1; only
+inscription binds the mark to content.
+
+\begin{schema}{Act}
+  \Delta Score \\
+  a? : AGENT \\
+  i? : ITEM \\
+  m! : MARK
+\where
+  i? \in b2~a? \\
+  m! \notin b1 \\
+  b1' = b1 \cup \{m!\} \\
+  b2' = b2 \\
+  b3' = b3 \\
+  carrier' = carrier \\
+  presents' = presents \\
+  b2ref' = b2ref
+\end{schema}
+
+\subsection{Inscription [IDIOM C]}
+
+B2 -> B3, with the referent gate. The b2ref conjunct is the
+SufficientDepth condition: B1-referential inscription is ungated (the B3
+floor -- animals inscribe it), B2-referential inscription requires depth.
+
+\begin{schema}{Inscribe}
+  \Delta Score \\
+  a? : AGENT \\
+  i? : ITEM \\
+  m! : MARK
+\where
+  i? \in b2~a? \\
+  i? \notin b3 \\
+  m! \notin b1 \\
+  i? \in b2ref \implies depth~a? \geq dbar \\
+  b1' = b1 \cup \{m!\} \\
+  b3' = b3 \cup \{i?\} \\
+  carrier' = carrier \cup \{ i? \mapsto m! \} \\
+  b2' = b2 \\
+  presents' = presents \\
+  b2ref' = b2ref
+\end{schema}
+
+FORCED, not chosen: b1' = b1 \cup \{m!\}. The state invariant
+ran carrier \subseteq b1 makes it impossible to write Inscribe WITHOUT
+extending b1 -- drop that conjunct and the schema is unsatisfiable. This
+answers the open "Morphism implication" in B3-Inscription.md: the clean
+B2 -> B3 typing and the B1 mark are not in tension, because the typing
+names the DOMAINS RELATED and the frame names the STATE TOUCHED, and
+those are different questions. Inscription relates B2 to B3 and touches
+B1 on the way. Nothing had to be reconciled; two different things were
+being called the same thing.
+
+\subsection{Transformation [IDIOM C]}
+
+(B2 \cross B3) -> B3. The product morphism: an existing inscription and
+the agent's own holdings are both required inputs.
+
+\begin{schema}{Transform}
+  \Delta Score \\
+  a? : AGENT \\
+  i? : ITEM \\
+  o! : ITEM \\
+  m! : MARK
+\where
+  i? \in b3 \\
+  i? \in b2~a? \\
+  o! \notin b3 \\
+  m! \notin b1 \\
+  (i? \mapsto o!) \in dsub \\
+  \forall x : ITEM @ (x \mapsto o!) \in dsub \implies x \in (b2~a?) \cup \{o!\} \\
+  b1' = b1 \cup \{m!\} \\
+  b3' = b3 \cup \{o!\} \\
+  carrier' = carrier \cup \{ o! \mapsto m! \} \\
+  b2' = b2 \\
+  presents' = presents \\
+  b2ref' = b2ref
+\end{schema}
+
+Three conditions carry TransformationMorphism.md's content:
+
+  (i? \mapsto o!) \in dsub    continuity -- the output composes FROM the
+                              input, which is what "recognizably derived,
+                              not independently generated" means
+
+  \forall x ... \in dsub ...  down-set preservation -- every doctrinal
+                              substrate of the output is already held.
+                              This is the note's own validity criterion
+                              (open question 2, resolved 2026-07-18) as a
+                              PRECONDITION rather than a side condition
+
+  b3' = b3 \cup \{o!\}        the input PERSISTS. "Modifies rather than
+                              replaces" is a frame statement, and this is
+                              it
+
+Two things the schema exposes. First, the down-closure is written against
+b2~a? -- ONE AGENT's holdings -- whereas B3RegionGeometry states it
+against a community region R(C). For a single-agent operation those are
+not the same set, and the note does not say which is meant. Second,
+Transform's frame is identical to Inscribe's; only its preconditions
+differ. That is the formal content of "not reducible to a composition of
+Incorporation and Inscription" (open question 1): the irreducibility is
+entirely in the guard, not in what the operation does to the state.
+
+\subsection{Standing note on the loose components}
+
+delta', salience' and depth' are left UNCONSTRAINED in every operation
+above, for the reason given under Incorporate: all three are
+manifold-determined, and these operations change manifolds. Writing
+`delta' = delta` in five schemas would assert a global no-feedback claim
+that nothing in the vault supports.
