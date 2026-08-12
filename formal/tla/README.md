@@ -60,7 +60,7 @@ not just written down**: each `.cfg` carries an annotation in its comment header
     \* tlc-args: -deadlock  (optional extra TLC flags for this run)
 
 and `scripts/modelcheck_run.py --layer tla --execute-tla` runs every config,
-asserting the actual TLC outcome against its annotation (CI job `tlc-check`).
+asserting the actual TLC outcome against its annotation (CI job `tlc-check`, in `modelcheck-run.yml`).
 A `.cfg` without an `expect:` annotation fails the execute pass, and
 `modelcheck_check.py` warns on it. This closes the cross-module drift risk the
 refinement mappings sharpened: an edit to a base module (`HOA.tla`) can no

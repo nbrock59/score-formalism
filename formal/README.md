@@ -40,10 +40,10 @@ The **model-checking layer** (`tla/`, `spin/`, `prism/`) has its own two-part ga
 since `score_check.py` covers only the Lean/OWL spine:
 
 - `scripts/modelcheck_check.py` — **documentary** (stdlib, always-on CI job
-  `modelcheck-check`): dangling `formal/{tla,spin,prism}` references in docs, models
+  a `spine-check` step): dangling `formal/{tla,spin,prism}` references in docs, models
   undocumented in their layer README, model↔properties pairing.
 - `scripts/modelcheck_run.py` — **execution** (path-gated CI jobs
-  `tlc-/spin-/prism-check`): SANY parses each `.tla`, `spin -a` each `.pml`, PRISM
+  `tlc-/spin-/prism-check` in `modelcheck-run.yml`): SANY parses each `.tla`, `spin -a` each `.pml`, PRISM
   builds each model. Well-formedness only — a legitimate counterexample is not a
   failure. It locates each tool via env override → PATH → known install dirs and
   skips a layer whose tool is absent.
@@ -65,7 +65,7 @@ Runs HermiT headlessly via `owlready2` (which bundles the HermiT jar). It needs 
 finds one automatically: `JAVA_EXE`, then `PATH`, then the JRE **bundled with Protégé**
 (`C:\Program Files\Protege-*\jre`). It reasons over core alone and over core+polaris and
 exits non-zero on any inconsistency or unsatisfiable class. Also runs in CI
-(`.github/workflows/spine-check.yml`, `dl-conformance` job, via `setup-java`).
+(`.github/workflows/owl-check.yml`, `dl-conformance` job, via `setup-java`).
 
 ```
 pip install owlready2

@@ -182,7 +182,11 @@
 
     <owl:Class rdf:about="http://score-theory.org/inscription-market#SubThresholdAction">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Action"/>
-        <rdfs:comment>FA3: an action morphism whose B1 modification magnitude is at or below the target agent's perceptibility threshold delta_i. Presents as unmodified ground truth from within the target's B2. Structurally undetectable from a first-order manifold regardless of attentiveness — a categorical distinction from ordinary hidden influence. The magnitude comparison and the structural-undetectability result are DL-inexpressible; carried in Lean (VC-IL-2).</rdfs:comment>
+        <rdfs:comment>FA3: an action morphism whose B1 modification magnitude is at or below the perceptibility threshold delta_i of EVERY agent it affects. Presents as unmodified ground truth from within those agents' B2. Structurally undetectable from a first-order manifold regardless of attentiveness — a categorical distinction from ordinary hidden influence. The magnitude comparison and the structural-undetectability result are DL-inexpressible; carried in Lean (VC-IL-2).
+
+QUANTIFICATION (corrected 2026-08-11). This comment previously read "the target agent's perceptibility threshold" — a per-target RELATIVE reading, under which one action is sub-threshold for an agent with high delta_i and supra-threshold for an agent with low delta_i, so it would belong to both classes and the disjointness axiom below would be UNSOUND. The universal reading above is the intended one and the axiom is sound under it. Evidence: apply_sub_threshold_steering (src/polaris/core/perceptibility.py) calibrates every modification against max_safe = min(delta_u, delta_v) over the agents party to the edge, i.e. below delta_i for all of them.
+
+MODELLING NOTE. Sub-threshold-ness is irreducibly a RELATION between a modification and an agent — Lean carries it as canPerceive : Agent -> Modification -> Prop with vc_di_2 stated per (agent, modification) pair, and the implementation as is_sub_threshold(magnitude, agent). This unary class is the universally-quantified projection of that relation onto the producing morphism, not the relation itself. It is therefore an approximation of the formal content, deliberately retained. The open modelling question it defers: the property arguably belongs to the COMPOSITE (expression morphism into a shared domain, then registration morphism out of it into an indexed B2) rather than to either leg, since whether a modification clears delta_i is a fact about the round trip and not about the producing morphism alone. Typing a leg is what forces the universal quantification above; typing the composite would not. Not decided here.</rdfs:comment>
     </owl:Class>
 
 
@@ -193,7 +197,11 @@
     <owl:Class rdf:about="http://score-theory.org/inscription-market#SupraThresholdAction">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Action"/>
         <owl:disjointWith rdf:resource="http://score-theory.org/inscription-market#SubThresholdAction"/>
-        <rdfs:comment>FA3: an action morphism whose B1 modification magnitude exceeds the target agent's perceptibility threshold. Perceptible in principle. Standard SCORE action behavior.</rdfs:comment>
+        <rdfs:comment>FA3: an action morphism whose B1 modification magnitude exceeds the perceptibility threshold delta_i of EVERY agent it affects. Perceptible in principle. Standard SCORE action behavior.
+
+QUANTIFICATION (corrected 2026-08-11). Previously phrased relative to "the target agent", as with SubThresholdAction. Under the corrected universal reading the two classes are DISJOINT BUT NOT EXHAUSTIVE: a modification that is supra-threshold for some affected agents and sub-threshold for others belongs to neither, and that middle is deliberately uncovered.
+
+CONSEQUENCE worth knowing before this class is used. The simulation's supra-threshold comparison arm (apply_supra_threshold_steering, src/polaris/core/perceptibility.py) is merely UNCALIBRATED — it applies a fixed strength without checking any delta_i — rather than supra-threshold for all affected agents. It therefore does not instantiate this class; for any agent whose delta_i it happens not to exceed it falls into the uncovered middle. The Experiment 2 "supra-threshold arm" and this OWL class are not the same object, and a reader who assumes they are will over-read the experiment.</rdfs:comment>
     </owl:Class>
 
 
@@ -220,7 +228,12 @@
          this extension. FirstOrderPerceiver is defined as complement of
          SecondOrderPerceiver, so disjointness is entailed. -->
 
-    <!-- FA3: Sub/Supra-threshold partition of Action -->
+    <!-- FA3: Sub/Supra-threshold disjointness on Action.
+         NOT a partition — corrected 2026-08-11. Under the universal reading recorded in
+         the two class comments these are disjoint but NOT exhaustive: a modification
+         supra-threshold for some affected agents and sub-threshold for others is in
+         neither class. The word "partition" here asserted an exhaustiveness the axiom
+         does not carry and the model does not want. -->
     <rdf:Description>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
         <owl:members rdf:parseType="Collection">
