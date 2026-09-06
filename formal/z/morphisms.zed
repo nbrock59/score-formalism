@@ -288,6 +288,59 @@ those are different questions. Inscription relates B2 to B3 and touches
 B1 on the way. Nothing had to be reconciled; two different things were
 being called the same thing.
 
+\subsection{Co-inscription [IDIOM C]}
+
+(B2 \cross B2) -> B3. The Sigma-actor formation morphism. Mirrors
+Sigma.lean SS23 coInscribe, OWL CoInscriptionEvent, and TLA FormCoInscribe;
+absent here until 2026-09-06 (DEF-02), which is what GATE-01 in
+scripts/formalism_check.py now prevents recurring.
+
+Two preconditions carry the content, and both differ from Inscribe.
+
+(1) The depth gate is UNCONDITIONAL on both participants. Inscribe gates on
+depth only for b2-referential items (i? \in b2ref); Lean's coInscribe takes
+SufficientDepth for BOTH agents as explicit arguments regardless of referent,
+so an ill-depthed co-inscription does not elaborate. Rendered here as two
+unconditional conjuncts.
+
+(2) The item is in NEITHER agent's holdings. This is the formal content of
+"content that neither would have produced alone ... cannot be reduced to
+sequential individual B2->B3 inscriptions" (Sigma.lean SS23), and it is what
+the 2026-08-01 creation-rule probe measured: the inscribed field is an
+AGGREGATE (a centroid), present in no single agent's B2, and authorship by
+an individual member destroys plurality. Inscribe REQUIRES i? \in b2~a?;
+CoInscribe requires i? \notin b2~a?. So pre Inscribe and pre CoInscribe are
+DISJOINT for the same agent and item -- the same shape as the
+SubThreshold/pre Incorporate result above, and the reason DEF-03 (Inscribe
+cannot express aggregate authorship) is closed by adding this schema rather
+than by weakening Inscribe.
+
+\begin{schema}{CoInscribe}
+  \Delta Score \\
+  a?, b? : AGENT \\
+  i? : ITEM \\
+  m! : MARK
+\where
+  a? \neq b? \\
+  depth~a? \geq dbar \\
+  depth~b? \geq dbar \\
+  i? \notin b3 \\
+  i? \notin b2~a? \\
+  i? \notin b2~b? \\
+  m! \notin b1 \\
+  b1' = b1 \cup \{m!\} \\
+  b3' = b3 \cup \{i?\} \\
+  carrier' = carrier \cup \{ i? \mapsto m! \} \\
+  b2' = b2 \\
+  presents' = presents \\
+  b2ref' = b2ref
+\end{schema}
+
+The frame matches Inscribe exactly: b1 extended with the mark, b3 with the
+item, carrier binding the two. That is forced by ran carrier \subseteq b1,
+as it is for Inscribe -- co-inscription is inscription in its state
+footprint and differs only in its preconditions.
+
 \subsection{Transformation [IDIOM C]}
 
 (B2 \cross B3) -> B3. The product morphism: an existing inscription and
