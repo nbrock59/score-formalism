@@ -105,8 +105,13 @@ nothing for agent relativity.
 
 Two consequences worth stating so this file is not over-read.
 (a) Do not cite these schemas on HOLONOMY or on STATE IDENTITY. The i != j
-divergence of B2_i -> B3 -> B2_j that GaugeStructure names as its curvature
-candidate has no referent here, by construction rather than by omission.
+divergence of B2_i -> B3 -> B2_j has no referent here, by construction rather
+than by omission. (The curvature reading of that divergence was GaugeStructure's;
+that note was RETIRED 2026-09-06 as refuted -- the B3-mediated map is lossy, so
+it is not an isomorphism between fibres and cannot be a connection. See
+governance/SCORE_Physics_Import_Audit.md section 3a, and MorphismCompleteness
+"The B2 domain is agent-indexed". This paragraph's scope limit stands unchanged:
+it was right for its own reason, independent of that outcome.)
 (b) The vault DOES commit to the qualitative axis in prose and anchors it
 empirically (Percept.md; Homan-Maaike; Boiman-Yeshurun), and no formal layer
 expresses it -- Lean's incorporate permits deformation but no axiom requires
