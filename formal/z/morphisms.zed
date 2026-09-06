@@ -86,7 +86,35 @@ manifold-determined.
 
 presents is what a B1 mark presents AS, when taken up by perception --
 the B1-side analogue of an item. It is partial: not every mark presents
-anything. b2ref is the referent typing (Morphisms \S{} Inscription):
+anything.
+
+SCOPE, and it is stronger than "not modelled" (DEF-01/R2', 2026-09-06).
+presents is NOT AGENT-INDEXED: its type is MARK -/-> ITEM, so every agent
+perceiving the same mark obtains the same item. Combined with b2/b3 sharing
+one ITEM sort, this means the schemas here model the MAGNITUDE gate only --
+salience against delta -- and the QUALITATIVE filter is not merely left open
+by this file, it is UNMODELLABLE IN THIS STATE. What the schema licenses saying is
+narrower than a prescription: for two agents to obtain different content from
+one mark, the content obtained must DEPEND ON THE AGENT, and nothing in this
+state can. Agent-indexing presents (AGENT x MARK -/-> ITEM) is the cheapest
+route, not the only one -- an agent-relative construal step over an
+agent-independent presents would also serve, and which is right is open.
+Either way it is a different change from splitting ITEM into B2- and
+B3-content sorts: the sort split addresses the type confusion and does
+nothing for agent relativity.
+
+Two consequences worth stating so this file is not over-read.
+(a) Do not cite these schemas on HOLONOMY or on STATE IDENTITY. The i != j
+divergence of B2_i -> B3 -> B2_j that GaugeStructure names as its curvature
+candidate has no referent here, by construction rather than by omission.
+(b) The vault DOES commit to the qualitative axis in prose and anchors it
+empirically (Percept.md; Homan-Maaike; Boiman-Yeshurun), and no formal layer
+expresses it -- Lean's incorporate permits deformation but no axiom requires
+it, and OWL has no operation semantics. The spine's position is therefore
+UNDECIDED rather than settled; revisit when S1-A3 v2 is scoped, since that
+amendment covers the Segment 1 spec, the engine and the Master Glossary and
+does not mention Z, Lean or OWL. See core/overview/POLARIS_Overview.md
+Appendix C for the ledger gap this leaves. b2ref is the referent typing (Morphisms \S{} Inscription):
 items whose content is about the agent's own manifold, with no B1
 referent. Its complement is the B1-referential floor.
 
