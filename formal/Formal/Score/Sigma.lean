@@ -36,9 +36,16 @@ Vault: obsidian/SCORE/emergence/mechanism/SigmaActorArchitecture.md
 OWL:   formal/score-core.owl §§ SigmaActor, CoInscriptionEvent,
        TelosBearingContent, SigmaInterventionClass, coupledTo family.
 
-Session 2 (deferred): disjointness lemmas witnessing the A/Σ/Ω trichotomy,
-monotonicity lemmas over the coupling layers, peer-module frontmatter updates
-advertising Σ-actor Lean parity, and end-to-end compile-verify.
+Session 2 -- reviewed 2026-09-12, and two of the four items were stale:
+  * disjointness lemmas witnessing the A/Σ/Ω trichotomy -- DONE, §28
+    `actorType_trichotomy_disjoint`. Was a false blocker: constructor distinctness
+    is free in Lean, so the proof is `by decide`.
+  * end-to-end compile-verify -- DONE; `lake build` is clean and `Sigma.lean` is
+    reachable from the build root (the `unbuilt-lean` check gates this).
+  * peer-module frontmatter advertising Σ-actor Lean parity -- appears DONE; the
+    AGORA/ATLAS application notes reference `SigmaActorArchitecture`.
+  * monotonicity lemmas over the coupling layers -- STILL OPEN. `CouplingKernel.lean`
+    proves subadditivity (`spectralNorm_sum_le`), which is not monotonicity.
 -/
 
 namespace SCORE
@@ -199,8 +206,11 @@ axiom SigmaActorArchitecture.carrier : SigmaActorArchitecture → SigmaActor
 -- §28. ACTOR-TYPE TRICHOTOMY TAG (A / Σ / Ω)
 -- OWL: `AAgent ⊔ OmegaActor ⊔ SigmaActor` all-disjoint. The three actor kinds
 -- partition the actor stratum. Constructors are pairwise-distinct by Lean
--- construction; the corresponding disjointness lemma discharging the OWL
--- AllDisjoint axiom is Session 2. Constructors named `AAgent`/`Sigma`/`Omega`
+-- construction, and `actorType_trichotomy_disjoint` below now records that,
+-- discharging the OWL AllDisjoint axiom (2026-09-12; this was listed as
+-- "Session 2" work in the module header, which overstated it -- constructor
+-- distinctness is free in Lean and the proof is `by decide`).
+-- Constructors named `AAgent`/`Sigma`/`Omega`
 -- (not `SigmaActor`/`OmegaActor`) to avoid shadowing the top-level
 -- `SigmaActorArchitecture` structure name.
 -- ════════════════════════════════════════════════════════════════
@@ -213,6 +223,24 @@ inductive ActorType : Type where
   | Sigma  : ActorType
   | Omega  : ActorType
 deriving DecidableEq, Repr
+
+/-- The A/Σ/Ω trichotomy is pairwise disjoint -- the Lean counterpart of
+    `AAgent ⊔ OmegaActor ⊔ SigmaActor` all-disjoint in `score-core.owl`.
+
+    Recorded 2026-09-12. The module header deferred this to "Session 2" while the
+    §28 banner simultaneously observed the constructors are "pairwise-distinct by
+    Lean construction" -- both true, which made the deferral a **false blocker**: an
+    obligation is not outstanding when the type construction already discharges it.
+    `deriving DecidableEq` makes the proof `by decide`.
+
+    Stated rather than left implicit because `scripts/owl_lean_check.py` looks for a
+    Lean counterpart to each core OWL disjointness axiom, and an obligation
+    discharged only by construction is invisible to that check. -/
+theorem actorType_trichotomy_disjoint :
+    ActorType.AAgent ≠ ActorType.Sigma ∧
+    ActorType.AAgent ≠ ActorType.Omega ∧
+    ActorType.Sigma  ≠ ActorType.Omega := by
+  decide
 
 -- ════════════════════════════════════════════════════════════════
 -- §29. Σ-ACTOR LIFE-CYCLE PHASES (CLOSURE-DERIVED)
