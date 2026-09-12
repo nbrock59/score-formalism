@@ -1658,7 +1658,8 @@ def PopulationLifeCyclePhaseHomogeneous {r : Region} (s : HOAState r) : Prop :=
 /-- The shape/typology of an agent's B₂ manifold (see vault:
     `obsidian/SCORE/agents/ManifoldShapes.md`). Abstract opaque type;
     concrete peers may parameterize by a specific typology (e.g.
-    Lefebvre-style dyadic vs triadic reflexive structures). -/
+    Lefebvre-style dyadic vs triadic reflexive structures). 
+    **axiom-kind:** carrier -/
 axiom ManifoldShape : Type
 
 /-- **Agent-to-ManifoldShape association** (Hook 3 sibling prerequisite). -/
@@ -1711,12 +1712,14 @@ axiom MemberTurnoverMove {r : Region} : HOAState r → HOAState r → Prop
     Peer implementations calibrate. -/
 axiom turnoverDecayFactor : ℝ
 
-/-- The decay factor is non-negative. -/
+/-- The decay factor is non-negative. 
+    **axiom-kind:** empirical -/
 axiom turnoverDecayFactor_pos : 0 ≤ turnoverDecayFactor
 
 /-- The decay factor is strictly less than 1 — every turnover strictly
     erodes ceiling residue (in the worst case). This is what makes the
-    geometric-decay theorem below reach zero in the limit. -/
+    geometric-decay theorem below reach zero in the limit. 
+    **axiom-kind:** empirical -/
 axiom turnoverDecayFactor_lt_one : turnoverDecayFactor < 1
 
 /-- **Erosion axiom** (Hysteresis.md § 3.2). Each member-turnover event
@@ -1740,9 +1743,19 @@ axiom memberTurnoverMove_preserves_formalB3
 
 /-- **Ceiling-residue erodes under turnover.** After `i` turnovers,
     ceiling residue is at most `turnoverDecayFactor^i` times its
-    initial value. Since `turnoverDecayFactor < 1`, this decays
-    geometrically to zero in the limit — formalizing "ceiling residue
-    does not survive turnover" as a rate-of-decay claim. -/
+    initial value.
+
+    This is a BOUND, and only a bound: it holds for any `turnoverDecayFactor`,
+    including values `≥ 1`, where the right-hand side grows. The decay claim
+    itself is `ceilingResidue_tendsto_zero_under_turnover` below, which is what
+    consumes `turnoverDecayFactor_lt_one`.
+
+    (Corrected 2026-09-12. This docstring read "Since `turnoverDecayFactor < 1`,
+    this decays geometrically to zero in the limit", while `#print axioms` showed
+    the theorem did not depend on `turnoverDecayFactor_lt_one` at all — the
+    conclusion lived in the prose and the statement delivered a bound. Same
+    species as the deleted `rhythmLowersSeedSize`: the formal layer credited with
+    more than it proved.) -/
 theorem ceilingResidue_erodes_under_turnover
     {r : Region} (trace : ℕ → HOAState r)
     (h_turnover : ∀ i, MemberTurnoverMove (trace i) (trace (i+1))) :
@@ -1761,6 +1774,33 @@ theorem ceilingResidue_erodes_under_turnover
               * (turnoverDecayFactor^n * (trace 0).ceilingResidue.val) :=
               mul_le_mul_of_nonneg_left ih h_decay_nn
         _ = turnoverDecayFactor^(n+1) * (trace 0).ceilingResidue.val := by ring
+
+/-- **Ceiling residue decays to zero under sustained turnover.** The decay claim
+    proper: under an unbroken turnover trace, ceiling residue tends to zero.
+
+    This is what "ceiling residue does not survive turnover" actually asserts, and
+    it is the only result here that consumes `turnoverDecayFactor_lt_one` — which
+    is the point. The bound above is true of any factor; strictly-less-than-one is
+    what turns a bound into attrition.
+
+    The squeeze needs both ends, and both are already present: `CouplingWeight.pos`
+    supplies `0 ≤ residue` for the lower bound, and `ceilingResidue_erodes_under_turnover`
+    supplies the upper one. Added 2026-09-12. -/
+theorem ceilingResidue_tendsto_zero_under_turnover
+    {r : Region} (trace : ℕ → HOAState r)
+    (h_turnover : ∀ i, MemberTurnoverMove (trace i) (trace (i+1))) :
+    Filter.Tendsto (fun i => (trace i).ceilingResidue.val)
+      Filter.atTop (nhds 0) := by
+  have h_pow : Filter.Tendsto
+      (fun i => turnoverDecayFactor ^ i * (trace 0).ceilingResidue.val)
+      Filter.atTop (nhds 0) := by
+    have h := tendsto_pow_atTop_nhds_zero_of_lt_one
+                turnoverDecayFactor_pos turnoverDecayFactor_lt_one
+    simpa using h.mul_const (trace 0).ceilingResidue.val
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le
+    tendsto_const_nhds h_pow
+    (fun i => (trace i).ceilingResidue.pos)
+    (ceilingResidue_erodes_under_turnover trace h_turnover)
 
 /-- **Formal B₃ preserved under turnover.** After any sequence of
     member-turnover events, formal B₃ substrate is unchanged.
@@ -1892,12 +1932,14 @@ axiom PathAMove {r : Region} : HOAState r → HOAState r → Prop
     residue increment per Path-A event, below saturation. Peer
     implementations calibrate; the associated axiom is separate from
     the baseline monotonicity axiom, so peers that want to work with
-    just monotonicity can ignore this. -/
+    just monotonicity can ignore this. 
+    **axiom-kind:** scaffold -/
 axiom pathAAccrualIncrement : ℝ
 
 /-- The accrual increment is strictly positive — Path-A events are
     structurally productive; a zero increment would collapse L3 to L2's
-    baseline preservation. -/
+    baseline preservation. 
+    **axiom-kind:** scaffold -/
 axiom pathAAccrualIncrement_pos : 0 < pathAAccrualIncrement
 
 /-- **Path-A accretes ceiling** (baseline monotonicity). Each Path-A
@@ -1915,7 +1957,8 @@ axiom pathAMove_accretes_ceiling
     implicit upper bound from the `CouplingWeight` type discipline
     (val ≤ 1); once ceiling reaches 1, Path-A cannot accrete further
     within this model. A peer that models beyond-1 ceilings would
-    refactor `HOAState.ceilingResidue` to a wider type. -/
+    refactor `HOAState.ceilingResidue` to a wider type. 
+    **axiom-kind:** scaffold -/
 axiom pathAMove_strict_accrual_below_saturation
     {r : Region} (s s' : HOAState r) :
   PathAMove s s' →
@@ -1993,10 +2036,12 @@ axiom CoInscriptionMove {r : Region} : HOAState r → HOAState r → Prop
 
 /-- **Peer-supplied strict-accrual increment** — the minimum formal-B₃
     increment per co-inscription event, below saturation. Analogous to
-    `pathAAccrualIncrement` on the ceiling side. -/
+    `pathAAccrualIncrement` on the ceiling side. 
+    **axiom-kind:** scaffold -/
 axiom coInscriptionAccrualIncrement : ℝ
 
-/-- The co-inscription accrual increment is strictly positive. -/
+/-- The co-inscription accrual increment is strictly positive. 
+    **axiom-kind:** scaffold -/
 axiom coInscriptionAccrualIncrement_pos : 0 < coInscriptionAccrualIncrement
 
 /-- **Co-inscription accretes formal B₃** (baseline monotonicity). Each
@@ -2012,7 +2057,8 @@ axiom coInscriptionMove_accretes_formalB3
     increases formal B₃ by at least the increment. Saturation is the
     implicit CouplingWeight upper bound; a peer modeling beyond-1
     formal-B₃ magnitudes would refactor `HOAState.formalB3Substrate`
-    to a wider type. -/
+    to a wider type. 
+    **axiom-kind:** scaffold -/
 axiom coInscriptionMove_strict_accrual_below_saturation
     {r : Region} (s s' : HOAState r) :
   CoInscriptionMove s s' →

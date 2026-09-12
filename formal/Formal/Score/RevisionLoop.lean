@@ -56,7 +56,8 @@ namespace SCORE
 
 /-- The prediction-audit edge: an inscribed expectation (B₃) together with the realized
     world (B₁) yields an error magnitude. Abstract — the content is the signature (its
-    inputs are a B₃ expectation and a B₁ outcome, unlike the CR update's B₂ inputs). -/
+    inputs are a B₃ expectation and a B₁ outcome, unlike the CR update's B₂ inputs). 
+    **axiom-kind:** definitional -/
 axiom predictionAudit : InscriptionContent → World → ℝ
 
 -- ── Resolved-claim access (amendment 1: own-corpus OR vicarious) ───────────────

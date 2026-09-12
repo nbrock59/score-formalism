@@ -156,7 +156,8 @@ axiom DijkstraMove {N K : ℕ} : DijkstraRing N K → DijkstraRing N K → Prop
     `Score/HOAMaintenance.lean` §HM22 and
     `obsidian/SCORE/methodology/ModelCheckedDynamics.md`). Lean keeps the
     unbounded ∀-statement; TLC supplies exhaustive evidence for the bounded
-    instances this axiom abstracts. -/
+    instances this axiom abstracts. 
+    **axiom-kind:** imported -/
 axiom dijkstraRingSelfStabilizes {N K : ℕ} :
     GloballySelfStabilizing (@DijkstraLegitimate N K) (@DijkstraMove N K)
 

@@ -33,6 +33,27 @@ inductive Domain : Type where
                            --     norms, media — existing between minds
 deriving DecidableEq, Repr
 
+/-- The three domains are pairwise disjoint — the Lean counterpart of
+    `B1_Objective ⊔ B2_Subjective ⊔ B3_Inscription` all-disjoint in `score-core.owl`,
+    and the first of the five category errors the `score-theory` skill exists to
+    prevent ("the three domains are not a pipeline"; they are irreducible modes).
+
+    Recorded 2026-09-12. The fact was always there — constructor distinctness is free in
+    Lean — but nothing *stated* it, so `scripts/owl_lean_check.py` reported the axiom as
+    the largest uncovered gap in the ontology while this inductive sat three lines above.
+    The mismatch was only ever one of spelling: OWL says `B1_Objective`, Lean says
+    `Domain.Objective`, and the `-- B₁:` comments that bridge them are stripped before
+    matching.
+
+    Stated for the same reason as `Sigma.actorType_trichotomy_disjoint`: an obligation
+    discharged only by construction is invisible to a coverage check, and an invisible
+    discharge is indistinguishable from an absent one. -/
+theorem domain_trichotomy_disjoint :
+    Domain.Objective ≠ Domain.Subjective ∧
+    Domain.Objective ≠ Domain.Inscription ∧
+    Domain.Subjective ≠ Domain.Inscription := by
+  decide
+
 -- ════════════════════════════════════════════════════════════════
 -- §2. THE EMERGENCE HIERARCHY (Hasse Strata)
 -- Six strata ordered by emergence dependency.
@@ -57,13 +78,15 @@ namespace Stratum
     ⟨s.val - 1, by omega⟩
 end Stratum
 
-/-- Stability of a stratum: it can sustain emergence above it. -/
+/-- Stability of a stratum: it can sustain emergence above it. 
+    **axiom-kind:** definitional -/
 axiom IsStable : Stratum → Prop
 
 /-- The stratification constraint, enforced by Natural Selection.
     A stratum is stable only if its immediate predecessor is also stable.
     NS selects against configurations requiring unstable substrates —
-    they fail before they can reproduce. -/
+    they fail before they can reproduce. 
+    **axiom-kind:** empirical -/
 axiom stratificationConstraint :
     ∀ (s : Stratum) (h : 0 < s.val),
       IsStable s → IsStable (s.predecessor h)
@@ -118,17 +141,21 @@ theorem stable_implies_all_lower_stable
 -- POLARIS instantiates these with concrete types.
 -- ════════════════════════════════════════════════════════════════
 
-/-- An agent in the socio-technical system. -/
+/-- An agent in the socio-technical system. 
+    **axiom-kind:** carrier -/
 axiom Agent : Type
 
-/-- The objective world state (B₁). -/
+/-- The objective world state (B₁). 
+    **axiom-kind:** carrier -/
 axiom World : Type
 
-/-- Inter-subjective inscription content (B₃): constitutions, norms, media. -/
+/-- Inter-subjective inscription content (B₃): constitutions, norms, media. 
+    **axiom-kind:** carrier -/
 axiom InscriptionContent : Type
 
 /-- An agent's full cognitive state (B₂): manifold position, coupling weights,
-    Path A/B dynamics. -/
+    Path A/B dynamics. 
+    **axiom-kind:** carrier -/
 axiom CognitiveState : Type
 
 /-- A Σ-actor **carrier**: the opaque Constituent-level identity of a higher-order
@@ -153,7 +180,8 @@ axiom CognitiveState : Type
     `Sigma.lean` non-compiling until the 2026-07-24 rename-and-bridge: that structure
     is now `SCORE.SigmaActorArchitecture` (the architecture-view), this axiom is the
     carrier-view, and `SigmaActorArchitecture.carrier` bridges them — both Lean views
-    of the one OWL class `core:SigmaActor`. See the §HM MultiStratum plan §9.6. -/
+    of the one OWL class `core:SigmaActor`. See the §HM MultiStratum plan §9.6. 
+    **axiom-kind:** carrier -/
 axiom SigmaActor : Type
 
 /-- An HOA constituent: either an A-actor (individual `Agent`) or a Σ-actor
@@ -186,14 +214,17 @@ inductive Constituent
 -- ════════════════════════════════════════════════════════════════
 
 /-- Perception (B₁ → B₂): the objective world enters agent cognition.
-    Filtered by the agent's manifold position — not uniform across agents. -/
+    Filtered by the agent's manifold position — not uniform across agents. 
+    **axiom-kind:** definitional -/
 axiom perception : World → Agent → CognitiveState
 
-/-- Action (B₂ → B₁): agent behavior modifies the objective world. -/
+/-- Action (B₂ → B₁): agent behavior modifies the objective world. 
+    **axiom-kind:** definitional -/
 axiom action : Agent → CognitiveState → World → World
 
 /-- Inscription (B₂ → B₃): cognitive content becomes inter-subjective.
-    Referent-agnostic general form; refined by referent below. -/
+    Referent-agnostic general form; refined by referent below. 
+    **axiom-kind:** definitional -/
 axiom inscribe : Agent → CognitiveState → InscriptionContent
 
 -- ── Referent typing of Inscription (foundational, 2026-06-04) ──────────────────
@@ -207,16 +238,19 @@ axiom inscribe : Agent → CognitiveState → InscriptionContent
 
 /-- Sufficient Lefebvre reflexive depth — the B₂-grounded capacity gating
     B₂-referential inscription and ⊗ co-inscription. Minimal stub predicate; the full
-    reflexive-depth layer is not yet encoded (see agents/ReflexiveDepth.md). -/
+    reflexive-depth layer is not yet encoded (see agents/ReflexiveDepth.md). 
+    **axiom-kind:** definitional -/
 axiom SufficientDepth : Agent → Prop
 
 /-- B₁-referential inscription: content about world-states (alarm, trail, record).
-    The B₃ floor; no depth precondition. -/
+    The B₃ floor; no depth precondition. 
+    **axiom-kind:** definitional -/
 axiom inscribeB1Ref : Agent → CognitiveState → InscriptionContent
 
 /-- B₂-referential inscription: content about the agent's own B₂-manifold features with
     no B₁ referent (beliefs, self-model, fictions). The depth precondition is an explicit
-    argument — without `SufficientDepth a` the term does not typecheck. -/
+    argument — without `SufficientDepth a` the term does not typecheck. 
+    **axiom-kind:** definitional -/
 axiom inscribeB2Ref : (a : Agent) → SufficientDepth a → CognitiveState → InscriptionContent
 
 /-- The depth gate is load-bearing: B₂-referential inscription is well-typed only in a
@@ -228,8 +262,176 @@ noncomputable example (a : Agent) (h : SufficientDepth a) (cs : CognitiveState) 
   inscribeB2Ref a h cs
 
 /-- Incorporation (B₃ → B₂): inscribed content enters agent cognition.
-    Via Path A (organic, expensive) or Path B (symbolic, cheap). -/
+    Via Path A (organic, expensive) or Path B (symbolic, cheap). 
+    **axiom-kind:** definitional -/
 axiom incorporate : InscriptionContent → Agent → CognitiveState
+
+/-- The five OWL `Morphism` subclasses, as a disjoint sum — the Lean counterpart of
+    `Action ⊔ Incorporation ⊔ Inscription ⊔ Perception ⊔ Transformation` all-disjoint in
+    `score-core.owl`.
+
+    **NOT the morphism space.** This mirrors an OWL *grouping*, and that grouping is not a
+    principled closure. The full space (`MorphismCompleteness`) is six directed SIMPLE
+    morphisms plus a product class, and this type omits four of its members:
+
+    | outside this type | why |
+    |---|---|
+    | B₃→B₁ | simple, non-B₂-incident. Established — software automation, predates AI |
+    | B₁→B₃ | simple, non-B₂-incident. Open, and possibly structurally unavailable |
+    | Schema application `B₁×B₃→B₃` | product; not an OWL class at all |
+    | Co-inscription `B₂×B₂→B₃` | product; OWL carries `CoInscriptionEvent` as an Event, not a Morphism subclass |
+
+    The name was `MorphismKind` for about an hour on 2026-09-12 and that overclaimed: a
+    reader would take it for the exhaustive tag type. Renamed the same day, after the
+    vault was found flattening the same distinction at `obsidian/SCORE.md`.
+
+    **The principled subset is four, not five.** `B2Incidence` is exact: "of the six
+    directed simple morphisms, exactly four are B₂-incident", and those four are what
+    SCORE calls *primary* — an exhaustive enumeration, not a chosen emphasis.
+    Transformation joins them here because the OWL groups it in, being the first product
+    morphism; it is B₂-incident too, but it is not simple, so "five B₂-incident
+    morphisms" would be wrong in the other direction (co-inscription is also B₂-incident
+    and is not here).
+
+    **This is a tag, not a pipeline.** The morphisms run simultaneously and in multiple
+    directions; enumerating them as constructors says they are mutually exclusive *as
+    classifications of a coupling*, and nothing about order. Do not read the constructor
+    order as a sequence — that is the first of the five category errors the
+    `score-theory` skill exists to prevent. -/
+inductive MorphismClass : Type where
+  /-- B₁ → B₂, filtered by manifold position. -/
+  | perception     : MorphismClass
+  /-- B₂ → B₁, behaviour modifying the objective world. -/
+  | action         : MorphismClass
+  /-- B₂ → B₃, cognitive content becoming inter-subjective. -/
+  | inscription    : MorphismClass
+  /-- B₃ → B₂, inscribed content entering cognition (Path A or Path B). -/
+  | incorporation  : MorphismClass
+  /-- B₂ × B₃ → B₃, the product morphism — the fifth, and not a simple one. -/
+  | transformation : MorphismClass
+deriving DecidableEq, Repr
+
+/-- The five OWL `Morphism` subclasses are pairwise distinct. Free from the inductive;
+    stated so a
+    coverage check can see the OWL axiom discharged, per `domain_trichotomy_disjoint`. -/
+theorem morphismClass_pairwise_distinct :
+    MorphismClass.perception ≠ MorphismClass.action ∧
+    MorphismClass.inscription ≠ MorphismClass.incorporation ∧
+    MorphismClass.transformation ≠ MorphismClass.perception := by
+  decide
+
+-- ════════════════════════════════════════════════════════════════
+-- §4c. THE REFERENT AXIS — what an inscription is ABOUT
+-- OWL: `B1ReferentialInscription` disjointWith `B2ReferentialInscription`, both
+-- ⊑ Inscription. Added 2026-09-12 (A1).
+--
+-- `inscribeB1Ref` / `inscribeB2Ref` above type the MORPHISM by referent; nothing
+-- typed the CONTENT, which is what the OWL disjointness is about. Orthogonal to
+-- provenance (Sigma.lean §25): every inscription has a referent and a provenance,
+-- and the two axes do not constrain each other.
+-- ════════════════════════════════════════════════════════════════
+
+/-- What an inscription's content is *about*. B₂-referential inscription requires
+    sufficient reflexive depth and is the human differentia from which the higher B₃
+    strata, Σ-actors and cultural evolution follow. -/
+inductive Referent : Type where
+  /-- About B₁ world-states — alarm calls, trails, records. The B₃ floor. -/
+  | b1Referential : Referent
+  /-- About features of the agent's own B₂ manifold with no B₁ referent — beliefs, the
+      self-model, abstractions, shared fictions. -/
+  | b2Referential : Referent
+deriving DecidableEq, Repr
+
+/-- The referent of a piece of content, if it has one of the two.
+
+    `Option` for the same reason as `provenanceOf`: OWL declares the pair disjoint and
+    asserts no covering axiom. A total `InscriptionContent → Referent` would add one.
+    **axiom-kind:** definitional -/
+axiom referentOf : InscriptionContent → Option Referent
+
+/-- B₁-referential and B₂-referential content are disjoint. -/
+theorem referent_axis_disjoint :
+    ∀ (c : InscriptionContent),
+      referentOf c = some Referent.b1Referential →
+      referentOf c ≠ some Referent.b2Referential := by
+  intro c h1 h2
+  rw [h1] at h2
+  simp at h2
+
+-- ════════════════════════════════════════════════════════════════
+-- §4b. B₁ REALIZATION OF INSCRIPTION — realization WITHOUT reduction
+-- OWL: `B3_Inscription ⊑ carriedBy some B1_Objective` (score-core.owl).
+-- Vault: domains/B3-Inscription.md § "The B₁ realization of inscription".
+--
+-- Added 2026-09-12. `scripts/owl_lean_check.py` reported this restriction as having
+-- no Lean counterpart, and it is the largest gap that check found: it encodes the
+-- second of the five category errors the `score-theory` skill exists to prevent ---
+-- "B₃ is neither free-floating nor reducible to its carrier."
+--
+-- The near-miss worth recording: Core.lean already contained several "carrier"
+-- mentions, so a name-only search reports this covered. They are the *Σ-actor*
+-- carrier (an opaque HOA-constituent identity, §3), an unrelated sense of the word.
+--
+-- THREE axioms, and all three are needed. Totality alone would license reading B₃ as
+-- its mark; multiple realizability alone would leave B₃ free-floating. Encoding one
+-- without the other commits the category error in the formalism itself.
+-- ════════════════════════════════════════════════════════════════
+
+/-- A **mark**: a particular physical change in B₁ — ink on paper, a pressure wave, a
+    charge pattern. Distinct from `World` (a total B₁ state); a mark is a localized
+    feature of one. 
+    **axiom-kind:** carrier -/
+axiom B1Mark : Type
+
+/-- Token-level realization: content `c` is carried by mark `m`. A *relation*, not a
+    function — a function `InscriptionContent → B1Mark` would assert each content has
+    exactly one carrier, which is precisely the multiple realizability this section
+    denies. 
+    **axiom-kind:** definitional -/
+axiom carriedBy : InscriptionContent → B1Mark → Prop
+
+/-- **Totality.** "There is no B₃ token without a B₁ realization." This is the clause
+    the OWL restriction states. 
+    **axiom-kind:** empirical -/
+axiom inscription_carried : ∀ c : InscriptionContent, ∃ m : B1Mark, carriedBy c m
+
+/-- **Multiple realizability** (type level). The Rosetta Stone's three scripts carry one
+    decree; a poem exists in breath, ink, or bits. Invariance of the content across its
+    carriers is the standing reason B₃ is irreducible. 
+    **axiom-kind:** empirical -/
+axiom carrier_multiply_realizable :
+    ∃ (c : InscriptionContent) (m₁ m₂ : B1Mark),
+      m₁ ≠ m₂ ∧ carriedBy c m₁ ∧ carriedBy c m₂
+
+/-- **B₁ is necessary, not sufficient.** Some marks carry no content at all: mere
+    patterned matter. What makes a mark a B₃ object is B₂ *provenance* — authored to
+    bear recoverable content — not the physics of the mark. This is also what keeps
+    `B₁→B₃` structurally unavailable (see `MorphismCompleteness`): B₁ alone cannot
+    reach B₃. 
+    **axiom-kind:** empirical -/
+axiom mark_without_content : ∃ m : B1Mark, ∀ c : InscriptionContent, ¬ carriedBy c m
+
+/-- **Realization without reduction.** B₃ does not collapse into its carrier: content
+    cannot be identified with a unique mark, so "the inscription *is* the physical
+    trace" is false. Derived from multiple realizability, not assumed. -/
+theorem b3_not_reducible_to_carrier :
+    ¬ (∀ (c : InscriptionContent) (m₁ m₂ : B1Mark),
+         carriedBy c m₁ → carriedBy c m₂ → m₁ = m₂) := by
+  intro h
+  obtain ⟨c, m₁, m₂, hne, h₁, h₂⟩ := carrier_multiply_realizable
+  exact hne (h c m₁ m₂ h₁ h₂)
+
+/-- The two halves stated together: every content has a carrier (necessity), and not
+    every mark carries content (insufficiency). The conjunction is what "realization,
+    not reduction" amounts to at the token level. -/
+theorem b1_necessary_not_sufficient :
+    (∀ c : InscriptionContent, ∃ m : B1Mark, carriedBy c m)
+    ∧ ¬ (∀ m : B1Mark, ∃ c : InscriptionContent, carriedBy c m) := by
+  refine ⟨inscription_carried, ?_⟩
+  intro h
+  obtain ⟨m, hm⟩ := mark_without_content
+  obtain ⟨c, hc⟩ := h m
+  exact hm c hc
 
 /-- The complete normative change chain: inscribe → incorporate → constrain
     cognition → act → change objective world. Any joint can break. -/
@@ -346,7 +548,8 @@ def hasSponsorship : LifeCyclePhase → Prop
 -- Effective inscription community size ≠ census headcount.
 -- ════════════════════════════════════════════════════════════════
 
-/-- A geographic region. -/
+/-- A geographic region. 
+    **axiom-kind:** carrier -/
 axiom Region : Type
 
 /-- The aggregate local coupling weight of a set of agents in a region: the
@@ -366,7 +569,8 @@ axiom Region : Type
     the mean-coupling scalar; off that slice the finite-type value is
     `spectralNorm_plantedPartition`'s Perron form, which mean density does not
     determine. The spectral successor is already wired in: `HOA.supercrit`
-    below is the `Supercritical` predicate on the population's kernel. -/
+    below is the `Supercritical` predicate on the population's kernel. 
+    **axiom-kind:** definitional -/
 axiom aggregateLocalWeight : List Agent → Region → CouplingWeight
 
 /-- **An HOA over a finite agent population.** Existence is *supercriticality of
@@ -409,7 +613,8 @@ theorem no_hoa_of_subcritical {Pop : Type} [Fintype Pop] [DecidableEq Pop]
     instantiating `threshold := 1` proved that a single HOA anywhere in a region
     forces **every** agent list in that region to sit at maximal aggregate
     weight — an absurdity that was machine-checkable from the axiom as written.
-    This replacement constrains only the population's own kernel. -/
+    This replacement constrains only the population's own kernel. 
+    **axiom-kind:** empirical -/
 axiom studentDominated_subcritical {Pop : Type} [Fintype Pop] [DecidableEq Pop]
     (κ : CouplingKernel Pop) (phase : Pop → LifeCyclePhase) :
     (∀ p, phase p = LifeCyclePhase.Student) → Subcritical κ
@@ -429,24 +634,31 @@ theorem highthroughput_shallow_attractor {Pop : Type} [Fintype Pop] [DecidableEq
 -- Sub-community similarity = shared perceptual filter.
 -- ════════════════════════════════════════════════════════════════
 
-/-- An external event in the objective world. -/
+/-- An external event in the objective world. 
+    **axiom-kind:** carrier -/
 axiom Event : Type
 
 /-- A percept: what an agent actually registers from an event.
     This is the event filtered through the agent's coupling weight vector.
     Two agents with different coupling vectors perceive different things
-    from the same event — prior to any deliberation. -/
+    from the same event — prior to any deliberation. 
+    **axiom-kind:** carrier -/
 axiom Percept : Type
 
-/-- The perceptual filter: maps (event, coupling vector) → percept. -/
+/-- The perceptual filter: maps (event, coupling vector) → percept. 
+    **axiom-kind:** definitional -/
 axiom perceptualFilter : Event → CouplingWeightVector → Percept
 
 /-- A distance on percept space, so that "similar percepts" is a claim about the
-    percepts rather than an unconstrained existential. -/
+    percepts rather than an unconstrained existential. 
+    **axiom-kind:** definitional -/
 axiom perceptDist : Percept → Percept → ℝ
 
+-- axiom-kind: definitional
 axiom perceptDist_nonneg : ∀ p q, 0 ≤ perceptDist p q
+-- axiom-kind: definitional
 axiom perceptDist_self   : ∀ p, perceptDist p p = 0
+-- axiom-kind: definitional
 axiom perceptDist_comm   : ∀ p q, perceptDist p q = perceptDist q p
 
 /-- Sub-community perceptual similarity: agents with similar coupling vectors
@@ -623,9 +835,20 @@ theorem bypassesFilter_iff_rhythm_class (i : Intervention) :
 -- Empirically grounded; stated as axiom with a type-level contract.
 -- ════════════════════════════════════════════════════════════════
 
-/-- Whether a create_node intervention succeeds, given a region's current
-    coupling state and a seed size. Abstract for now. -/
-axiom nodeSucceeds : Region → Stratum → ℕ → CouplingWeightVector → Prop
+-- `nodeSucceeds` was DELETED 2026-09-12, as the residue of the deletion below.
+--
+-- It was the predicate `rhythmLowersSeedSize` was stated over:
+--     axiom nodeSucceeds : Region → Stratum → ℕ → CouplingWeightVector → Prop
+-- When that axiom went in 2026-07-26 its support stayed, and nothing referenced
+-- `nodeSucceeds` afterwards except the note below describing the thing that had
+-- been removed. `scripts/axiom_report.py` surfaced it: no theorem depended on it,
+-- and stripping comments before counting showed no declaration did either.
+--
+-- The deletion is the supersession rider applied to itself. Removing a construct
+-- has to sweep what it leaves unsupported, or the next reader finds a predicate
+-- with no proposition and no consumer and cannot tell whether it is scaffolding
+-- for future work or debris. Restoring it costs one line if the real version
+-- below is ever built.
 
 -- `rhythmLowersSeedSize` was DELETED 2026-07-26 (audit Appendix D.3).
 --

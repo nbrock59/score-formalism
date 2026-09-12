@@ -456,11 +456,13 @@ theorem frechet_of_probability {Ω : Type*} [MeasurableSpace Ω] (μ : Measure �
 axiom stdNormalCDF : ℝ → ℝ
 
 /-- Opaque: the standard bivariate normal orthant probability `P(Z₁ ≤ a, Z₂ ≤ b)` at
-    correlation `ρ`, as the generator's copula induces it. -/
+    correlation `ρ`, as the generator's copula induces it. 
+    **axiom-kind:** definitional -/
 axiom bivariateOrthant : ℝ → ℝ → ℝ → ℝ
 
 /-- **Characterizing axiom 1 --- independence at `ρ = 0`.** Without this the symbol is
-    unconstrained and the monotonicity axiom below says nothing about a joint distribution. -/
+    unconstrained and the monotonicity axiom below says nothing about a joint distribution. 
+    **axiom-kind:** definitional -/
 axiom bivariateOrthant_indep (a b : ℝ) :
     bivariateOrthant a b 0 = stdNormalCDF a * stdNormalCDF b
 

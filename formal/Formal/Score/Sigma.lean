@@ -118,25 +118,83 @@ end CoInscriptionEvent
 -- Σ-actor a Σ-actor rather than an Ω-actor. See B3-Inscription.md.
 -- ════════════════════════════════════════════════════════════════
 
+/-- The three B₃ provenance classes, discriminated by **correction mode**:
+    `TelosBearingContent` (Σ-actor inscription — corrected by social contestation),
+    `LossFunctionContent` (Ω-actor optimization — not correctable), and
+    `TransducedContent` (SC-G-62, a mechanism with a checkable B₁ referent — corrected
+    metrologically). See `B3-Inscription.md` § "Provenance split".
+
+    Restructured 2026-09-12 (A2). The two markers were separate opaque predicates with
+    their disjointness asserted pairwise, and `TransducedContent` had no Lean presence at
+    all — which is why two of the three pairwise-disjointness obligations sat in
+    `owl_lean_baseline.txt` blocked on the same absent construct.
+
+    As an inductive, constructor distinctness is free, so all three disjointness
+    statements below are **theorems** rather than axioms. Net axiom count is unchanged:
+    one added (`provenanceOf`), one removed (the asserted pairwise disjointness). -/
+inductive Provenance : Type where
+  | telosBearing
+  | lossFunction
+  | transduced
+deriving DecidableEq, Repr
+
+/-- The provenance of a piece of content, if it has one of the three.
+
+    `Option` is load-bearing and not defensive. The OWL declares the three classes
+    **pairwise disjoint but NOT jointly exhaustive** — `B3-Inscription.md`: "They are
+    *not* declared jointly exhaustive, and never were — no covering axiom exists in
+    `score-core.owl`." A bare `InscriptionContent → Provenance` would assert the covering
+    axiom by construction, making the Lean layer say something the ontology deliberately
+    declines to.
+    **axiom-kind:** definitional -/
+axiom provenanceOf : InscriptionContent → Option Provenance
+
 /-- The Σ-actor B₃-output class marker: content encoding a contestable telos. -/
-axiom IsTelosBearing : InscriptionContent → Prop
+def IsTelosBearing (c : InscriptionContent) : Prop :=
+  provenanceOf c = some Provenance.telosBearing
 
 /-- The Ω-actor B₃-output class marker: content encoding a non-contestable loss
     function (the software/AI contrast). -/
-axiom IsLossFunction : InscriptionContent → Prop
+def IsLossFunction (c : InscriptionContent) : Prop :=
+  provenanceOf c = some Provenance.lossFunction
 
-/-- The two markers are disjoint. OWL: the three provenance classes
-    (`TelosBearingContent`, `LossFunctionContent`, `TransducedContent`) are declared
-    **pairwise disjoint** in `score-core.owl`; this is that axiom narrowed to the pair
-    §25 carries markers for. Not a covering axiom — the classes are disjoint but were
-    never declared jointly exhaustive (B3-Inscription.md § "Provenance split").
+/-- The mechanism B₃-output class marker (SC-G-62): a fixed authored protocol with no
+    optimization, whose referent is in B₁ and checkable. The only provenance class whose
+    error is settled by appeal to B₁, which is what makes it the `RevisionLoop`'s
+    verification channel. -/
+def IsTransduced (c : InscriptionContent) : Prop :=
+  provenanceOf c = some Provenance.transduced
 
-    Added 2026-09-12 so that `InscriptionMarket.lean` §22b can *derive* the
-    non-contestability of loss-function content rather than assume it. Until then the
-    claim lived only in `IsLossFunction`'s own doc-comment above ("non-contestable"),
-    unconnected to the `canContest` machinery that formalizes contestation. -/
-axiom telos_lossfunction_disjoint :
-    ∀ (c : InscriptionContent), IsLossFunction c → ¬ IsTelosBearing c
+/-- Loss-function and telos-bearing content are disjoint.
+
+    Now a THEOREM. It was an axiom from its introduction earlier on 2026-09-12 until the
+    restructure above; the name is unchanged so `InscriptionMarket.lean` §22b and
+    SC-G-23 need no sweep. -/
+theorem telos_lossfunction_disjoint :
+    ∀ (c : InscriptionContent), IsLossFunction c → ¬ IsTelosBearing c := by
+  intro c h1 h2
+  rw [IsLossFunction] at h1
+  rw [IsTelosBearing, h1] at h2
+  simp at h2
+
+/-- Telos-bearing and transduced content are disjoint. -/
+theorem telos_transduced_disjoint :
+    ∀ (c : InscriptionContent), IsTransduced c → ¬ IsTelosBearing c := by
+  intro c h1 h2
+  rw [IsTransduced] at h1
+  rw [IsTelosBearing, h1] at h2
+  simp at h2
+
+/-- Loss-function and transduced content are disjoint. The pair that matters for the
+    recovery table: losing an Ω-actor's decoder hides nothing (no authored content was
+    there), while transduced content is re-derivable against its B₁ referent without a
+    Rosetta stone. -/
+theorem lossfunction_transduced_disjoint :
+    ∀ (c : InscriptionContent), IsTransduced c → ¬ IsLossFunction c := by
+  intro c h1 h2
+  rw [IsTransduced] at h1
+  rw [IsLossFunction, h1] at h2
+  simp at h2
 
 -- ════════════════════════════════════════════════════════════════
 -- §26. THE MAINTAINING COMMUNITY
@@ -199,7 +257,8 @@ end SigmaActorArchitecture
     Lean counterparts of the single OWL class `core:SigmaActor` (SC-G-09); this
     axiom records that the architectural description determines a carrier identity.
     Axiomatic because the carrier is an opaque `axiom SigmaActor : Type` with no
-    constructors, so the map cannot be given a computational body. -/
+    constructors, so the map cannot be given a computational body.
+    **axiom-kind:** definitional -/
 axiom SigmaActorArchitecture.carrier : SigmaActorArchitecture → SigmaActor
 
 -- ════════════════════════════════════════════════════════════════

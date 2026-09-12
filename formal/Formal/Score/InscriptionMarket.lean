@@ -36,7 +36,8 @@ namespace SCORE
 
 -- ── FA2: Inscription topology ──────────────────────────────────
 
-/-- An inscription channel in the market. -/
+/-- An inscription channel in the market. 
+    **axiom-kind:** carrier -/
 axiom Channel : Type
 
 /-- The ownership function Ω: maps a channel to its controlling agent,
@@ -50,7 +51,8 @@ axiom readAccess : Agent → Channel → CouplingWeight
 
 /-- Coupling opacity (new concept, not a redefinition): quantifies how much
     of the coupling between two agents is visible to an observer, derived
-    from the inscription topology. -/
+    from the inscription topology. 
+    **axiom-kind:** definitional -/
 axiom couplingOpacity : Agent → Agent → CouplingWeight
 
 -- ── FA1: Second-order perception ───────────────────────────────
@@ -62,7 +64,8 @@ axiom HasSecondOrderPerception : Agent → Prop
 /-- The second-order perception morphism: reconstructs other agents'
     cognitive states from their B₃ traces at the resolution granted by R.
     The composite chain: agents inscribe (B₂→B₃), platform reads B₃,
-    platform reconstructs B₂ states. -/
+    platform reconstructs B₂ states. 
+    **axiom-kind:** definitional -/
 axiom secondOrderPerceive : (a : Agent) → HasSecondOrderPerception a →
     Agent → CognitiveState
 
@@ -101,6 +104,7 @@ axiom kappaStar : CouplingWeight
 -- Ownership of a channel with full read access implies second-order
 -- perception is well-defined.
 
+-- axiom-kind: vc
 axiom vc_il_1 :
     ∀ (a : Agent) (c : Channel),
       ownership c = some a →
@@ -118,7 +122,8 @@ axiom vc_il_1 :
     instantiation) alike, since δ is a resolution floor on the shared ->
     indexed direction, not on one source domain. (Docstring corrected
     2026-07-18: previously read "A B₁ modification magnitude", which described
-    one instantiation as though it were the type.) -/
+    one instantiation as though it were the type.) 
+    **axiom-kind:** carrier -/
 axiom Modification : Type
 axiom modificationMagnitude : Modification → CouplingWeight
 
@@ -126,9 +131,11 @@ axiom modificationMagnitude : Modification → CouplingWeight
     `modificationMagnitude` is its amplitude handle. Added 2026-09-12 for §22b: with
     magnitude as the only observable, §22 could express the amplitude route to
     non-contestability and no other. This is what makes the provenance route
-    *expressible*; it does not by itself make it true. -/
+    *expressible*; it does not by itself make it true. 
+    **axiom-kind:** definitional -/
 axiom modificationContent : Modification → InscriptionContent
 
+-- axiom-kind: vc
 axiom vc_il_2 :
     ∀ (platform : Agent),
       HasSecondOrderPerception platform →
@@ -144,6 +151,7 @@ axiom vc_il_2 :
 /-- The rate of change of inscription coverage (simplified to a sign). -/
 axiom coverageGrowthRate : Agent → ℝ
 
+-- axiom-kind: vc
 axiom vc_il_3 :
     ∀ (a : Agent),
       kappaStar.val < (inscriptionCoverage a).val →
@@ -153,6 +161,7 @@ axiom vc_il_3 :
 -- The Hayekian baseline: when no agent owns any channel, second-order
 -- perception is not available to anyone.
 
+-- axiom-kind: vc
 axiom vc_il_4 :
     (∀ (c : Channel), ownership c = none) →
     ∀ (a : Agent), ¬ HasSecondOrderPerception a
@@ -161,6 +170,7 @@ axiom vc_il_4 :
 -- Restructuring Ω to null (common carrier doctrine) revokes second-order
 -- perception going-forward.
 
+-- axiom-kind: vc
 axiom vc_il_5 :
     ∀ (a : Agent),
       (∀ (c : Channel), ownership c ≠ some a) →
@@ -210,6 +220,7 @@ axiom canContest : Agent → Modification → Prop
 -- The load-bearing premise of the inversion: you cannot contest an
 -- influence you cannot perceive. Deliberation presupposes perception.
 
+-- axiom-kind: vc
 axiom vc_di_1 :
     ∀ (a : Agent) (m : Modification),
       canContest a m → canPerceive a m
@@ -218,6 +229,7 @@ axiom vc_di_1 :
 -- A modification at or below the agent's perceptibility threshold δ does
 -- not register. (Same ≤-form as VC-IL-2, so the two compose directly.)
 
+-- axiom-kind: vc
 axiom vc_di_2 :
     ∀ (a : Agent) (m : Modification),
       modificationMagnitude m ≤ perceptibilityThreshold a →
@@ -231,6 +243,7 @@ axiom vc_di_2 :
 -- contested depends on deliberative institutions and is deliberately
 -- NOT formalized here — the remedy is necessary, not proven sufficient.
 
+-- axiom-kind: vc
 axiom vc_di_3 :
     ∀ (a : Agent) (m : Modification),
       (perceptibilityThreshold a).val < (modificationMagnitude m).val →
@@ -299,6 +312,7 @@ theorem di_platform_steering_noncontestable :
 -- condition only: like VC-DI-1 it says what contestation requires, never what
 -- suffices for it.
 
+-- axiom-kind: vc
 axiom vc_di_4 :
     ∀ (a : Agent) (m : Modification),
       canContest a m → IsTelosBearing (modificationContent m)

@@ -141,7 +141,8 @@ example : LegalInscription.constitution ∈ agoraCorpus {LegalInscription.doctri
 -- ════════════════════════════════════════════════════════════════
 
 /-- AGORA-side opaque type for the correcting-node role. Analog of the
-    `Agent` type consumed by §HM22's `agentCouplingWeightVector`. -/
+    `Agent` type consumed by §HM22's `agentCouplingWeightVector`. 
+    **axiom-kind:** carrier -/
 axiom AgoraCorrectingNode : Type
 
 /-- Each AGORA correcting node has a `nodeFloor` in the reals (the
@@ -675,7 +676,8 @@ theorem agora_polarity_pairs_opposite :
 -- ════════════════════════════════════════════════════════════════
 
 /-- **AGORA collective manifold state type** for the §HM39 dynamics.
-    Opaque axiom; peer-specific manifold shape is Q4 BIND. -/
+    Opaque axiom; peer-specific manifold shape is Q4 BIND. 
+    **axiom-kind:** carrier -/
 axiom AgoraCollectiveManifoldState : Type
 
 /-- **AGORA CapturedCorrectionUpdate step function.** Constituent-

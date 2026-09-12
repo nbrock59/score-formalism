@@ -330,7 +330,8 @@ end KernelSequence
     Prop. 17.3) or under BJR (3.11). See `BJRDischarge.md` § 2.
 
     Consistency: interpret `largestComponentOrder K n := Fintype.card (P.Pop n)`
-    when `K.Supercritical` and `0` otherwise. -/
+    when `K.Supercritical` and `0` otherwise. 
+    **axiom-kind:** imported -/
 axiom bjr_phase_transition {P : PopulationSequence} (K : KernelSequence P) :
     K.HasGiantComponent ↔ K.Supercritical
 
