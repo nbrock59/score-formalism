@@ -118,6 +118,19 @@ axiom IsTelosBearing : InscriptionContent → Prop
     function (the software/AI contrast). -/
 axiom IsLossFunction : InscriptionContent → Prop
 
+/-- The two markers are disjoint. OWL: the three provenance classes
+    (`TelosBearingContent`, `LossFunctionContent`, `TransducedContent`) are declared
+    **pairwise disjoint** in `score-core.owl`; this is that axiom narrowed to the pair
+    §25 carries markers for. Not a covering axiom — the classes are disjoint but were
+    never declared jointly exhaustive (B3-Inscription.md § "Provenance split").
+
+    Added 2026-09-12 so that `InscriptionMarket.lean` §22b can *derive* the
+    non-contestability of loss-function content rather than assume it. Until then the
+    claim lived only in `IsLossFunction`'s own doc-comment above ("non-contestable"),
+    unconnected to the `canContest` machinery that formalizes contestation. -/
+axiom telos_lossfunction_disjoint :
+    ∀ (c : InscriptionContent), IsLossFunction c → ¬ IsTelosBearing c
+
 -- ════════════════════════════════════════════════════════════════
 -- §26. THE MAINTAINING COMMUNITY
 -- OWL: `SigmaActor ⊑ maintainedBy some HumanCommunity`. Persistence requires a

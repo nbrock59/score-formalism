@@ -1,4 +1,8 @@
 import Formal.Score.Core
+-- §22b needs the B₃ provenance markers (`IsTelosBearing`, `IsLossFunction`) and their
+-- disjointness, which live in Sigma.lean §25. Added 2026-09-12: the telos vocabulary
+-- and the contestability theorems were in the same build and had never met.
+import Formal.Score.Sigma
 
 set_option linter.unusedVariables false
 set_option linter.style.whitespace false
@@ -117,6 +121,13 @@ axiom vc_il_1 :
     one instantiation as though it were the type.) -/
 axiom Modification : Type
 axiom modificationMagnitude : Modification → CouplingWeight
+
+/-- The B₃ content a modification delivers — its *provenance* handle, as
+    `modificationMagnitude` is its amplitude handle. Added 2026-09-12 for §22b: with
+    magnitude as the only observable, §22 could express the amplitude route to
+    non-contestability and no other. This is what makes the provenance route
+    *expressible*; it does not by itself make it true. -/
+axiom modificationContent : Modification → InscriptionContent
 
 axiom vc_il_2 :
     ∀ (platform : Agent),
@@ -255,6 +266,71 @@ theorem di_platform_steering_noncontestable :
   intro platform h_platform target h_target
   obtain ⟨m, h_sub⟩ := vc_il_2 platform h_platform target h_target
   exact ⟨m, di_subthreshold_noncontestable target m h_sub⟩
+
+
+-- ════════════════════════════════════════════════════════════════
+-- §22b. THE PROVENANCE ROUTE — VC-DI-4 (added 2026-09-12)
+-- §22 defeats contestation through *amplitude*: the steering sits below δ, so it
+-- cannot be perceived, so it cannot be contested (DI-A), and the remedy is to push
+-- it above δ (VC-DI-3).
+--
+-- VC-DI-3's own note already concedes that remedy is "necessary, not proven
+-- sufficient", and attributes the residue to "deliberative institutions" — a
+-- contingent, sociological gap. This section records a *second* occupant of that
+-- gap which is not sociological and not fixable by stronger institutions: content
+-- bearing no telos has no party to the contest (SC-G-23, `LossFunctionContent`:
+-- "not correctable — no telos, and no party to the contest").
+--
+-- The two routes are independent. DI-A's is a claim about magnitude; this one is a
+-- claim about provenance, and `di_disclosure_insufficient` below exhibits a
+-- modification that is fully perceptible and still non-contestable — so restoring
+-- perceptibility cannot be the whole remedy.
+--
+-- Vault: morphisms/IncorporationAsymmetry.md (§ "The deliberation inversion")
+-- Status: developing (2026-09-12). As in §22, axioms are design constraints and the
+-- theorems are proved from them.
+-- ════════════════════════════════════════════════════════════════
+
+-- ── VC-DI-4: Contestability requires a telos-bearing counterparty ──
+-- The second necessary condition, alongside VC-DI-1. To contest is to challenge,
+-- answer, or hold to account — which presupposes something that *bears* a telos to
+-- be held to account. This is the contestation-side reading of the Σ/Ω content
+-- contrast in Sigma.lean §25, and it is deliberately stated as a *necessary*
+-- condition only: like VC-DI-1 it says what contestation requires, never what
+-- suffices for it.
+
+axiom vc_di_4 :
+    ∀ (a : Agent) (m : Modification),
+      canContest a m → IsTelosBearing (modificationContent m)
+
+-- ── Theorem DI-C: loss-function content is non-contestable ────────
+-- Derived, exactly as DI-A is derived from VC-DI-1 + VC-DI-2: here from VC-DI-4
+-- plus the §25 disjointness. Note what is absent from the statement — any
+-- hypothesis about magnitude. This holds at every amplitude.
+
+theorem di_lossfunction_noncontestable :
+    ∀ (a : Agent) (m : Modification),
+      IsLossFunction (modificationContent m) →
+      ¬ canContest a m := by
+  intro a m h_lf h_contest
+  exact (telos_lossfunction_disjoint _ h_lf) (vc_di_4 a m h_contest)
+
+-- ── Theorem DI-D: the disclosure remedy is not sufficient ─────────
+-- The payoff. VC-DI-3 restores perceptibility by forcing a modification above δ.
+-- For loss-function content that leaves it *perceptible and still non-contestable*,
+-- which is a counterexample to reading VC-DI-3 as a complete remedy rather than as
+-- the necessary condition its own note says it is.
+--
+-- This does not weaken DI-A or DI-B: both remain true on the amplitude route. It
+-- bounds the *remedy*, not the results.
+
+theorem di_disclosure_insufficient :
+    ∀ (a : Agent) (m : Modification),
+      (perceptibilityThreshold a).val < (modificationMagnitude m).val →
+      IsLossFunction (modificationContent m) →
+      canPerceive a m ∧ ¬ canContest a m := by
+  intro a m h_supra h_lf
+  exact ⟨vc_di_3 a m h_supra, di_lossfunction_noncontestable a m h_lf⟩
 
 
 end SCORE

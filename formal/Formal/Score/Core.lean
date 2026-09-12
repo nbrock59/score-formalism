@@ -148,7 +148,7 @@ axiom CognitiveState : Type
     no Lean-level counterpart." That was false: `Score/Sigma.lean` already carried a
     rich `structure SigmaActor` (formation event, telos, life-cycle, coupling). What
     was actually missing was an *opaque carrier* usable by the spine as an HOA
-    constituent — this axiom. Because `Sigma.lean` is not in the build, adding this
+    constituent — this axiom. Because `Sigma.lean` was not in the build then, adding this
     axiom silently collided with that structure (both `SCORE.SigmaActor`) and left
     `Sigma.lean` non-compiling until the 2026-07-24 rename-and-bridge: that structure
     is now `SCORE.SigmaActorArchitecture` (the architecture-view), this axiom is the
