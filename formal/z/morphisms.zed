@@ -73,7 +73,7 @@ manifold-determined.
   b1 : \power MARK \\
   b2 : AGENT \fun \power ITEM \\
   b3 : \power ITEM \\
-  carrier : ITEM \pfun MARK \\
+  carrier : ITEM \rel MARK \\
   delta : AGENT \fun \nat \\
   salience : AGENT \cross ITEM \fun \nat \\
   presents : MARK \pfun ITEM \\
@@ -127,8 +127,20 @@ The two invariants are the anti-Platonic commitment (category error 2)
 stated as state, not as prose: every inscription HAS a carrier
 (dom carrier = b3), and every carrier is a mark actually present in b1
 (ran carrier \subseteq b1). B3 is therefore neither free-floating nor
-identified with its carrier -- the map is total onto b3 and into b1, and
-it is not required to be injective, which is multiple realizability.
+identified with its carrier -- the relation covers b3 and lands in b1, and
+it is NOT a function: one item may be carried by several marks, which is
+multiple realizability (the Rosetta case). ReInscribe below is the
+operation that realizes it.
+
+CORRECTED 2026-09-25 (issue #904). carrier was ITEM \pfun MARK, a total
+function on b3 given dom carrier = b3, and this paragraph argued that its
+being "not required to be injective" is multiple realizability. That was
+inverted: non-injectivity lets MANY ITEMS SHARE ONE MARK, while multiple
+realizability needs ONE ITEM ON MANY MARKS, which a function forbids.
+Inscribe's i? \notin b3 made it unreachable dynamically too. The Z model
+therefore denied what Lean asserts (Core.lean SS4b,
+carrier_multiply_realizable, over a carriedBy RELATION for exactly this
+reason). Fixed by the \rel typing and the ReInscribe schema.
 
 \subsection{Initial state [IDIOM B]}
 
@@ -292,6 +304,48 @@ names the DOMAINS RELATED and the frame names the STATE TOUCHED, and
 those are different questions. Inscription relates B2 to B3 and touches
 B1 on the way. Nothing had to be reconciled; two different things were
 being called the same thing.
+
+\subsection{Re-inscription [IDIOM C]}
+
+B2 -> B3 again, for content ALREADY in b3: an agent who holds an
+inscribed item writes it onto a new mark (copying, translation,
+re-publication). b3 does not grow -- the item is already there -- but
+carrier gains a pair, so the item now has one more realization. This is
+multiple realizability as an operation (issue #904).
+
+\begin{schema}{ReInscribe}
+  \Delta Score \\
+  a? : AGENT \\
+  i? : ITEM \\
+  m! : MARK
+\where
+  i? \in b3 \\
+  i? \in b2~a? \\
+  m! \notin b1 \\
+  i? \in b2ref \implies depth~a? \geq dbar \\
+  b1' = b1 \cup \{m!\} \\
+  b3' = b3 \\
+  carrier' = carrier \cup \{ i? \mapsto m! \} \\
+  b2' = b2 \\
+  presents' = presents \\
+  b2ref' = b2ref
+\end{schema}
+
+Inscribe and ReInscribe are the two branches of one morphism (Inscription),
+split on i? \in b3: their preconditions are disjoint, and their union is
+Inscribe without the novelty guard. They are kept apart because the split
+exposes a question that merging them would answer silently.
+
+OPEN -- does the depth gate apply to COPYING? The conjunct
+i? \in b2ref \implies depth~a? \geq dbar is carried over from Inscribe,
+conservatively. But the vault's gate is on PRODUCING B2-referential
+content (B3-Inscription, the referent axis; CapacityGating), and a shallow
+agent re-inscribing an existing B2-referential item may not be producing
+anything. Drop the conjunct if copying is not production. Not decided here.
+
+Out of scope: copying by a mechanism with no B2 in the loop (a printer, a
+server replicating a file) is B3 -> B1 execution, not Inscription, and is
+not modelled in this file.
 
 \subsection{Co-inscription [IDIOM C]}
 

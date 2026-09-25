@@ -44,6 +44,17 @@
 > specification that had never been type-checked. They are now stated against one that has —
 > which validates the statuses' *form*, not their *content*: the TLC and Lean discharge
 > targets are unaffected and still owed.
+>
+> **The gate went dormant again, on one machine (found 2026-09-25, issue #904).** A
+> `protocol-formal-template` clone three commits behind `origin/main` still carried the
+> pre-fix runner. Against it `make z` reported all three files `[ok]`, including this
+> README's own `NOSUCHTYPE` control and a four-line spec equating an `A` with a `B`. The
+> fix was never the problem; nothing *required* the runner to contain it. `scripts/z_run.py`
+> now type-checks an ill-typed-by-construction probe first and exits 2 if the runner accepts
+> it. Verified both ways: the stale runner is rejected before any file is judged; the current
+> runner (`5325443`) passes all three files and fails seven constructed must-fail variants.
+> Also in #904: `morphisms.zed`'s `carrier` is `ITEM \rel MARK` (it was a function, which
+> denied multiple realizability), and a `ReInscribe` schema was added (9 schemas).
 
 **Live as of 2026-07-24** — the revisit conditions of the original pilot README fired
 the same day they were written: the refinement thread adopted Z as the statement
