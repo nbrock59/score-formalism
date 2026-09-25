@@ -25,7 +25,7 @@ A bounded result ("none up to scope 5") is evidence, not proof.
      `Community.region`, `B2Ref.author`, `Inscription.*substrate`.
 5. **Run everything** with *Execute → Execute All*. For a headless run, use
    `protocol-formal-template/alloy/run-alloy.ps1 -Model score_core.als`. Every command
-   carries an `expect`, and the script prints PASS/FAIL against it (16/16 as of 2026-09-24).
+   carries an `expect`, and the script prints PASS/FAIL against it (20/20 as of 2026-09-25).
 
 ### Reading results
 
@@ -48,15 +48,17 @@ A bounded result ("none up to scope 5") is evidence, not proof.
 |---|---|---|---|
 | E1 | Can the doctrinal network have a cycle? | **Yes** | `grade_mono` allows cycles among equal-grade inscriptions, so `le` is a preorder rather than the "graded DAG" §14's comment describes. |
 | E2 | Does a frontier determine its region uniquely? | **No:** counterexample | Two members of one equal-grade cycle each generate the same region. With `Acyclic` added, uniqueness holds (no counterexample, scope 5). This bears directly on fibration decision #2 ("store the frontier"). |
+| E2b | Does the cycle-as-unit repair restore uniqueness? *(added 2026-09-25)* | **Yes:** no counterexample, scope 5 | Keep each cycle whole in the frontier (a saturated class-antichain). It is unique and generates its region. A positive control (regions whose frontier contains a cycle) finds instances; a mutant control without saturation finds the E2 counterexample again. So the preorder costs nothing for "store the frontier". |
 | E3 | Can a shallow agent flatten B₂-referential content into B₁-referential content? | Yes | The depth gate limits who can *produce* B₂-referential content, not who can *incorporate* it. This could be the L2→L1/L0 flattening, in formal form. |
 | E4 | Can one inscription bridge two agents whose manifolds are disjoint? | Yes | B₃ is the only channel between disjoint manifolds: syncretic contact. |
 | E5 | Can an inscription be orphaned, with nobody but its author able to incorporate it? | Yes (with `incorporate` partial) | Lean's `incorporate` is total. Decide whether "failure" means *undefined* or *unchanged state*. |
 | E6 | Can two agents with the same coupling vector perceive the same world differently? | Yes | Core.lean's `perception` and `perceptualFilter` aren't linked. Is that intended? |
 | E7 | Speculative B₃ context tracking: self-grounding contexts, and decisions resting on contexts with no shared ground | Both allowed | Nothing yet relates `restsOn` to `substrate`. That relationship is the open design question. |
 
-E1/E2 is the one to look at first. You can either add acyclicity to `DoctrinalNetwork`, or
-keep the preorder (mutual citation, co-developing doctrine) and store frontiers as
-equivalence classes.
+E1/E2 was the one to look at first. E2b (2026-09-25) settles its storage half: the preorder
+can be kept (mutual citation, co-developing doctrine), with each cycle stored whole in the
+frontier, so an acyclicity law is not needed for regions. Whether some kinds of inscription
+should be acyclic for other reasons is still open (B3RegionGeometry.md; aperture a1).
 
 ## Suggested next steps
 

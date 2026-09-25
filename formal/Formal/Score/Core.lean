@@ -928,7 +928,9 @@ theorem polaris_is_valid_score_implementation :
 -- round-trip). This adds structure *over* it — the doctrinal composition order plus
 -- the B₃-internal grading — and defines a community's region R(C) as a graded
 -- down-set. Resolves fibration decision #4 to the graded product: the sub-order
--- (grading) and sub-graph (edges) candidates are one graded DAG.
+-- (grading) and sub-graph (edges) candidates are one graded preorder. `grade_mono`
+-- permits cycles among equal-grade nodes, so it is a DAG only where acyclic
+-- (Alloy E1). Frontiers keep each such cycle whole (Alloy E2b; B3RegionGeometry.md).
 --
 -- PROMOTED TO CORE (2026-06-21, eighth on-demand Q3 promotion, ETHOS ∩ NEXUS): the
 -- region constructor is now core, filled by two contrasting peers — ETHOS (§15,
@@ -953,7 +955,7 @@ abbrev B3Level := Fin 6
     composition — *is* the stratification constraint (§2) read on the network:
     higher-stratum ideas compose only from lower-or-equal-stratum substrate. That
     single law unifies the two candidate region geometries (sub-order = the grading;
-    sub-graph = the edges) into one graded DAG.
+    sub-graph = the edges) into one graded preorder (a DAG wherever it is acyclic).
 
     `Node` is polymorphic so the *same* machinery serves both the B₃ statement
     (`DoctrinalNetwork InscriptionContent` — the primitive B₃ is untouched, no
