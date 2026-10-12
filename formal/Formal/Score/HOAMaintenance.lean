@@ -1713,13 +1713,15 @@ axiom MemberTurnoverMove {r : Region} : HOAState r → HOAState r → Prop
 axiom turnoverDecayFactor : ℝ
 
 /-- The decay factor is non-negative. 
-    **axiom-kind:** empirical -/
+    **axiom-kind:** empirical
+    **anchor:** vault:LongTimescaleDynamics -/
 axiom turnoverDecayFactor_pos : 0 ≤ turnoverDecayFactor
 
 /-- The decay factor is strictly less than 1 — every turnover strictly
     erodes ceiling residue (in the worst case). This is what makes the
     geometric-decay theorem below reach zero in the limit. 
-    **axiom-kind:** empirical -/
+    **axiom-kind:** empirical
+    **anchor:** vault:LongTimescaleDynamics -/
 axiom turnoverDecayFactor_lt_one : turnoverDecayFactor < 1
 
 /-- **Erosion axiom** (Hysteresis.md § 3.2). Each member-turnover event
@@ -1933,13 +1935,15 @@ axiom PathAMove {r : Region} : HOAState r → HOAState r → Prop
     implementations calibrate; the associated axiom is separate from
     the baseline monotonicity axiom, so peers that want to work with
     just monotonicity can ignore this. 
-    **axiom-kind:** scaffold -/
+    **axiom-kind:** scaffold
+    **anchor:** vault:LongTimescaleDynamics -/
 axiom pathAAccrualIncrement : ℝ
 
 /-- The accrual increment is strictly positive — Path-A events are
     structurally productive; a zero increment would collapse L3 to L2's
     baseline preservation. 
-    **axiom-kind:** scaffold -/
+    **axiom-kind:** scaffold
+    **anchor:** vault:LongTimescaleDynamics -/
 axiom pathAAccrualIncrement_pos : 0 < pathAAccrualIncrement
 
 /-- **Path-A accretes ceiling** (baseline monotonicity). Each Path-A
@@ -1958,7 +1962,8 @@ axiom pathAMove_accretes_ceiling
     (val ≤ 1); once ceiling reaches 1, Path-A cannot accrete further
     within this model. A peer that models beyond-1 ceilings would
     refactor `HOAState.ceilingResidue` to a wider type. 
-    **axiom-kind:** scaffold -/
+    **axiom-kind:** scaffold
+    **anchor:** vault:LongTimescaleDynamics -/
 axiom pathAMove_strict_accrual_below_saturation
     {r : Region} (s s' : HOAState r) :
   PathAMove s s' →
@@ -2037,11 +2042,13 @@ axiom CoInscriptionMove {r : Region} : HOAState r → HOAState r → Prop
 /-- **Peer-supplied strict-accrual increment** — the minimum formal-B₃
     increment per co-inscription event, below saturation. Analogous to
     `pathAAccrualIncrement` on the ceiling side. 
-    **axiom-kind:** scaffold -/
+    **axiom-kind:** scaffold
+    **anchor:** vault:LongTimescaleDynamics -/
 axiom coInscriptionAccrualIncrement : ℝ
 
 /-- The co-inscription accrual increment is strictly positive. 
-    **axiom-kind:** scaffold -/
+    **axiom-kind:** scaffold
+    **anchor:** vault:LongTimescaleDynamics, vault:B3SubstrateProsthetic -/
 axiom coInscriptionAccrualIncrement_pos : 0 < coInscriptionAccrualIncrement
 
 /-- **Co-inscription accretes formal B₃** (baseline monotonicity). Each
@@ -2058,7 +2065,8 @@ axiom coInscriptionMove_accretes_formalB3
     implicit CouplingWeight upper bound; a peer modeling beyond-1
     formal-B₃ magnitudes would refactor `HOAState.formalB3Substrate`
     to a wider type. 
-    **axiom-kind:** scaffold -/
+    **axiom-kind:** scaffold
+    **anchor:** vault:LongTimescaleDynamics, vault:B3SubstrateProsthetic -/
 axiom coInscriptionMove_strict_accrual_below_saturation
     {r : Region} (s s' : HOAState r) :
   CoInscriptionMove s s' →

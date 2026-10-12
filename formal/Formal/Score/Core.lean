@@ -86,7 +86,8 @@ axiom IsStable : Stratum → Prop
     A stratum is stable only if its immediate predecessor is also stable.
     NS selects against configurations requiring unstable substrates —
     they fail before they can reproduce. 
-    **axiom-kind:** empirical -/
+    **axiom-kind:** empirical
+    **anchor:** vault:SO-NS-Stratification -/
 axiom stratificationConstraint :
     ∀ (s : Stratum) (h : 0 < s.val),
       IsStable s → IsStable (s.predecessor h)
@@ -392,13 +393,15 @@ axiom carriedBy : InscriptionContent → B1Mark → Prop
 
 /-- **Totality.** "There is no B₃ token without a B₁ realization." This is the clause
     the OWL restriction states. 
-    **axiom-kind:** empirical -/
+    **axiom-kind:** empirical
+    **anchor:** owl:carriedBy, vault:B3-Inscription -/
 axiom inscription_carried : ∀ c : InscriptionContent, ∃ m : B1Mark, carriedBy c m
 
 /-- **Multiple realizability** (type level). The Rosetta Stone's three scripts carry one
     decree; a poem exists in breath, ink, or bits. Invariance of the content across its
     carriers is the standing reason B₃ is irreducible. 
-    **axiom-kind:** empirical -/
+    **axiom-kind:** empirical
+    **anchor:** vault:B3-Inscription -/
 axiom carrier_multiply_realizable :
     ∃ (c : InscriptionContent) (m₁ m₂ : B1Mark),
       m₁ ≠ m₂ ∧ carriedBy c m₁ ∧ carriedBy c m₂
@@ -408,7 +411,8 @@ axiom carrier_multiply_realizable :
     bear recoverable content — not the physics of the mark. This is also what keeps
     `B₁→B₃` structurally unavailable (see `MorphismCompleteness`): B₁ alone cannot
     reach B₃. 
-    **axiom-kind:** empirical -/
+    **axiom-kind:** empirical
+    **anchor:** vault:B3-Inscription -/
 axiom mark_without_content : ∃ m : B1Mark, ∀ c : InscriptionContent, ¬ carriedBy c m
 
 /-- **Realization without reduction.** B₃ does not collapse into its carrier: content
@@ -614,7 +618,8 @@ theorem no_hoa_of_subcritical {Pop : Type} [Fintype Pop] [DecidableEq Pop]
     forces **every** agent list in that region to sit at maximal aggregate
     weight — an absurdity that was machine-checkable from the axiom as written.
     This replacement constrains only the population's own kernel. 
-    **axiom-kind:** empirical -/
+    **axiom-kind:** empirical
+    **anchor:** vault:CouplingKernel -/
 axiom studentDominated_subcritical {Pop : Type} [Fintype Pop] [DecidableEq Pop]
     (κ : CouplingKernel Pop) (phase : Pop → LifeCyclePhase) :
     (∀ p, phase p = LifeCyclePhase.Student) → Subcritical κ
