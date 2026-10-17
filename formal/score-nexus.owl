@@ -47,7 +47,7 @@
     <owl:Class rdf:about="http://score-theory.org/nexus#InnovationHOA">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#HigherOrderAgent"/>
         <rdfs:label>Innovation HOA</rdfs:label>
-        <rdfs:comment>NEXUS HOA analog: the innovation ecosystem as a structured coupling network of researchers and founders (A-actors) and firms, VC funds, universities, and regulators (Sigma-actors). Crystallizes at the Erdos-Renyi threshold when all six closure cycles (training, founding, capital, acquisition, failure, network — InnovationEcosystem.md) are above threshold simultaneously. The first HOA analog with a mixed A-actor/Sigma-actor constituency — the third structural variant after the A-actor HumanCommunity peers (POLARIS/ETHOS/AGORA) and the Sigma-actor atlas:DeterrenceBasin.</rdfs:comment>
+        <rdfs:comment>NEXUS HOA analog: the innovation ecosystem as a structured coupling network of researchers and founders (A-actors) and firms, VC funds, universities, and regulators (Sigma-actors). Crystallizes at the percolation threshold (spectral criterion, not Erdos-Renyi mean density; CouplingKernel.md) when all six closure cycles (training, founding, capital, acquisition, failure, network — InnovationEcosystem.md) are above threshold simultaneously. The first HOA analog with a mixed A-actor/Sigma-actor constituency — the third structural variant after the A-actor HumanCommunity peers (POLARIS/ETHOS/AGORA) and the Sigma-actor atlas:DeterrenceBasin.</rdfs:comment>
     </owl:Class>
 
 

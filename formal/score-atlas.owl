@@ -49,7 +49,7 @@
     <owl:Class rdf:about="http://score-theory.org/atlas#DeterrenceBasin">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#HigherOrderAgent"/>
         <rdfs:label>Deterrence basin</rdfs:label>
-        <rdfs:comment>ATLAS HOA analog: the multi-actor stability attractor in a strategic region or domain — a stable cycle in the coupledTo graph of major Sigma-actors whose persistence is determined by whether its sustaining constraints satisfy the Montevil-Mossio closure criterion. A HigherOrderAgent (has a HOA) whose constituents are Sigma-actors, not A-actors — the DOE-significant contrast with the HumanCommunity-based HOA analogs of POLARIS/ETHOS/AGORA. Crystallizes at the Erdos-Renyi coupledTo-density threshold (SigmaActorArchitecture S 2a).</rdfs:comment>
+        <rdfs:comment>ATLAS HOA analog: the multi-actor stability attractor in a strategic region or domain — a stable cycle in the coupledTo graph of major Sigma-actors whose persistence is determined by whether its sustaining constraints satisfy the Montevil-Mossio closure criterion. A HigherOrderAgent (has a HOA) whose constituents are Sigma-actors, not A-actors — the DOE-significant contrast with the HumanCommunity-based HOA analogs of POLARIS/ETHOS/AGORA. Crystallizes at the percolation threshold of the coupledTo graph (spectral criterion, not Erdos-Renyi mean density; SigmaActorArchitecture S 2a, CouplingKernel.md).</rdfs:comment>
     </owl:Class>
 
 
