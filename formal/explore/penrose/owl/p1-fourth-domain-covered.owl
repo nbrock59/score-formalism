@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://score-theory.org/explore/penrose/p1-fourth-domain-covered#"
+     xml:base="http://score-theory.org/explore/penrose/p1-fourth-domain-covered"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+    <!-- QUARANTINED EXPLORATION SANDBOX. The CONTROL for p1-fourth-domain.owl: the same
+         probe, plus a covering axiom Domain = B1_Objective or B2_Subjective or
+         B3_Inscription. HermiT must now find the ontology inconsistent. If it did not,
+         the probe would be vacuous (consistent whatever core said), and its "consistent"
+         result would show nothing. The covering axiom is a test device here, not a
+         proposal for core. -->
+    <owl:Ontology rdf:about="http://score-theory.org/explore/penrose/p1-fourth-domain-covered">
+        <owl:imports rdf:resource="http://score-theory.org/core"/>
+        <rdfs:comment>expect: inconsistent</rdfs:comment>
+    </owl:Ontology>
+
+    <owl:Class rdf:about="http://score-theory.org/core#Domain">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://score-theory.org/core#B1_Objective"/>
+                    <rdf:Description rdf:about="http://score-theory.org/core#B2_Subjective"/>
+                    <rdf:Description rdf:about="http://score-theory.org/core#B3_Inscription"/>
+                </owl:unionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://score-theory.org/explore/penrose/p1-fourth-domain-covered#PlatonicRelatum">
+        <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Domain"/>
+    </owl:Class>
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://score-theory.org/explore/penrose/p1-fourth-domain-covered#PlatonicRelatum"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#B1_Objective"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#B2_Subjective"/>
+            <rdf:Description rdf:about="http://score-theory.org/core#B3_Inscription"/>
+        </owl:members>
+    </rdf:Description>
+
+    <owl:NamedIndividual rdf:about="http://score-theory.org/explore/penrose/p1-fourth-domain-covered#probeRelatum">
+        <rdf:type rdf:resource="http://score-theory.org/explore/penrose/p1-fourth-domain-covered#PlatonicRelatum"/>
+    </owl:NamedIndividual>
+</rdf:RDF>

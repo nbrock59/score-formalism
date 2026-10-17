@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- OASIS XML catalog for the Penrose sandbox: resolves the core import IRI to the committed
+     core file so Protege/HermiT load the sandbox ontologies offline. The sandbox imports
+     core; core never imports the sandbox. -->
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <uri id="SCORE core" name="http://score-theory.org/core" uri="../../../score-core.owl"/>
+</catalog>

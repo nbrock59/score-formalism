@@ -16,3 +16,10 @@ rev = "v4.29.1"
 
 [[lean_lib]]
 name = "Formal"
+
+# Quarantined exploration sandbox (CLAUDE.md § Explorations). NOT a default target, so
+# `lake build` and the lean-check CI job never build it; the spine must not import it
+# (scripts/exploration_check.py enforces both). Build: `lake build ExplorePenrose`.
+[[lean_lib]]
+name = "ExplorePenrose"
+srcDir = "explore/penrose/lean"
