@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://score-theory.org/explore/penrose/p11-b1-uncarried-inscription#"
+     xml:base="http://score-theory.org/explore/penrose/p11-b1-uncarried-inscription"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+    <!-- QUARANTINED EXPLORATION SANDBOX. Penrose P11 Pass B, B1 probe: a B3 inscription none of whose carriers is B1 (predicted inconsistent: asserted).
+         Registered (probe and prediction) in Penrose-P11 before this file was run. -->
+    <owl:Ontology rdf:about="http://score-theory.org/explore/penrose/p11-b1-uncarried-inscription">
+        <owl:imports rdf:resource="http://score-theory.org/core"/>
+        <rdfs:comment>expect: inconsistent</rdfs:comment>
+    </owl:Ontology>
+    <owl:NamedIndividual rdf:about="http://score-theory.org/explore/penrose/p11-b1-uncarried-inscription#probeInscription">
+        <rdf:type rdf:resource="http://score-theory.org/core#B3_Inscription"/>
+        <rdf:type>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://score-theory.org/core#carriedBy"/>
+                <owl:allValuesFrom>
+                    <owl:Class>
+                        <owl:complementOf rdf:resource="http://score-theory.org/core#B1_Objective"/>
+                    </owl:Class>
+                </owl:allValuesFrom>
+            </owl:Restriction>
+        </rdf:type>
+    </owl:NamedIndividual>
+</rdf:RDF>

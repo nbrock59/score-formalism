@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://score-theory.org/explore/penrose/p11-b2-administrative-hoa-control#"
+     xml:base="http://score-theory.org/explore/penrose/p11-b2-administrative-hoa-control"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+    <!-- QUARANTINED EXPLORATION SANDBOX. Penrose P11 Pass B, B2 control: the same probe plus HOA disjoint from AdministrativeDeclaration (predicted inconsistent, so the reasoner does see the probe individual).
+         Registered (probe and prediction) in Penrose-P11 before this file was run. -->
+    <owl:Ontology rdf:about="http://score-theory.org/explore/penrose/p11-b2-administrative-hoa-control">
+        <owl:imports rdf:resource="http://score-theory.org/core"/>
+        <rdfs:comment>expect: inconsistent</rdfs:comment>
+    </owl:Ontology>
+    <owl:Class rdf:about="http://score-theory.org/explore/penrose/p11-b2-administrative-hoa-control#AdministrativeDeclaration">
+        <owl:disjointWith rdf:resource="http://score-theory.org/core#HOA"/>
+        <rdfs:comment>Probe class only: an HOA brought into being by declaration, the case the HOA note's prose excludes.</rdfs:comment>
+    </owl:Class>
+    <owl:NamedIndividual rdf:about="http://score-theory.org/explore/penrose/p11-b2-administrative-hoa-control#probeHOA">
+        <rdf:type rdf:resource="http://score-theory.org/core#HOA"/>
+        <rdf:type rdf:resource="http://score-theory.org/explore/penrose/p11-b2-administrative-hoa-control#AdministrativeDeclaration"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
