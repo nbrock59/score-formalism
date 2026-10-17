@@ -387,11 +387,14 @@ inductive SigmaIntervention : Type where
 -- ════════════════════════════════════════════════════════════════
 -- §31. INTER-Σ COUPLING (MULTI-LAYER, EXECUTIVE-MEDIATED)
 -- OWL: `coupledTo` (Q3 PROMOTE 2026-06-04, third on-demand event, AGORA∩ATLAS
--- intersection) with three sub-relations. Density over `coupledTo` crystallizes
--- Σ-HOAs (coalitions / deterrence basins) at the SAME Erdős-Rényi threshold that
--- governs A-actor HOA formation — SO is ER at every stratum. Symmetric (mutual
--- coupling). The ER threshold and layer-superposition weighting are DL-
--- inexpressible and live in prose (SigmaActorArchitecture.md § 2a).
+-- intersection) with three sub-relations. Coupling over `coupledTo` crystallizes
+-- Σ-HOAs (coalitions / deterrence basins) at the SAME percolation transition that
+-- governs A-actor HOA formation — SO is the same transition at every stratum. Its
+-- criterion is kernel supercriticality (`Core.lean` § 7, `HOA.supercrit`), not
+-- Erdős-Rényi mean density, which is the homogeneous case (corrected 2026-10-17).
+-- No Σ-HOA structure carries it in Lean yet. Symmetric (mutual coupling). The
+-- threshold and layer-superposition weighting are DL-inexpressible and live in
+-- prose (SigmaActorArchitecture.md § 2a).
 -- ════════════════════════════════════════════════════════════════
 
 /-- Treaty-based coupling: formal B₃ commitments (alliance, security guarantee,

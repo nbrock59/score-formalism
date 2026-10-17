@@ -156,7 +156,7 @@
          AGORA uses it implicitly (Level-0 state -> Level-1 alliance cascade, HighCentralityDisruption);
          ATLAS uses it constitutively (a deterrence basin is a dense region of coupledTo). The
          three sub-properties are the three coupling layers; they operate simultaneously on
-         different timescales (NAryDeterrence). The Erdos-Renyi density threshold at which a
+         different timescales (NAryDeterrence). The percolation threshold at which a
          Sigma-HOA (coalition / deterrence basin) crystallizes, and the layer-superposition
          weighting, are DL-inexpressible and carried in SigmaActorArchitecture.md S 2a. -->
 
@@ -166,7 +166,7 @@
         <rdfs:domain rdf:resource="http://score-theory.org/core#SigmaActor"/>
         <rdfs:range rdf:resource="http://score-theory.org/core#SigmaActor"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
-        <rdfs:comment>Multi-layer inter-Sigma-actor coupling. Density over this relation determines Sigma-HOA (coalition / alliance / deterrence basin) crystallization at the same Erdos-Renyi threshold that governs A-actor HOA formation (SO is ER at every stratum). Symmetric: coupling is a mutual relation. Modulated informally by executive-to-executive A-actor relationships (SigmaActorArchitecture S 2).</rdfs:comment>
+        <rdfs:comment>Multi-layer inter-Sigma-actor coupling. Density over this relation determines Sigma-HOA (coalition / alliance / deterrence basin) crystallization at the same percolation transition that governs A-actor HOA formation (SO is the same transition at every stratum). Its criterion is supercriticality of the coupling kernel (spectral norm above 1, Bollobas-Janson-Riordan; Score/Core.lean S 7 HOA.supercrit), not Erdos-Renyi mean density, which is only the homogeneous case (corrected 2026-10-17; SigmaActorArchitecture S 2a). Whether multi-layer coupledTo meets the kernel conditions is not established. Symmetric: coupling is a mutual relation. Modulated informally by executive-to-executive A-actor relationships (SigmaActorArchitecture S 2).</rdfs:comment>
     </owl:ObjectProperty>
 
     <!-- http://score-theory.org/core#coupledByTreaty -->
