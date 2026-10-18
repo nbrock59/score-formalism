@@ -87,7 +87,13 @@ axiom secondOrderPerceive : (a : Agent) → HasSecondOrderPerception a →
     incorporation filters are ONE mechanism on the two shared sources, and δ is
     that filter's magnitude axis. No proof changes -- VC-IL-2, VC-DI-1/2/3 and
     Theorems DI-A/DI-B are stated over generic `Modification` and are
-    unaffected. -/
+    unaffected.
+
+    **Core counterpart (2026-10-18).** `Core.lean` § 8 now carries the registration floor
+    as `registrationFloor : CognitiveState → ℝ` over `perceptMagnitude`, gating
+    `registerAbove`. This declaration is its agent-level, `Modification`-based
+    specialization. The two are linked here, in prose, not by a theorem; retiring this
+    separate δ onto Core's is tracked in issue #960. -/
 axiom perceptibilityThreshold : Agent → CouplingWeight
 
 -- ── FA4: Inscription coverage ──────────────────────────────────

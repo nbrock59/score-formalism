@@ -216,6 +216,10 @@ def contradicts (_ : Percept) (_ : CognitiveState) : Prop := False
 def differentiate (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
 def reinforce (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
 
+-- The registration floor: every percept clears it here (definitional; satisfied trivially).
+def perceptMagnitude (_ : Percept) : ℝ := 1
+def registrationFloor (_ : CognitiveState) : ℝ := 0
+
 -- Exposure: agent 0 is exposed to everything, agent 1 to nothing. FAILS with one agent.
 def exposedTo (a : Agent) (_ : Stimulus) : Prop := a = 0
 

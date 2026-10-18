@@ -897,6 +897,55 @@ theorem no_differentiation_without_contradiction
   rw [if_neg hc]
   exact reinforce_preserves_dominant p cs
 
+/-! ### The registration floor δ (promoted 2026-10-18)
+
+The magnitude axis of the manifold filter (`PerceptibilityThreshold`, FA3): a percept below
+the floor does not register at all, whatever it is about. Decisions recorded with it (PI,
+2026-10-18):
+
+* **A function of the cognitive state**, not of the agent: δ is fixed by "current manifold
+  grain" (how settled the conditioned history is), so it can move as the state moves.
+* **Measured on the percept**, at the B₂ end, so it is source-agnostic (one floor for B₁
+  events and B₃ inscriptions alike). Measuring the update instead would be circular.
+* **Hard per state, soft in aggregate** (`RegistrationGain`): the observed graded response of
+  a population is the distribution of floors across it; nothing about this gate softens.
+
+Grounds for promotion: `InscriptionMarket`'s formal δ (`perceptibilityThreshold`, VC-DI-1/2/3,
+theorems DI-A/DI-B) and the core morphism notes that already run on it
+(`IncorporationAsymmetry`, `CapacityGating`), with SCORE-BAC and ETHOS in prose. The POLARIS
+engine's δ is not counted: it predates SCORE.
+
+**Not unified with the peer.** `InscriptionMarket.perceptibilityThreshold` stays the
+agent-level, `Modification`-based specialization; the link is documented in its docstring,
+not proved. Retiring the separate peer δ is tracked in issue #960 (supersession rule: B is a
+sequencing decision, not a resting state). -/
+
+/-- The magnitude of a percept: how large a change it registers as, measured at the B₂ end.
+    **axiom-kind:** definitional -/
+axiom perceptMagnitude : Percept → ℝ
+
+/-- **The registration floor δ** of a cognitive state: the least percept magnitude that
+    registers, fixed by the state's manifold grain.
+    **axiom-kind:** definitional -/
+axiom registrationFloor : CognitiveState → ℝ
+
+/-- A percept is above the floor of the state receiving it. -/
+def aboveFloor (p : Percept) (cs : CognitiveState) : Prop :=
+  registrationFloor cs < perceptMagnitude p
+
+open Classical in
+/-- **Gated registration**: a percept updates the state (by `register`, Path A or Path B) only
+    if it clears the state's registration floor. -/
+noncomputable def registerAbove (p : Percept) (cs : CognitiveState) : CognitiveState :=
+  if aboveFloor p cs then register p cs else cs
+
+/-- **Sub-threshold percepts change nothing.** The core form of VC-DI-2's "a modification at
+    or below δ does not register". -/
+theorem subthreshold_changes_nothing (p : Percept) (cs : CognitiveState)
+    (h : ¬ aboveFloor p cs) : registerAbove p cs = cs := by
+  unfold registerAbove
+  rw [if_neg h]
+
 /-- **The somatic route**: stimulation that acts on the cognitive substrate without passing
     the manifold filter. It takes no `Percept`. This is where rhythm-class interventions act
     (§ 9, `bypassesFilter`, `only_rhythm_class_bypasses_filter`): entrainment pre-conditions
@@ -906,12 +955,13 @@ axiom entrain : Event → CognitiveState → CognitiveState
 
 /-- **Perception (B₁ → B₂), defined.** An event reaches the agent by both routes: the somatic
     route acts on the substrate, then the filtered route registers what the event is *for that
-    manifold*. The filter reads the state *after* entrainment, so a rhythm that has
-    pre-conditioned the substrate changes what registers. Reads a change (an `Event`), not a
-    snapshot; replaces the deleted opaque `perception`. -/
+    manifold*, if it clears the registration floor. The filter reads the state *after*
+    entrainment, so a rhythm that has pre-conditioned the substrate changes what registers.
+    The somatic route is not gated by the floor: entrainment acts below registration.
+    Reads a change (an `Event`), not a snapshot; replaces the deleted opaque `perception`. -/
 noncomputable def perceive (e : Event) (cs : CognitiveState) : CognitiveState :=
   let cs' := entrain e cs
-  register (perceptualFilter e cs') cs'
+  registerAbove (perceptualFilter e cs') cs'
 
 /-- Perceiving a sequence of events: each is perceived by the state the previous ones left. -/
 noncomputable def perceiveSeq : List Event → CognitiveState → CognitiveState
@@ -936,16 +986,23 @@ theorem second_percept_filtered_by_first (e₁ e₂ : Event) (cs : CognitiveStat
     `incorporate`; matches Z's `Incorporate`, which already extended the prior B₂. -/
 noncomputable def incorporate (c : InscriptionContent) (cs : CognitiveState) :
     CognitiveState :=
-  register (stimulusFilter (.inscription c) cs) cs
+  registerAbove (stimulusFilter (.inscription c) cs) cs
 
-/-- **An inscription changes the dominant only by contradicting it**: the B₃ instance of
-    `no_differentiation_without_contradiction`. Reading something that fits what one already
-    holds deepens it and changes no rejection structure. -/
+/-- **An inscription changes the dominant only by clearing the floor and contradicting it**:
+    the B₃ instance of `no_differentiation_without_contradiction`, gated by δ. Reading something
+    that fits what one already holds deepens it and changes no rejection structure; reading
+    something below one's floor changes nothing at all. -/
 theorem incorporation_differentiates_only_by_contradiction
     (c : InscriptionContent) (cs : CognitiveState)
     (h : dominantOf (incorporate c cs) ≠ dominantOf cs) :
-    contradicts (stimulusFilter (.inscription c) cs) cs :=
-  no_differentiation_without_contradiction _ cs h
+    aboveFloor (stimulusFilter (.inscription c) cs) cs ∧
+      contradicts (stimulusFilter (.inscription c) cs) cs := by
+  unfold incorporate registerAbove at h
+  by_cases ha : aboveFloor (stimulusFilter (.inscription c) cs) cs
+  · rw [if_pos ha] at h
+    exact ⟨ha, no_differentiation_without_contradiction _ cs h⟩
+  · rw [if_neg ha] at h
+    exact absurd rfl h
 
 /-! ### Exposure: whether a stimulus reaches an agent at all (2026-10-18)
 
