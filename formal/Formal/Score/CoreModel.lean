@@ -45,10 +45,12 @@ Collapse every carrier to `Unit`, every predicate to `True`, `perceptDist` to `0
 | `carrier_multiply_realizable` | **FAILS** — needs two distinct marks |
 | `mark_without_content` | **FAILS** — needs a mark carrying nothing |
 | `b1_has_own_dynamics` | **FAILS** — a one-point world's only step is the identity |
+| `exposure_nonuniform` | **FAILS** — needs two agents, one exposed and one not |
 | `event_localized`, `mark_localized` | *theorems* (defined over `World`) |
 
-Only `carrier_multiply_realizable`, `mark_without_content` and `b1_has_own_dynamics` have
-content in this sense. The first two were added 2026-09-12 with exactly that job: they are
+Only `carrier_multiply_realizable`, `mark_without_content`, `b1_has_own_dynamics` and
+`exposure_nonuniform` (2026-10-18) have content in this sense. The first two were added
+2026-09-12 with exactly that job: they are
 what makes B₃ "realized without being reduced" say something. `b1_has_own_dynamics`
 (2026-10-18) says B₁ changes with no agent in it. Events and marks need no axiom: both are
 structures built from `World` (a real transition; a feature made by one), so the model below
@@ -213,6 +215,13 @@ def dominantOf (_ : CognitiveState) : RelativeDominant := ()
 def contradicts (_ : Percept) (_ : CognitiveState) : Prop := False
 def differentiate (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
 def reinforce (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
+
+-- Exposure: agent 0 is exposed to everything, agent 1 to nothing. FAILS with one agent.
+def exposedTo (a : Agent) (_ : Stimulus) : Prop := a = 0
+
+theorem exposure_nonuniform :
+    ∃ (a b : Agent) (s : Stimulus), exposedTo a s ∧ ¬ exposedTo b s :=
+  ⟨0, 1, .world (stepEvent 0), rfl, by unfold exposedTo; decide⟩
 
 theorem reinforce_preserves_dominant :
     ∀ (p : Percept) (cs : CognitiveState), dominantOf (reinforce p cs) = dominantOf cs :=

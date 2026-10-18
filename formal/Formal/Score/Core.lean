@@ -947,6 +947,67 @@ theorem incorporation_differentiates_only_by_contradiction
     contradicts (stimulusFilter (.inscription c) cs) cs :=
   no_differentiation_without_contradiction _ cs h
 
+/-! ### Exposure: whether a stimulus reaches an agent at all (2026-10-18)
+
+The gate upstream of the others. Coverage filtering (`stimulusFilter`), the registration
+floor δ (`InscriptionMarket`) and capacity gating (`SufficientDepth`) are all properties of
+B₂. Exposure is not: it is where the agent sits in B₁ and in the coupling graph. Decisions
+recorded with it (PI, 2026-10-18):
+
+* **By source.** B₁ events reach an agent by co-presence (the local geographic channel);
+  B₃ inscriptions reach it through the coupling network and the platforms that deliver
+  content (the B₃-mediated channels, `CouplingWeightVector`). Not formalized at this tier:
+  Core has no agent location and no Core-level coupling graph.
+* **Binary at this tier.** Graded exposure is amplification (ETHOS's `a(c)`), later.
+* **The formal home of platform power.** Ω-actors and platforms operate on *what reaches*
+  agents, as distinct from *how it registers*.
+
+What it buys now: divergent reactions have two formally distinct sources. Agents who were
+exposed to different stimuli diverge by **exposure**; agents exposed to the same stimulus
+who register it differently diverge by **perceptual bifurcation** (category error 5, and
+`polarizationInSharedWorld`, which applies exactly under shared exposure). -/
+
+/-- An agent is **exposed to** a stimulus: it reaches the agent at all.
+    **axiom-kind:** definitional -/
+axiom exposedTo : Agent → Stimulus → Prop
+
+/-- **Exposure is not uniform**: some stimulus reaches one agent and not another. The
+    minimum that makes exposure divergence (a filter bubble) possible, and that keeps it
+    distinct from perceptual bifurcation. Fails in a model where everyone is exposed to
+    everything.
+    **axiom-kind:** empirical
+    **anchor:** vault:Percept -/
+axiom exposure_nonuniform :
+    ∃ (a b : Agent) (s : Stimulus), exposedTo a s ∧ ¬ exposedTo b s
+
+/-- Two agents share exposure to a stimulus. Perceptual bifurcation is the divergence that
+    remains under shared exposure. -/
+def sharedExposure (a b : Agent) (s : Stimulus) : Prop := exposedTo a s ∧ exposedTo b s
+
+/-- **Exposure is not always shared**, so divergence under shared exposure (perceptual
+    bifurcation) is a strict special case of divergence in general: some pair of agents does
+    not share exposure to some stimulus. -/
+theorem exposure_not_always_shared : ∃ (a b : Agent) (s : Stimulus), ¬ sharedExposure a b s := by
+  obtain ⟨a, b, s, _, hb⟩ := exposure_nonuniform
+  exact ⟨a, b, s, fun h => hb h.2⟩
+
+open Classical in
+/-- **Reception**: a stimulus updates an agent's cognitive state only if the agent is exposed
+    to it, and then by perception (a B₁ event) or incorporation (a B₃ inscription). -/
+noncomputable def receive (a : Agent) (s : Stimulus) (cs : CognitiveState) : CognitiveState :=
+  if exposedTo a s then
+    match s with
+    | .world e => perceive e cs
+    | .inscription c => incorporate c cs
+  else cs
+
+/-- **No registration without exposure**: a stimulus that does not reach an agent leaves its
+    cognitive state unchanged. -/
+theorem unexposed_changes_nothing (a : Agent) (s : Stimulus) (cs : CognitiveState)
+    (h : ¬ exposedTo a s) : receive a s cs = cs := by
+  unfold receive
+  rw [if_neg h]
+
 /-- The complete normative change chain: inscribe → incorporate → constrain
     cognition → act → change objective world. Any joint can break. (Moved here from § 4b on
     2026-10-18; `incorporate` now takes the prior cognitive state.) -/
