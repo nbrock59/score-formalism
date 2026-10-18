@@ -178,7 +178,7 @@ theorem b3_not_reducible_to_carrier :
 
 def SufficientDepth (_ : Agent) : Prop := True
 
-def perception (_ : World) (_ : Agent) : CognitiveState := true
+-- `perception` was deleted from Core 2026-10-18; Perception is now defined (`perceive`).
 -- `action` is defined in §M1b, because `Transition` (and so `Event`) needs it.
 def inscribe (_ : Agent) (cs : CognitiveState) : InscriptionContent := cs
 def incorporate (ic : InscriptionContent) (_ : Agent) : CognitiveState := ic
@@ -199,7 +199,9 @@ theorem normativeChangeChain (a : Agent) (cs : CognitiveState) (w : World) :
 -- constrain `perceptDist` to be a pseudometric and nothing more.
 -- ════════════════════════════════════════════════════════════════
 
-def perceptualFilter (_ : Event) (_ : CouplingWeightVector) : Percept := ()
+def perceptualFilter (_ : Event) (_ : CognitiveState) : Percept := ()
+def register (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
+def entrain (_ : Event) (cs : CognitiveState) : CognitiveState := cs
 def perceptDist (_ _ : Percept) : ℝ := 0
 
 

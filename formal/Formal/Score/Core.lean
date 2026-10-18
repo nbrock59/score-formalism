@@ -214,13 +214,12 @@ inductive Constituent
 -- Do NOT read these as a pipeline.
 -- ════════════════════════════════════════════════════════════════
 
-/-- Perception (B₁ → B₂): the objective world enters agent cognition.
-    *Intended* to be filtered by the agent's manifold position, not uniform across agents;
-    the type does not carry that. The filtering is stated in § 8 (`perceptualFilter`, over
-    an `Event` that `occursIn` a world state, § 4d), and the two perception mechanisms are not
-    yet related (docstring corrected 2026-10-18; it had claimed the filtering as stated). 
-    **axiom-kind:** definitional -/
-axiom perception : World → Agent → CognitiveState
+-- Perception (B₁ → B₂) is DEFINED in § 8 (`perceive`): an event, filtered by the agent's
+-- manifold, updates its cognitive state, with a somatic route that bypasses the filter. It
+-- lives there because it reads an `Event` (§ 4d). The opaque
+-- `perception : World → Agent → CognitiveState` it replaces was deleted 2026-10-18
+-- (supersession rule): it read a snapshot, had no consumer, and claimed a filtering its type
+-- did not carry.
 
 /-- Action (B₂ → B₁): agent behavior modifies the objective world. 
     **axiom-kind:** definitional -/
@@ -748,27 +747,34 @@ theorem highthroughput_shallow_attractor {Pop : Type} [Fintype Pop] [DecidableEq
   no_hoa_of_subcritical (studentDominated_subcritical κ phase h)
 
 -- ════════════════════════════════════════════════════════════════
--- §8. PERCEPT AS MANIFOLD-FILTERED
--- An agent's manifold position filters external events before deliberation.
--- Sub-community similarity = shared perceptual filter.
+-- §8. PERCEPTION — FILTER, REGISTRATION, AND THE PUTNAM LOOP
+-- An agent's manifold (its cognitive state: the accumulated conditioned history, Putnam's
+-- CR) filters external events before deliberation. Sub-community similarity = shared
+-- manifold structure. Rewritten 2026-10-18: the filter reads the cognitive state, not the
+-- coupling vector, and the Perception morphism is defined from it.
 -- ════════════════════════════════════════════════════════════════
 
 -- `Event` (a real change of world state) is defined in § 4d, beside B₁'s own dynamics,
 -- because marks (§ 4b) are made by events. Here it is what a percept filters.
 
-/-- A percept: what an agent actually registers from an event.
-    This is the event filtered through the agent's coupling weight vector.
-    Two agents with different coupling vectors perceive different things
-    from the same event — prior to any deliberation. 
+/-- A percept: what an agent actually registers from an event. This is the event filtered
+    through the agent's manifold, its current cognitive state. Two agents whose manifolds
+    differ perceive different things from the same event, prior to any deliberation.
     **axiom-kind:** carrier -/
 axiom Percept : Type
 
-/-- The perceptual filter: maps (event, coupling vector) → percept. 
+/-- **The perceptual filter**: what an event registers as, given the perceiver's current
+    cognitive state (its manifold: the accumulated conditioned history).
+
+    *Retyped 2026-10-18* from `Event → CouplingWeightVector → Percept`. Coupling decides
+    *which* events reach an agent (exposure, not yet formalized); the manifold decides *what*
+    they register as (`Percept.md` § "Sub-community similarity as shared internal manifold
+    structure"; `AgentResponseMechanism` Step 1; Putnam's CR history).
     **axiom-kind:** definitional -/
-axiom perceptualFilter : Event → CouplingWeightVector → Percept
+axiom perceptualFilter : Event → CognitiveState → Percept
 
 /-- A distance on percept space, so that "similar percepts" is a claim about the
-    percepts rather than an unconstrained existential. 
+    percepts rather than an unconstrained existential.
     **axiom-kind:** definitional -/
 axiom perceptDist : Percept → Percept → ℝ
 
@@ -779,17 +785,16 @@ axiom perceptDist_self   : ∀ p, perceptDist p p = 0
 -- axiom-kind: definitional
 axiom perceptDist_comm   : ∀ p q, perceptDist p q = perceptDist q p
 
-/-- Sub-community perceptual similarity: agents with similar coupling vectors
-    perceive events similarly. This is the formal basis for sub-community
-    coherence — it is perceptual, not merely geographic.
+/-- Sub-community perceptual similarity: agents in similar manifold states perceive events
+    similarly. This is the formal basis for sub-community coherence — it is perceptual, not
+    merely geographic. (Stated over coupling vectors until 2026-10-18.)
 
     **Repaired 2026-07-26.** The former definition read
-    `∀ e, ∃ dist : ℝ, dist < ε` — `dist` was unconstrained and neither `v₁` nor
-    `v₂` occurred in the body, so it was provable for *every* pair at *every*
-    `ε`, which in turn made `polarizationAsBifurcation`'s hypothesis refutable
-    and that axiom unusable. -/
-def perceptuallySimilar (v₁ v₂ : CouplingWeightVector) (ε : ℝ) : Prop :=
-  ∀ e : Event, perceptDist (perceptualFilter e v₁) (perceptualFilter e v₂) < ε
+    `∀ e, ∃ dist : ℝ, dist < ε` — `dist` was unconstrained and neither side occurred in
+    the body, so it was provable for *every* pair at *every* `ε`, which in turn made
+    `polarizationAsBifurcation`'s hypothesis refutable and that axiom unusable. -/
+def perceptuallySimilar (s₁ s₂ : CognitiveState) (ε : ℝ) : Prop :=
+  ∀ e : Event, perceptDist (perceptualFilter e s₁) (perceptualFilter e s₂) < ε
 
 /-- Polarization as perceptual bifurcation: when an event produces strongly
     divergent percepts across the manifold, sub-communities move in opposite
@@ -800,9 +805,9 @@ def perceptuallySimilar (v₁ v₂ : CouplingWeightVector) (ε : ℝ) : Prop :=
     two agents perceive every event differently. The existential is the correct
     statement, and it is what the metric definition actually yields. -/
 theorem polarizationAsBifurcation
-    (v₁ v₂ : CouplingWeightVector) (ε : ℝ) (hε : 0 < ε)
-    (h : ¬ perceptuallySimilar v₁ v₂ ε) :
-    ∃ e : Event, perceptualFilter e v₁ ≠ perceptualFilter e v₂ := by
+    (s₁ s₂ : CognitiveState) (ε : ℝ) (hε : 0 < ε)
+    (h : ¬ perceptuallySimilar s₁ s₂ ε) :
+    ∃ e : Event, perceptualFilter e s₁ ≠ perceptualFilter e s₂ := by
   unfold perceptuallySimilar at h
   rw [not_forall] at h
   obtain ⟨e, he⟩ := h
@@ -811,16 +816,62 @@ theorem polarizationAsBifurcation
   exact he hε
 
 /-- **Polarization in the shared world.** `polarizationAsBifurcation` with its event placed:
-    two agents whose coupling vectors are not perceptually similar perceive differently an
-    event that occurs in a world state. "The same B₁ event, mapped onto different manifolds"
-    is now a statement about one world, not about an unanchored event type. -/
+    two agents whose manifolds are not perceptually similar perceive differently an event
+    that occurs in a world state. "The same B₁ event, mapped onto different manifolds" is a
+    statement about one world. -/
 theorem polarizationInSharedWorld
-    (v₁ v₂ : CouplingWeightVector) (ε : ℝ) (hε : 0 < ε)
-    (h : ¬ perceptuallySimilar v₁ v₂ ε) :
-    ∃ (e : Event) (w : World), occursIn e w ∧ perceptualFilter e v₁ ≠ perceptualFilter e v₂ := by
-  obtain ⟨e, he⟩ := polarizationAsBifurcation v₁ v₂ ε hε h
+    (s₁ s₂ : CognitiveState) (ε : ℝ) (hε : 0 < ε)
+    (h : ¬ perceptuallySimilar s₁ s₂ ε) :
+    ∃ (e : Event) (w : World), occursIn e w ∧ perceptualFilter e s₁ ≠ perceptualFilter e s₂ := by
+  obtain ⟨e, he⟩ := polarizationAsBifurcation s₁ s₂ ε hε h
   obtain ⟨w, hw⟩ := (event_localized e).1
   exact ⟨e, w, hw, he⟩
+
+/-! ### The Perception morphism, defined (2026-10-18)
+
+B₁ reaches cognition only as **stimulation**, by two routes: the *filtered* route (a percept,
+whose content depends on the manifold) and the *somatic* route (entrainment, which acts on
+the substrate below the filter; § 9's rhythm-class interventions). The morphism is their
+composite. What it does not yet include: exposure (which events reach which agents, the job
+coupling now has), the registration floor δ (`InscriptionMarket`), and the Path A / Path B
+asymmetry in `register`, which arrives with incorporation through the same filter. -/
+
+/-- **Registration**: how a registered percept updates the cognitive state (Putnam's CR
+    update). The Path A / Path B asymmetry (contradiction forces differentiation, confirmation
+    reinforces) belongs here and arrives with incorporation, the planned second step.
+    **axiom-kind:** definitional -/
+axiom register : Percept → CognitiveState → CognitiveState
+
+/-- **The somatic route**: stimulation that acts on the cognitive substrate without passing
+    the manifold filter. It takes no `Percept`. This is where rhythm-class interventions act
+    (§ 9, `bypassesFilter`, `only_rhythm_class_bypasses_filter`): entrainment pre-conditions
+    the substrate before any percept forms.
+    **axiom-kind:** definitional -/
+axiom entrain : Event → CognitiveState → CognitiveState
+
+/-- **Perception (B₁ → B₂), defined.** An event reaches the agent by both routes: the somatic
+    route acts on the substrate, then the filtered route registers what the event is *for that
+    manifold*. The filter reads the state *after* entrainment, so a rhythm that has
+    pre-conditioned the substrate changes what registers. Reads a change (an `Event`), not a
+    snapshot; replaces the deleted opaque `perception`. -/
+noncomputable def perceive (e : Event) (cs : CognitiveState) : CognitiveState :=
+  let cs' := entrain e cs
+  register (perceptualFilter e cs') cs'
+
+/-- Perceiving a sequence of events: each is perceived by the state the previous ones left. -/
+noncomputable def perceiveSeq : List Event → CognitiveState → CognitiveState
+  | [], cs => cs
+  | e :: es, cs => perceiveSeq es (perceive e cs)
+
+/-- **The Putnam loop, stated.** The state an event leaves is the filter for the next one: the
+    processing chain is recursive (`AgentResponseMechanism` § "Manifold evolution"). True by
+    construction; its content is in the types (the filter reads the state the loop updates). -/
+theorem perceiveSeq_cons (e : Event) (es : List Event) (cs : CognitiveState) :
+    perceiveSeq (e :: es) cs = perceiveSeq es (perceive e cs) := rfl
+
+/-- The second of two events is filtered by the state the first one left. -/
+theorem second_percept_filtered_by_first (e₁ e₂ : Event) (cs : CognitiveState) :
+    perceiveSeq [e₁, e₂] cs = perceive e₂ (perceive e₁ cs) := rfl
 
 -- ════════════════════════════════════════════════════════════════
 -- §9. THE INTERVENTION CLASSES -- ADDITIVE AND SUBTRACTIVE
