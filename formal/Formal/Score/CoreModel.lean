@@ -3,8 +3,8 @@ import Formal.Score.Core
 /-!
 # SCORE.CoreModel — a concrete model of Core's opaque spine (D3)
 
-`Core.lean` posits eight opaque carrier types (nine until 2026-10-18, when `Event`
-became a structure) and asserts axioms over them. Nothing showed
+`Core.lean` posits seven opaque carrier types (nine until 2026-10-18, when `Event`
+and `B1Mark` became structures) and asserts axioms over them. Nothing showed
 those axioms were **jointly satisfiable**, and an inconsistent axiom set makes every
 theorem resting on it vacuously true — 179 theorems build, and that fact alone does not
 distinguish "proved" from "proved from a contradiction".
@@ -44,14 +44,15 @@ Collapse every carrier to `Unit`, every predicate to `True`, `perceptDist` to `0
 | `inscription_carried` | **satisfied** — the single mark carries everything |
 | `carrier_multiply_realizable` | **FAILS** — needs two distinct marks |
 | `mark_without_content` | **FAILS** — needs a mark carrying nothing |
-| `mark_localized` | **FAILS** — needs a second world state, where the mark is absent |
-| `event_localized` | *a theorem* (events are changes of state); a one-point world has no events |
+| `b1_has_own_dynamics` | **FAILS** — a one-point world's only step is the identity |
+| `event_localized`, `mark_localized` | *theorems* (defined over `World`) |
 
-Only `carrier_multiply_realizable`, `mark_without_content` and `mark_localized` have content
-in this sense. The first two were added 2026-09-12 with exactly that job: they are what makes
-B₃ "realized without being reduced" say something. `mark_localized` (2026-10-18) makes marks
-features of **one** world. Events need no axiom: `Event` is a structure (a change of world
-state), so the model below builds it from `World` rather than choosing it. The rest
+Only `carrier_multiply_realizable`, `mark_without_content` and `b1_has_own_dynamics` have
+content in this sense. The first two were added 2026-09-12 with exactly that job: they are
+what makes B₃ "realized without being reduced" say something. `b1_has_own_dynamics`
+(2026-10-18) says B₁ changes with no agent in it. Events and marks need no axiom: both are
+structures built from `World` (a real transition; a feature made by one), so the model below
+mirrors them rather than choosing them. The rest
 are satisfiable by a structure that asserts nothing — which is not a defect (a
 pseudometric axiom *should* admit the zero metric) but is worth knowing before treating
 any of them as an empirical commitment.
@@ -62,21 +63,57 @@ any of them as an empirical commitment.
 namespace SCORE.CoreModel
 
 -- ════════════════════════════════════════════════════════════════
--- §M1. CARRIERS — concrete choices for Core's eight opaque types
+-- §M1. CARRIERS — concrete choices for Core's seven opaque types
 -- Each is the smallest type that keeps the axioms below satisfiable.
--- `B1Mark` is `Fin 3` and not `Unit` because §M3 forces it; see the header.
--- `World` is `Bool` and not `Unit` because `mark_localized` forces two states.
--- `Event` is not chosen here: Core defines it from `World` (a change of state); see §M5.
+-- `World` is `Fin 3` with a cyclic step: §M3 needs three distinct marks, and a mark is made
+-- by an event, so the world needs three distinct transitions. `Event` and `B1Mark` are not
+-- chosen here: Core defines both from `World`; see §M1b.
 -- ════════════════════════════════════════════════════════════════
 
 abbrev Agent := Fin 2
-abbrev World := Bool
+abbrev World := Fin 3
 abbrev InscriptionContent := Bool
 abbrev CognitiveState := Bool
 abbrev SigmaActor := Unit
-abbrev B1Mark := Fin 3
 abbrev Region := Unit
 abbrev Percept := Unit
+
+-- ════════════════════════════════════════════════════════════════
+-- §M1b. B₁ DYNAMICS, EVENTS AND MARKS — Core's § 4d, mirrored
+-- The step cycles 0 → 1 → 2 → 0, so every state moves: `b1_has_own_dynamics` holds, and it
+-- FAILS in a one-point world. `action` is the identity (agents change nothing here), so every
+-- event in this model is natural, which is exactly what Core now permits.
+-- ════════════════════════════════════════════════════════════════
+
+def b1Step (w : World) : World := w + 1
+
+/-- B₁ changes on its own. UNSATISFIABLE in a one-point world. -/
+theorem b1_has_own_dynamics : ∃ w : World, b1Step w ≠ w := ⟨0, by decide⟩
+
+def action (_ : Agent) (_ : CognitiveState) (w : World) : World := w
+
+def Transition (w w' : World) : Prop :=
+  w' = b1Step w ∨ ∃ (a : Agent) (cs : CognitiveState), w' = action a cs w
+
+/-- Core's `Event`, mirrored over this model's `World`. -/
+structure Event where
+  before : World
+  after : World
+  changes : before ≠ after
+  transition : Transition before after
+
+/-- Core's `B1Mark`, mirrored: a feature made by an event. -/
+structure B1Mark where
+  madeBy : Event
+  feature : World → Prop
+  present : feature madeBy.after
+  absent : ¬ feature madeBy.before
+
+theorem step_ne (i : World) : i ≠ b1Step i := by revert i; decide
+
+/-- The natural event starting at `i`, and the mark it makes (the state `i + 1` holding). -/
+def stepEvent (i : World) : Event := ⟨i, b1Step i, step_ne i, Or.inl rfl⟩
+def mk (i : World) : B1Mark := ⟨stepEvent i, fun w => w = b1Step i, rfl, step_ne i⟩
 
 -- ════════════════════════════════════════════════════════════════
 -- §M2. THE STRATIFICATION CONSTRAINT
@@ -92,38 +129,37 @@ theorem stratificationConstraint :
 
 -- ════════════════════════════════════════════════════════════════
 -- §M3. B₁ REALIZATION — the axioms that DO force structure
--- Mark 0 and mark 1 both carry `true`; mark 2 carries nothing.
+-- The marks made at states 0 and 1 both carry `true`; the one made at 2 carries nothing.
 -- Two distinct carriers of one content, and one mark that is mere matter.
 -- ════════════════════════════════════════════════════════════════
 
 def carriedBy (c : InscriptionContent) (m : B1Mark) : Prop :=
-  (c = true ∧ (m = 0 ∨ m = 1)) ∨ (c = false ∧ m = 0)
+  (c = true ∧ (m.madeBy.before = 0 ∨ m.madeBy.before = 1)) ∨
+    (c = false ∧ m.madeBy.before = 0)
 
 /-- Totality: no B₃ token without a B₁ realization. -/
 theorem inscription_carried : ∀ c, ∃ m, carriedBy c m := by
   intro c; cases c
-  · exact ⟨0, Or.inr ⟨rfl, rfl⟩⟩
-  · exact ⟨0, Or.inl ⟨rfl, Or.inl rfl⟩⟩
+  · exact ⟨mk 0, Or.inr ⟨rfl, rfl⟩⟩
+  · exact ⟨mk 0, Or.inl ⟨rfl, Or.inl rfl⟩⟩
+
+theorem mk_ne : mk 0 ≠ mk 1 := by
+  intro h
+  have h' := congrArg (fun m : B1Mark => m.madeBy.before) h
+  exact absurd h' (by decide)
 
 /-- Multiple realizability — the Rosetta case. UNSATISFIABLE at one point. -/
 theorem carrier_multiply_realizable :
     ∃ (c : InscriptionContent) (m₁ m₂ : B1Mark),
       m₁ ≠ m₂ ∧ carriedBy c m₁ ∧ carriedBy c m₂ :=
-  ⟨true, 0, 1, by decide, Or.inl ⟨rfl, Or.inl rfl⟩, Or.inl ⟨rfl, Or.inr rfl⟩⟩
+  ⟨true, mk 0, mk 1, mk_ne, Or.inl ⟨rfl, Or.inl rfl⟩, Or.inl ⟨rfl, Or.inr rfl⟩⟩
 
 /-- B₁ necessary, not sufficient: some marks are mere patterned matter.
     UNSATISFIABLE at one point. -/
 theorem mark_without_content : ∃ m : B1Mark, ∀ c, ¬ carriedBy c m := by
-  refine ⟨2, ?_⟩
+  refine ⟨mk 2, ?_⟩
   intro c h
   rcases h with ⟨_, h2 | h2⟩ | ⟨_, h2⟩ <;> exact absurd h2 (by decide)
-
-/-- Marks are present in the `true` state and absent from the `false` one. -/
-def markIn (_ : B1Mark) (w : World) : Prop := w = true
-
-/-- Marks are localized in the world. UNSATISFIABLE in a one-point world. -/
-theorem mark_localized : ∀ m : B1Mark, (∃ w : World, markIn m w) ∧ (∃ w : World, ¬ markIn m w) :=
-  fun _ => ⟨⟨true, rfl⟩, ⟨false, by simp [markIn]⟩⟩
 
 /-- Realization without reduction, derived here exactly as in `Core.lean`. -/
 theorem b3_not_reducible_to_carrier :
@@ -143,7 +179,7 @@ theorem b3_not_reducible_to_carrier :
 def SufficientDepth (_ : Agent) : Prop := True
 
 def perception (_ : World) (_ : Agent) : CognitiveState := true
-def action (_ : Agent) (_ : CognitiveState) (w : World) : World := w
+-- `action` is defined in §M1b, because `Transition` (and so `Event`) needs it.
 def inscribe (_ : Agent) (cs : CognitiveState) : InscriptionContent := cs
 def incorporate (ic : InscriptionContent) (_ : Agent) : CognitiveState := ic
 def inscribeB1Ref (_ : Agent) (cs : CognitiveState) : InscriptionContent := cs
@@ -162,13 +198,6 @@ theorem normativeChangeChain (a : Agent) (cs : CognitiveState) (w : World) :
 -- i.e. in which the perceptual-bifurcation claim has no content. They
 -- constrain `perceptDist` to be a pseudometric and nothing more.
 -- ════════════════════════════════════════════════════════════════
-
-/-- Core's `Event`, rebuilt over this model's `World`: a change of state. Not a modelling
-    choice (Core defines it), so it is mirrored, not chosen. -/
-structure Event where
-  before : World
-  after : World
-  changes : before ≠ after
 
 def perceptualFilter (_ : Event) (_ : CouplingWeightVector) : Percept := ()
 def perceptDist (_ _ : Percept) : ℝ := 0
@@ -191,11 +220,11 @@ theorem perceptDist_comm : ∀ p q, perceptDist p q = perceptDist q p := by intr
     every other axiom in this file and fails exactly these two. -/
 theorem ModelIsNonTrivial :
     (∃ m₁ m₂ : B1Mark, m₁ ≠ m₂) ∧ (∃ m : B1Mark, ∀ c, ¬ carriedBy c m) :=
-  ⟨⟨0, 1, by decide⟩, mark_without_content⟩
+  ⟨⟨mk 0, mk 1, mk_ne⟩, mark_without_content⟩
 
 /-- And the collapse is not available: no one-point mark type can satisfy both. Stated
     over an arbitrary `Subsingleton` carrier so it is a fact about the axioms, not about
-    `Fin 3`. -/
+    this model's marks. -/
 theorem no_one_point_model {M : Type} [Subsingleton M]
     (cb : InscriptionContent → M → Prop)
     (h_multi : ∃ (c : InscriptionContent) (m₁ m₂ : M), m₁ ≠ m₂ ∧ cb c m₁ ∧ cb c m₂) :

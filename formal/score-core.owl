@@ -323,6 +323,7 @@
 
     <owl:Class rdf:about="http://score-theory.org/core#B1_Objective">
         <rdfs:subClassOf rdf:resource="http://score-theory.org/core#Domain"/>
+        <rdfs:comment>The objective domain: everything with causal efficacy independent of any mind. B1 has dynamics of its own, with no agent in the loop (SO and NS operate within B1; PureB1Cycle is its emergent node). That dynamics is NOT a morphism, since morphisms are cross-domain couplings and there is no intra-B1 morphism; it is DL-inexpressible and carried in Lean (Score/Core.lean S 4d: b1Step, b1_has_own_dynamics, Transition, added 2026-10-18). See obsidian/SCORE/domains/B1-Objective.md.</rdfs:comment>
     </owl:Class>
     
 
