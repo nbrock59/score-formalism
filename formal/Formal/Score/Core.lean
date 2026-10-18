@@ -264,10 +264,11 @@ noncomputable example (a : Agent) (h : SufficientDepth a) (cs : CognitiveState) 
     InscriptionContent :=
   inscribeB2Ref a h cs
 
-/-- Incorporation (B₃ → B₂): inscribed content enters agent cognition.
-    Via Path A (organic, expensive) or Path B (symbolic, cheap). 
-    **axiom-kind:** definitional -/
-axiom incorporate : InscriptionContent → Agent → CognitiveState
+-- Incorporation (B₃ → B₂) is DEFINED in § 8 (`incorporate`), through the same manifold
+-- filter as perception, with the Path A / Path B asymmetry in the update. The opaque
+-- `incorporate : InscriptionContent → Agent → CognitiveState` it replaces was deleted
+-- 2026-10-18 (supersession rule): it took no prior cognitive state, so it could not express
+-- that what an inscription does depends on the manifold it lands on.
 
 /-- The five OWL `Morphism` subclasses, as a disjoint sum — the Lean counterpart of
     `Action ⊔ Incorporation ⊔ Inscription ⊔ Perception ⊔ Transformation` all-disjoint in
@@ -550,19 +551,7 @@ theorem world_nontrivial : ∃ w₁ w₂ : World, w₁ ≠ w₂ := by
   obtain ⟨w, hw⟩ := b1_has_own_dynamics
   exact ⟨w, b1Step w, fun h => hw h.symm⟩
 
-/-- The complete normative change chain: inscribe → incorporate → constrain
-    cognition → act → change objective world. Any joint can break. -/
-theorem normativeChangeChain
-    (a : Agent) (cs : CognitiveState) (w : World) :
-    -- An inscription produced by this agent...
-    let ic := inscribe a cs
-    -- ...when incorporated, produces a new cognitive state...
-    let cs' := incorporate ic a
-    -- ...which, when acted upon, produces a new world state.
-    let _w' := action a cs' w
-    -- The result is a modified world. Whether the change is normatively
-    -- significant is an empirical question outside this formal encoding.
-    True := trivial
+-- `normativeChangeChain` moved to § 8 (2026-10-18): it uses the defined `incorporate`.
 
 -- ════════════════════════════════════════════════════════════════
 -- §5. COUPLING WEIGHT VECTORS
@@ -763,15 +752,26 @@ theorem highthroughput_shallow_attractor {Pop : Type} [Fintype Pop] [DecidableEq
     **axiom-kind:** carrier -/
 axiom Percept : Type
 
-/-- **The perceptual filter**: what an event registers as, given the perceiver's current
-    cognitive state (its manifold: the accumulated conditioned history).
+/-- A **stimulus**: what reaches an agent's cognition. One filter, two sources: a B₁ event
+    (perception) or a B₃ inscription (incorporation). `DomainTrichotomy` § Cardinality and
+    `InscriptionMarket` (δ's docstring) both say the percept and incorporation filters are
+    one mechanism on the two shared sources; this type is that claim. (Added 2026-10-18.) -/
+inductive Stimulus where
+  | world (e : Event)
+  | inscription (c : InscriptionContent)
 
-    *Retyped 2026-10-18* from `Event → CouplingWeightVector → Percept`. Coupling decides
-    *which* events reach an agent (exposure, not yet formalized); the manifold decides *what*
-    they register as (`Percept.md` § "Sub-community similarity as shared internal manifold
-    structure"; `AgentResponseMechanism` Step 1; Putnam's CR history).
+/-- **The manifold filter**: what a stimulus registers as, given the receiver's current
+    cognitive state (its manifold: the accumulated conditioned history, Putnam's CR). Coupling
+    decides *which* stimuli reach an agent (exposure, not yet formalized); the manifold decides
+    *what* they register as.
     **axiom-kind:** definitional -/
-axiom perceptualFilter : Event → CognitiveState → Percept
+axiom stimulusFilter : Stimulus → CognitiveState → Percept
+
+/-- **The perceptual filter**: the manifold filter on a B₁ event. *Retyped 2026-10-18* from
+    `Event → CouplingWeightVector → Percept`, and a definition (not an axiom) since
+    incorporation joined the same filter the same day. -/
+noncomputable def perceptualFilter (e : Event) (cs : CognitiveState) : Percept :=
+  stimulusFilter (.world e) cs
 
 /-- A distance on percept space, so that "similar percepts" is a claim about the
     percepts rather than an unconstrained existential.
@@ -833,14 +833,69 @@ B₁ reaches cognition only as **stimulation**, by two routes: the *filtered* ro
 whose content depends on the manifold) and the *somatic* route (entrainment, which acts on
 the substrate below the filter; § 9's rhythm-class interventions). The morphism is their
 composite. What it does not yet include: exposure (which events reach which agents, the job
-coupling now has), the registration floor δ (`InscriptionMarket`), and the Path A / Path B
-asymmetry in `register`, which arrives with incorporation through the same filter. -/
+coupling now has) and the registration floor δ (`InscriptionMarket`). The Path A / Path B
+asymmetry lives in `register` (below), shared with incorporation. -/
 
-/-- **Registration**: how a registered percept updates the cognitive state (Putnam's CR
-    update). The Path A / Path B asymmetry (contradiction forces differentiation, confirmation
-    reinforces) belongs here and arrives with incorporation, the planned second step.
+/-! ### Registration: Path A and Path B (2026-10-18)
+
+Putnam: "There is no differentiation except via explicit contradiction." A percept that
+contradicts the agent's current **relative dominant** (RD: the act that stops search, defined
+by what it rejects) forces differentiation, the Path A substrate: expensive, durable, it
+rewires the rejection structure. A percept that fits it reinforces, the Path B substrate:
+cheap, it strengthens existing links and creates none. The split is by contradiction, not
+by source: a B₁ event and a B₃ inscription pass through the same update. Whether an
+inscription can, in practice, force differentiation (the vault leans "rarely, and fragile")
+is not decided here. -/
+
+/-- Putnam's **relative dominant**: what an agent's cognitive state currently settles on,
+    individuated by the rejection structure that constitutes it (`Putnam-Peter` § RD).
+    **axiom-kind:** carrier -/
+axiom RelativeDominant : Type
+
+/-- The relative dominant a cognitive state currently holds.
     **axiom-kind:** definitional -/
-axiom register : Percept → CognitiveState → CognitiveState
+axiom dominantOf : CognitiveState → RelativeDominant
+
+/-- A percept **contradicts** a cognitive state when it violates the state's current
+    dominant: the conditioned prediction fails (`Putnam-Peter` § Emotions: "CR prediction
+    failure").
+    **axiom-kind:** definitional -/
+axiom contradicts : Percept → CognitiveState → Prop
+
+/-- **Differentiation** (Path A substrate): the update a contradicting percept forces.
+    **axiom-kind:** definitional -/
+axiom differentiate : Percept → CognitiveState → CognitiveState
+
+/-- **Reinforcement** (Path B substrate): the update a fitting percept makes.
+    **axiom-kind:** definitional -/
+axiom reinforce : Percept → CognitiveState → CognitiveState
+
+/-- **Reinforcement does not change the relative dominant.** "Simple reinforcement ...
+    strengthens existing links but does not create new ones"; it "only deepens the existing
+    SS" (`Putnam-Peter` § Differentiation via contradiction only).
+    **axiom-kind:** empirical
+    **anchor:** vault:AgentResponseMechanism -/
+axiom reinforce_preserves_dominant :
+    ∀ (p : Percept) (cs : CognitiveState), dominantOf (reinforce p cs) = dominantOf cs
+
+open Classical in
+/-- **Registration**: how a registered percept updates the cognitive state (Putnam's CR
+    update), split by contradiction into differentiation (Path A) and reinforcement (Path B).
+    A definition since 2026-10-18 (it was an opaque axiom for one PR). -/
+noncomputable def register (p : Percept) (cs : CognitiveState) : CognitiveState :=
+  if contradicts p cs then differentiate p cs else reinforce p cs
+
+/-- **No differentiation except via contradiction** (Putnam), as a theorem: if registering a
+    percept changes the relative dominant, the percept contradicted the state. Follows from
+    `reinforce_preserves_dominant` alone. -/
+theorem no_differentiation_without_contradiction
+    (p : Percept) (cs : CognitiveState)
+    (h : dominantOf (register p cs) ≠ dominantOf cs) : contradicts p cs := by
+  by_contra hc
+  apply h
+  unfold register
+  rw [if_neg hc]
+  exact reinforce_preserves_dominant p cs
 
 /-- **The somatic route**: stimulation that acts on the cognitive substrate without passing
     the manifold filter. It takes no `Percept`. This is where rhythm-class interventions act
@@ -872,6 +927,40 @@ theorem perceiveSeq_cons (e : Event) (es : List Event) (cs : CognitiveState) :
 /-- The second of two events is filtered by the state the first one left. -/
 theorem second_percept_filtered_by_first (e₁ e₂ : Event) (cs : CognitiveState) :
     perceiveSeq [e₁, e₂] cs = perceive e₂ (perceive e₁ cs) := rfl
+
+/-- **Incorporation (B₃ → B₂), defined.** An inscription passes through the same manifold
+    filter as a B₁ event and the same Path A / Path B update. It takes the prior cognitive
+    state, so what an inscription does depends on the manifold it lands on: Path B's
+    conditionality on prior Path A roads is now expressible. (No somatic route: entrainment is
+    bodily, and an inscription reaches the agent as content.) Replaces the deleted opaque
+    `incorporate`; matches Z's `Incorporate`, which already extended the prior B₂. -/
+noncomputable def incorporate (c : InscriptionContent) (cs : CognitiveState) :
+    CognitiveState :=
+  register (stimulusFilter (.inscription c) cs) cs
+
+/-- **An inscription changes the dominant only by contradicting it**: the B₃ instance of
+    `no_differentiation_without_contradiction`. Reading something that fits what one already
+    holds deepens it and changes no rejection structure. -/
+theorem incorporation_differentiates_only_by_contradiction
+    (c : InscriptionContent) (cs : CognitiveState)
+    (h : dominantOf (incorporate c cs) ≠ dominantOf cs) :
+    contradicts (stimulusFilter (.inscription c) cs) cs :=
+  no_differentiation_without_contradiction _ cs h
+
+/-- The complete normative change chain: inscribe → incorporate → constrain
+    cognition → act → change objective world. Any joint can break. (Moved here from § 4b on
+    2026-10-18; `incorporate` now takes the prior cognitive state.) -/
+theorem normativeChangeChain
+    (a : Agent) (cs : CognitiveState) (w : World) :
+    -- An inscription produced by this agent...
+    let ic := inscribe a cs
+    -- ...when incorporated into a cognitive state, produces a new one...
+    let cs' := incorporate ic cs
+    -- ...which, when acted upon, produces a new world state.
+    let _w' := action a cs' w
+    -- The result is a modified world. Whether the change is normatively
+    -- significant is an empirical question outside this formal encoding.
+    True := trivial
 
 -- ════════════════════════════════════════════════════════════════
 -- §9. THE INTERVENTION CLASSES -- ADDITIVE AND SUBTRACTIVE

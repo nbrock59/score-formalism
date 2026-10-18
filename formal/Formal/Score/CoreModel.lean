@@ -181,14 +181,14 @@ def SufficientDepth (_ : Agent) : Prop := True
 -- `perception` was deleted from Core 2026-10-18; Perception is now defined (`perceive`).
 -- `action` is defined in §M1b, because `Transition` (and so `Event`) needs it.
 def inscribe (_ : Agent) (cs : CognitiveState) : InscriptionContent := cs
-def incorporate (ic : InscriptionContent) (_ : Agent) : CognitiveState := ic
+def incorporate (ic : InscriptionContent) (_ : CognitiveState) : CognitiveState := ic
 def inscribeB1Ref (_ : Agent) (cs : CognitiveState) : InscriptionContent := cs
 def inscribeB2Ref (a : Agent) (_ : SufficientDepth a) (cs : CognitiveState) :
     InscriptionContent := cs
 
 /-- The normative change chain composes in the model, as it does in `Core.lean`. -/
 theorem normativeChangeChain (a : Agent) (cs : CognitiveState) (w : World) :
-    ∃ w' : World, w' = action a (incorporate (inscribe a cs) a) w :=
+    ∃ w' : World, w' = action a (incorporate (inscribe a cs) cs) w :=
   ⟨_, rfl⟩
 
 -- ════════════════════════════════════════════════════════════════
@@ -199,8 +199,24 @@ theorem normativeChangeChain (a : Agent) (cs : CognitiveState) (w : World) :
 -- constrain `perceptDist` to be a pseudometric and nothing more.
 -- ════════════════════════════════════════════════════════════════
 
-def perceptualFilter (_ : Event) (_ : CognitiveState) : Percept := ()
-def register (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
+/-- Core's `Stimulus`, mirrored: one filter, two sources. -/
+inductive Stimulus where
+  | world (e : Event)
+  | inscription (c : InscriptionContent)
+
+def stimulusFilter (_ : Stimulus) (_ : CognitiveState) : Percept := ()
+
+-- The Path A / Path B layer. A one-point dominant satisfies the preservation law: like
+-- the pseudometric axioms, it constrains, it does not force structure.
+abbrev RelativeDominant := Unit
+def dominantOf (_ : CognitiveState) : RelativeDominant := ()
+def contradicts (_ : Percept) (_ : CognitiveState) : Prop := False
+def differentiate (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
+def reinforce (_ : Percept) (cs : CognitiveState) : CognitiveState := cs
+
+theorem reinforce_preserves_dominant :
+    ∀ (p : Percept) (cs : CognitiveState), dominantOf (reinforce p cs) = dominantOf cs :=
+  fun _ _ => rfl
 def entrain (_ : Event) (cs : CognitiveState) : CognitiveState := cs
 def perceptDist (_ _ : Percept) : ℝ := 0
 
