@@ -215,7 +215,10 @@ inductive Constituent
 -- ════════════════════════════════════════════════════════════════
 
 /-- Perception (B₁ → B₂): the objective world enters agent cognition.
-    Filtered by the agent's manifold position — not uniform across agents. 
+    *Intended* to be filtered by the agent's manifold position, not uniform across agents;
+    the type does not carry that. The filtering is stated in § 8 (`perceptualFilter`, over
+    an `Event` that `occursIn` a world state), and the two perception mechanisms are not
+    yet related (docstring corrected 2026-10-18; it had claimed the filtering as stated). 
     **axiom-kind:** definitional -/
 axiom perception : World → Agent → CognitiveState
 
@@ -437,6 +440,49 @@ theorem b1_necessary_not_sufficient :
   obtain ⟨c, hc⟩ := h m
   exact hm c hc
 
+/-! ### Marks are features of the one world (2026-10-18)
+
+`World`, `Event` and `B1Mark` were three B₁ carriers with no stated relation, so a model
+could interpret them as three different worlds (`CoreModel` chose `Bool`, `Unit` and
+`Fin 3` independently). The core's fourth category error says there is **one** B₁. This
+section and its § 8 counterpart (`Event`, `occursIn`) state that marks and events are
+localized features of world states. Events are *defined* as changes of state, so their
+localization is a theorem. Marks persist across states, and Core has no time, so their
+localization stays an axiom; it fails in a one-point model, as it must to say anything.
+Open: deriving it from "every mark is made by an event" (it would relocate the axiom, not
+remove it), and Core's lack of any B₁ dynamics besides agents' `action`. Recorded as the
+residual of a withdrawn correction in `reference/correction-ledger.md`. -/
+
+/-- A mark is present in a world state. 
+    **axiom-kind:** definitional -/
+axiom markIn : B1Mark → World → Prop
+
+/-- **Marks are localized in the world.** Every mark is present in some world state and
+    absent from some other. A mark is "a particular physical change in B₁" (`B1Mark`): made,
+    and unmade, not a permanent fixture of every state. Fails in a one-point world. 
+    **axiom-kind:** empirical
+    **anchor:** vault:B3-Inscription -/
+axiom mark_localized :
+    ∀ m : B1Mark, (∃ w : World, markIn m w) ∧ (∃ w : World, ¬ markIn m w)
+
+/-- **Every inscription is realized in the one world**: each content has a carrier mark
+    that is present in some world state. `inscription_carried` said every content has a
+    mark; this says where the mark is. -/
+theorem inscription_realized_in_world :
+    ∀ c : InscriptionContent, ∃ (m : B1Mark) (w : World), carriedBy c m ∧ markIn m w := by
+  intro c
+  obtain ⟨m, hm⟩ := inscription_carried c
+  obtain ⟨w, hw⟩ := (mark_localized m).1
+  exact ⟨m, w, hm, hw⟩
+
+/-- **The axioms force more than one world state.** `mark_without_content` supplies a mark,
+    and `mark_localized` makes it present in one state and absent from another. Stated so
+    the non-triviality is a checked fact, as `CoreModel.ModelIsNonTrivial` does for marks. -/
+theorem world_nontrivial : ∃ w₁ w₂ : World, w₁ ≠ w₂ := by
+  obtain ⟨m, _⟩ := mark_without_content
+  obtain ⟨⟨w₁, h₁⟩, ⟨w₂, h₂⟩⟩ := mark_localized m
+  exact ⟨w₁, w₂, fun h => by subst h; exact h₂ h₁⟩
+
 /-- The complete normative change chain: inscribe → incorporate → constrain
     cognition → act → change objective world. Any joint can break. -/
 theorem normativeChangeChain
@@ -639,9 +685,18 @@ theorem highthroughput_shallow_attractor {Pop : Type} [Fintype Pop] [DecidableEq
 -- Sub-community similarity = shared perceptual filter.
 -- ════════════════════════════════════════════════════════════════
 
-/-- An external event in the objective world. 
-    **axiom-kind:** carrier -/
-axiom Event : Type
+/-- **An external event in the objective world: a change of world state.** "B₁ events are
+    occurrences on this manifold" (`Manifold.md`); an occurrence that changes nothing is
+    not one. So an event is a pair of world states with a distinct before and after.
+
+    *Defined 2026-10-18; formerly `axiom Event : Type` (an opaque carrier).* With events
+    defined, `occursIn` is a definition and `event_localized` a theorem, which retires three
+    axioms (the carrier, the relation, and an empirical property) for the one commitment
+    stated here. Note the consequence: in a one-world-state model there are no events. -/
+structure Event where
+  before : World
+  after : World
+  changes : before ≠ after
 
 /-- A percept: what an agent actually registers from an event.
     This is the event filtered through the agent's coupling weight vector.
@@ -696,6 +751,30 @@ theorem polarizationAsBifurcation
   refine ⟨e, fun heq => ?_⟩
   rw [heq, perceptDist_self] at he
   exact he hε
+
+/-- An event occurs at the world state it changes: events are localized features of the one
+    objective world, not a separate B₁ (see § 3's "Marks are features of the one world"). -/
+def occursIn (e : Event) (w : World) : Prop := w = e.before
+
+/-- **Events are localized in the world.** Every event occurs in some world state and not in
+    every one. A theorem since 2026-10-18 (it was briefly an empirical axiom): it follows from
+    `Event` being a change of state, with the event's own `after` as the state where it does
+    not occur. -/
+theorem event_localized :
+    ∀ e : Event, (∃ w : World, occursIn e w) ∧ (∃ w : World, ¬ occursIn e w) :=
+  fun e => ⟨⟨e.before, rfl⟩, ⟨e.after, fun h => e.changes h.symm⟩⟩
+
+/-- **Polarization in the shared world.** `polarizationAsBifurcation` with its event placed:
+    two agents whose coupling vectors are not perceptually similar perceive differently an
+    event that occurs in a world state. "The same B₁ event, mapped onto different manifolds"
+    is now a statement about one world, not about an unanchored event type. -/
+theorem polarizationInSharedWorld
+    (v₁ v₂ : CouplingWeightVector) (ε : ℝ) (hε : 0 < ε)
+    (h : ¬ perceptuallySimilar v₁ v₂ ε) :
+    ∃ (e : Event) (w : World), occursIn e w ∧ perceptualFilter e v₁ ≠ perceptualFilter e v₂ := by
+  obtain ⟨e, he⟩ := polarizationAsBifurcation v₁ v₂ ε hε h
+  obtain ⟨w, hw⟩ := (event_localized e).1
+  exact ⟨e, w, hw, he⟩
 
 -- ════════════════════════════════════════════════════════════════
 -- §9. THE INTERVENTION CLASSES -- ADDITIVE AND SUBTRACTIVE

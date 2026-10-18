@@ -3,7 +3,8 @@ import Formal.Score.Core
 /-!
 # SCORE.CoreModel — a concrete model of Core's opaque spine (D3)
 
-`Core.lean` posits nine opaque carrier types and asserts axioms over them. Nothing showed
+`Core.lean` posits eight opaque carrier types (nine until 2026-10-18, when `Event`
+became a structure) and asserts axioms over them. Nothing showed
 those axioms were **jointly satisfiable**, and an inconsistent axiom set makes every
 theorem resting on it vacuously true — 179 theorems build, and that fact alone does not
 distinguish "proved" from "proved from a contradiction".
@@ -43,9 +44,14 @@ Collapse every carrier to `Unit`, every predicate to `True`, `perceptDist` to `0
 | `inscription_carried` | **satisfied** — the single mark carries everything |
 | `carrier_multiply_realizable` | **FAILS** — needs two distinct marks |
 | `mark_without_content` | **FAILS** — needs a mark carrying nothing |
+| `mark_localized` | **FAILS** — needs a second world state, where the mark is absent |
+| `event_localized` | *a theorem* (events are changes of state); a one-point world has no events |
 
-Only the last two have content in this sense, and both were added 2026-09-12 with exactly
-that job: they are what makes B₃ "realized without being reduced" say something. The rest
+Only `carrier_multiply_realizable`, `mark_without_content` and `mark_localized` have content
+in this sense. The first two were added 2026-09-12 with exactly that job: they are what makes
+B₃ "realized without being reduced" say something. `mark_localized` (2026-10-18) makes marks
+features of **one** world. Events need no axiom: `Event` is a structure (a change of world
+state), so the model below builds it from `World` rather than choosing it. The rest
 are satisfiable by a structure that asserts nothing — which is not a defect (a
 pseudometric axiom *should* admit the zero metric) but is worth knowing before treating
 any of them as an empirical commitment.
@@ -56,9 +62,11 @@ any of them as an empirical commitment.
 namespace SCORE.CoreModel
 
 -- ════════════════════════════════════════════════════════════════
--- §M1. CARRIERS — concrete choices for Core's nine opaque types
+-- §M1. CARRIERS — concrete choices for Core's eight opaque types
 -- Each is the smallest type that keeps the axioms below satisfiable.
 -- `B1Mark` is `Fin 3` and not `Unit` because §M3 forces it; see the header.
+-- `World` is `Bool` and not `Unit` because `mark_localized` forces two states.
+-- `Event` is not chosen here: Core defines it from `World` (a change of state); see §M5.
 -- ════════════════════════════════════════════════════════════════
 
 abbrev Agent := Fin 2
@@ -68,7 +76,6 @@ abbrev CognitiveState := Bool
 abbrev SigmaActor := Unit
 abbrev B1Mark := Fin 3
 abbrev Region := Unit
-abbrev Event := Unit
 abbrev Percept := Unit
 
 -- ════════════════════════════════════════════════════════════════
@@ -111,6 +118,13 @@ theorem mark_without_content : ∃ m : B1Mark, ∀ c, ¬ carriedBy c m := by
   intro c h
   rcases h with ⟨_, h2 | h2⟩ | ⟨_, h2⟩ <;> exact absurd h2 (by decide)
 
+/-- Marks are present in the `true` state and absent from the `false` one. -/
+def markIn (_ : B1Mark) (w : World) : Prop := w = true
+
+/-- Marks are localized in the world. UNSATISFIABLE in a one-point world. -/
+theorem mark_localized : ∀ m : B1Mark, (∃ w : World, markIn m w) ∧ (∃ w : World, ¬ markIn m w) :=
+  fun _ => ⟨⟨true, rfl⟩, ⟨false, by simp [markIn]⟩⟩
+
 /-- Realization without reduction, derived here exactly as in `Core.lean`. -/
 theorem b3_not_reducible_to_carrier :
     ¬ (∀ (c : InscriptionContent) (m₁ m₂ : B1Mark),
@@ -149,8 +163,16 @@ theorem normativeChangeChain (a : Agent) (cs : CognitiveState) (w : World) :
 -- constrain `perceptDist` to be a pseudometric and nothing more.
 -- ════════════════════════════════════════════════════════════════
 
+/-- Core's `Event`, rebuilt over this model's `World`: a change of state. Not a modelling
+    choice (Core defines it), so it is mirrored, not chosen. -/
+structure Event where
+  before : World
+  after : World
+  changes : before ≠ after
+
 def perceptualFilter (_ : Event) (_ : CouplingWeightVector) : Percept := ()
 def perceptDist (_ _ : Percept) : ℝ := 0
+
 
 theorem perceptDist_nonneg : ∀ p q, 0 ≤ perceptDist p q := by
   intro _ _; unfold perceptDist; norm_num
